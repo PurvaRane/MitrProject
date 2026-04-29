@@ -92,7 +92,7 @@ export default function RegisterPage() {
               className="form-input"
               type="text"
               name="name"
-              placeholder="e.g. Priya Sharma"
+              placeholder="e.g. ABC"
               value={form.name}
               onChange={handleChange}
               autoComplete="name"
