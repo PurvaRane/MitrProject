@@ -1,0 +1,70 @@
+.onboarding-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(8px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-lg);
+}
+
+.onboarding-modal {
+  max-width: 450px;
+  width: 100%;
+  padding: var(--space-xl);
+  text-align: center;
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-xl);
+}
+
+.onboarding-modal__icon {
+  font-size: 3.5rem;
+  margin-bottom: var(--space-md);
+}
+
+.onboarding-modal__title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin-bottom: var(--space-sm);
+}
+
+.onboarding-modal__text {
+  color: var(--text-muted);
+  line-height: 1.6;
+  margin-bottom: var(--space-xl);
+}
+
+.onboarding-modal__dots {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-xs);
+  margin-bottom: var(--space-xl);
+}
+
+.onboarding-modal__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--lavender-soft);
+  transition: all 0.3s ease;
+}
+
+.onboarding-modal__dot.active {
+  width: 24px;
+  border-radius: 5px;
+  background: var(--primary);
+}
+
+.onboarding-modal__btn {
+  width: 100%;
+  padding: var(--space-md);
+}
+
+@media (max-width: 480px) {
+  .onboarding-modal {
+    padding: var(--space-lg);
+  }
+}

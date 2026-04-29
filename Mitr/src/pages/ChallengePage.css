@@ -1,0 +1,162 @@
+/* ── ChallengePage.css ─────────────────────────────────────────────────────── */
+
+.challenge-page { min-height: 100vh; background: var(--off-white); }
+
+.challenge-header {
+  background: linear-gradient(135deg, #D6EAF8 0%, #D5F5E3 100%);
+  padding: var(--space-2xl) 0;
+  border-bottom: 1px solid rgba(174, 214, 241, 0.4);
+}
+
+/* Progress bar widget */
+.challenge-progress {
+  margin-top: var(--space-xl);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg) var(--space-xl);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  max-width: 600px;
+}
+
+.challenge-progress__info {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xl);
+  flex-wrap: wrap;
+}
+
+.challenge-progress__label {
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  margin-bottom: 2px;
+}
+
+.challenge-progress__stat {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.challenge-progress__num {
+  font-family: var(--font-heading);
+  font-size: 2rem;
+  color: var(--text-primary);
+  font-weight: 700;
+}
+
+.challenge-progress__den { color: var(--text-secondary); font-size: 0.9375rem; }
+
+.challenge-progress__streak {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--mint-deep);
+  background: var(--mint);
+  padding: 0.25rem 0.75rem;
+  border-radius: var(--radius-full);
+}
+
+.challenge-progress__enc { flex: 1; text-align: right; }
+.affirmation-text {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  font-style: italic;
+  animation: fadeIn 0.8s ease;
+}
+
+.challenge-progress__bar-wrap { display: flex; flex-direction: column; gap: var(--space-sm); }
+.challenge-progress__percent { font-size: 0.8125rem; color: var(--text-muted); }
+
+/* Single task layout */
+.challenge-single-wrap { max-width: 640px; margin: 0 auto; }
+
+.challenge-active-label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  margin-bottom: var(--space-lg);
+}
+
+.challenge-active-day { font-size: 0.875rem; color: var(--text-muted); }
+
+/* Day card */
+.day-card--featured { padding: var(--space-2xl); border-left: 4px solid var(--lavender-mid); }
+.day-card--done { border-left-color: var(--mint-mid); background: rgba(213, 245, 227, 0.15); }
+
+.day-card__head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  margin-bottom: var(--space-lg);
+}
+
+.day-card__number {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--lavender-deep);
+  background: var(--lavender);
+  padding: 0.25rem 0.75rem;
+  border-radius: var(--radius-full);
+}
+
+.day-card__check {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--mint-deep);
+  background: var(--mint);
+  padding: 0.25rem 0.75rem;
+  border-radius: var(--radius-full);
+}
+
+.day-card__title {
+  font-family: var(--font-heading);
+  font-size: 1.5rem;
+  color: var(--text-primary);
+  margin-bottom: var(--space-md);
+}
+.day-card__desc { color: var(--text-secondary); line-height: 1.75; margin-bottom: var(--space-xl); }
+
+/* Reflection */
+.day-card__refl-box { display: flex; flex-direction: column; gap: var(--space-md); margin-bottom: var(--space-lg); }
+.day-card__textarea { resize: vertical; min-height: 100px; }
+
+.day-card__upload-row { display: flex; flex-direction: column; gap: var(--space-sm); }
+.day-card__upload-label {
+  font-size: 0.875rem;
+  color: var(--blue-deep);
+  cursor: pointer;
+  font-weight: 500;
+}
+.day-card__img-preview { border-radius: var(--radius-md); max-height: 200px; object-fit: cover; }
+.day-card__refl-actions { display: flex; gap: var(--space-sm); }
+
+.day-card__refl-preview {
+  padding: var(--space-md);
+  background: var(--lavender);
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  margin-bottom: var(--space-md);
+  line-height: 1.6;
+}
+
+.day-card__actions { margin-top: var(--space-xl); }
+
+/* Locked notice */
+.challenge-locked-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-lg);
+  margin-top: var(--space-xl);
+  padding: var(--space-lg) var(--space-xl);
+  border-radius: var(--radius-lg);
+}
+
+.challenge-locked-notice__icon {
+  color: var(--text-muted);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.challenge-locked-notice strong { display: block; color: var(--text-primary); margin-bottom: 4px; }
+.challenge-locked-notice p { font-size: 0.875rem; color: var(--text-secondary); }
