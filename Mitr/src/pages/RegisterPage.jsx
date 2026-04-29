@@ -34,16 +34,18 @@ export default function RegisterPage() {
     setError('');
   };
 
+  const isFormValid = 
+    form.name.trim() && 
+    /^\d{9}$/.test(form.misId) && 
+    form.year && 
+    form.branch && 
+    form.password.length >= 4 && 
+    form.password === form.confirmPassword;
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!isFormValid) return;
     setError('');
-
-    // Client-side validation
-    if (!form.name.trim()) { setError('Full name is required.'); return; }
-    if (!/^\d{9}$/.test(form.misId)) { setError('MIS ID must be exactly 9 digits.'); return; }
-    if (!form.branch) { setError('Please select your branch.'); return; }
-    if (form.password.length < 4) { setError('Password must be at least 4 characters.'); return; }
-    if (form.password !== form.confirmPassword) { setError('Passwords do not match.'); return; }
 
     setLoading(true);
     try {
@@ -200,7 +202,7 @@ export default function RegisterPage() {
             id="register-submit-btn"
             type="submit"
             className="btn btn-primary register-form__submit"
-            disabled={loading}
+            disabled={loading || !isFormValid}
           >
             {loading ? <><span className="register-spinner" /> Creating account…</> : 'Create Account'}
           </button>
@@ -216,7 +218,6 @@ export default function RegisterPage() {
         </div>
       </div>
 
-      {/* Side panel */}
       <div className="register-side animate-slide-in delay-200">
         <div className="register-side__content glass" style={{ padding: 'var(--space-xl)', borderRadius: 'var(--radius-xl)' }}>
           <h2 className="register-side__title">Join the community</h2>
