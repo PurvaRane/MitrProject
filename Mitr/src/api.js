@@ -3,8 +3,10 @@
  * All backend calls route through here. Token is auto-attached.
  */
 
-// Use the VITE_API_URL environment variable, defaulting to localhost for development
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001/api';
+// Construct Base URL: import.meta.env.VITE_API_URL + "/api"
+// Default to localhost:5001 if env var is missing
+const API_HOST = import.meta.env.VITE_API_URL || 'http://localhost:5001';
+const BASE_URL = `${API_HOST.endsWith('/') ? API_HOST.slice(0, -1) : API_HOST}/api`;
 
 console.log('[API] Environment:', import.meta.env.MODE);
 console.log('[API] Base URL:', BASE_URL);
@@ -22,10 +24,9 @@ async function request(endpoint, options = {}) {
     ...options.headers,
   };
 
-  // Ensure BASE_URL doesn't end with a slash if endpoint starts with one, or vice versa
-  const cleanBase = BASE_URL.endsWith('/') ? BASE_URL.slice(0, -1) : BASE_URL;
+  // Ensure BASE_URL and endpoint joining is clean
   const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
-  const fullUrl = `${cleanBase}${cleanEndpoint}`;
+  const fullUrl = `${BASE_URL}${cleanEndpoint}`;
 
   console.log(`[API] ${options.method || 'GET'} ${fullUrl}`);
 
