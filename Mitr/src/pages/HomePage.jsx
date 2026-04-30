@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import './HomePage.css';
+import mentalHealthIllustration from '../assets/illustrations/mental-health.png';
 
 function useIntersect(ref) {
   useEffect(() => {
@@ -51,32 +52,12 @@ export default function HomePage() {
           </div>
 
           <div className="hero__illustration animate-float">
-            <div className="hero__svg-wrap">
-              <svg viewBox="0 0 400 380" className="hero__svg" aria-hidden="true">
-                <defs>
-                  <linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#D6EAF8"/>
-                    <stop offset="100%" stopColor="#E8DAEF"/>
-                  </linearGradient>
-                  <linearGradient id="grassGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#A9DFBF"/>
-                    <stop offset="100%" stopColor="#D5F5E3"/>
-                  </linearGradient>
-                </defs>
-                <rect width="400" height="380" fill="url(#skyGrad)" rx="24"/>
-                <circle cx="320" cy="80" r="42" fill="#FDEBD0" opacity="0.85"/>
-                <ellipse cx="80" cy="90" rx="60" ry="22" fill="white" opacity="0.7"/>
-                <ellipse cx="210" cy="100" rx="50" ry="18" fill="white" opacity="0.55"/>
-                <ellipse cx="200" cy="270" rx="140" ry="38" fill="#AED6F1" opacity="0.75"/>
-                <rect x="0" y="310" width="400" height="70" fill="url(#grassGrad)"/>
-                <rect x="68" y="220" width="10" height="80" rx="4" fill="#6E6E6E" opacity="0.45"/>
-                <ellipse cx="73" cy="210" rx="30" ry="35" fill="#52BE80" opacity="0.8"/>
-                <ellipse cx="73" cy="200" rx="22" ry="25" fill="#A9DFBF"/>
-                <rect x="302" y="230" width="10" height="70" rx="4" fill="#6E6E6E" opacity="0.45"/>
-                <ellipse cx="307" cy="220" rx="28" ry="32" fill="#52BE80" opacity="0.75"/>
-                <circle cx="200" cy="252" r="14" fill="#FADBD8" stroke="#F5B7B1" strokeWidth="2"/>
-                <path d="M186 268 Q200 280 214 268 L216 305 Q200 312 184 305 Z" fill="#E8DAEF"/>
-              </svg>
+            <div className="hero__img-wrap">
+              <img 
+                src={mentalHealthIllustration} 
+                alt="Mental Health Illustration" 
+                className="hero__illustration-img"
+              />
             </div>
           </div>
         </div>
