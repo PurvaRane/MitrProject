@@ -221,7 +221,7 @@ export default function UserDashboard() {
           {eventsLoading ? <div className="ud-loading">Loading events…</div>
           : events.length === 0 ? <div className="user-dash__empty"><p>No events scheduled yet.</p></div>
           : (
-            <div className="user-dash__events-grid">
+            <div className="user-dash__events-grid grid-responsive">
               {events.slice(0, 3).map(ev => {
                 const days = getDaysUntil(ev.date);
                 return (

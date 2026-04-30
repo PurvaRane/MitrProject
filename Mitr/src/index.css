@@ -421,6 +421,9 @@ input, textarea, select {
 }
 
 /* ─── Responsive Helpers ─────────────────────── */
+.desktop-only { display: block; }
+.mobile-only  { display: none; }
+
 @media (max-width: 1024px) {
   .container { max-width: 960px; padding-inline: var(--space-xl); }
 }
@@ -432,9 +435,12 @@ input, textarea, select {
     --space-xl: 1.5rem;
   }
   
+  .desktop-only { display: none !important; }
+  .mobile-only  { display: block !important; }
+  
   .container { padding-inline: var(--space-md); }
-  .section   { padding-block: var(--space-2xl); }
-  .card      { padding: var(--space-lg); }
+  .section   { padding-block: var(--space-xl); }
+  .card      { padding: var(--space-md); }
   .btn       { width: 100%; justify-content: center; padding: 0.75rem 1.5rem; }
   
   .mobile-stack { flex-direction: column !important; align-items: stretch !important; gap: var(--space-md) !important; }
@@ -447,8 +453,8 @@ input, textarea, select {
 }
 
 @media (max-width: 480px) {
-  .section-title { font-size: 1.625rem; }
-  .section-subtitle { font-size: 0.9375rem; }
+  .section-title { font-size: 1.5rem; }
+  .section-subtitle { font-size: 0.875rem; }
   .form-input { padding: 0.75rem 1rem; }
   .container { padding-inline: var(--space-md); }
 }
@@ -458,6 +464,20 @@ input, textarea, select {
 .grid-2 { grid-template-columns: repeat(2, 1fr); }
 .grid-3 { grid-template-columns: repeat(3, 1fr); }
 .grid-4 { grid-template-columns: repeat(4, 1fr); }
+
+/* Responsive Grid (3 -> 2 -> 1) */
+.grid-responsive {
+  display: grid;
+  gap: var(--space-lg);
+  grid-template-columns: repeat(3, 1fr);
+}
+
+@media (max-width: 1024px) {
+  .grid-responsive { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 768px) {
+  .grid-responsive { grid-template-columns: 1fr; }
+}
 
 /* Close button mini */
 .btn-close-mini {

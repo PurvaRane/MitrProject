@@ -468,20 +468,26 @@
 
 /* ═══════════════════════════════════════
    RESPONSIVE
-═══════════════════════════════════════ */
+   ═══════════════════════════════════════ */
 @media (max-width: 960px) {
-  .hero__content { grid-template-columns: 1fr; text-align: center; gap: var(--space-2xl); }
+  .hero__content { 
+    grid-template-columns: 1fr; 
+    text-align: center; 
+    gap: var(--space-2xl); 
+    padding-top: var(--space-xl);
+  }
   .hero__sub { margin-inline: auto; }
   .hero__cta { justify-content: center; }
   .hero__affirmation { text-align: center; }
-  .hero__illustration { order: -1; }
+  .hero__illustration { order: -1; margin-bottom: var(--space-lg); }
   .hero__card-float { right: 0; top: 0; }
   .about__inner { grid-template-columns: 1fr; }
-  .highlights__grid { grid-template-columns: repeat(2, 1fr); }
-  .challenge-banner__inner { grid-template-columns: 1fr; }
+  .challenge-banner__inner { grid-template-columns: 1fr; text-align: center; }
+  .challenge-banner__cta { justify-content: center; }
 }
 
 @media (max-width: 600px) {
-  .highlights__grid { grid-template-columns: 1fr; }
-  .hero__heading { font-size: 2rem; }
+  .hero__heading { font-size: 1.875rem; }
+  .hero__sub { font-size: 0.9375rem; }
+  .challenge-mini-days { grid-template-columns: repeat(6, 1fr); }
 }

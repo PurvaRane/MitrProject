@@ -118,7 +118,7 @@ export default function HomePage() {
                 <h2 className="section-title">Our Services</h2>
                 <div className="divider" />
               </div>
-              <div className="highlights__grid">
+              <div className="highlights__grid grid-responsive">
                 {wellnessInfo.services.map((s, i) => (
                   <div key={i} className={`highlight-card card highlight-card--${['blue','lavender','mint','peach'][i % 4]}`}>
                     <h3 className="highlight-card__title">{s.title}</h3>

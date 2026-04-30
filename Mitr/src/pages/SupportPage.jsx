@@ -37,7 +37,7 @@ export default function SupportPage() {
             {wellnessInfo.services?.length > 0 && (
               <div className="support-services">
                 <h3 className="support-services__title">Available Services</h3>
-                <div className="support-services__grid">
+                <div className="support-services__grid grid-responsive">
                   {wellnessInfo.services.map((s, i) => (
                     <div key={i} className="support-service-card card">
                       <div className="support-service-card__title">{s.title}</div>

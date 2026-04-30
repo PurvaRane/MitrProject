@@ -8,12 +8,20 @@
   border-bottom: 1px solid rgba(174, 214, 241, 0.4);
 }
 
+.events-filters-wrap {
+  margin-top: var(--space-xl);
+  width: 100%;
+}
+
 .events-filters {
   display: flex;
   gap: var(--space-sm);
-  flex-wrap: wrap;
-  margin-top: var(--space-xl);
+  overflow-x: auto;
+  padding-bottom: 8px;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
+.events-filters::-webkit-scrollbar { display: none; }
 
 .events-filter-btn {
   padding: 0.5rem 1.25rem;

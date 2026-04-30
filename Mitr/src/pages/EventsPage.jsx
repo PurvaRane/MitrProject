@@ -53,16 +53,18 @@ export default function EventsPage() {
           </p>
 
           {/* Filters */}
-          <div className="events-filters" role="group" aria-label="Filter events">
-            {FILTERS.map(f => (
-              <button
-                key={f}
-                className={`events-filter-btn ${filter === f ? 'active' : ''}`}
-                onClick={() => setFilter(f)}
-              >
-                {f}
-              </button>
-            ))}
+          <div className="events-filters-wrap">
+            <div className="events-filters" role="group" aria-label="Filter events">
+              {FILTERS.map(f => (
+                <button
+                  key={f}
+                  className={`events-filter-btn ${filter === f ? 'active' : ''}`}
+                  onClick={() => setFilter(f)}
+                >
+                  {f}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       </div>
@@ -95,7 +97,7 @@ export default function EventsPage() {
             <p>No <strong>{filter}</strong> events right now. Check back soon.</p>
           </div>
         ) : (
-          <div className="events-grid">
+          <div className="events-grid grid-responsive">
             {filtered.map((ev) => {
               const days  = getDaysUntil(ev.date);
               const badge = CATEGORY_BADGE[ev.category] || 'badge-blue';

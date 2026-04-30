@@ -183,9 +183,11 @@
   transition: background var(--transition-fast);
 }
 
-.navbar__drawer-link:hover {
+.navbar__drawer-link:hover,
+.navbar__drawer-link--active {
   background: var(--baby-blue);
   color: var(--blue-text);
+  font-weight: 600;
 }
 
 .navbar__drawer-actions {

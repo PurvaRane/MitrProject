@@ -39,11 +39,14 @@
 .admin-dash__sub { color: var(--text-secondary); font-size: 0.9375rem; }
 
 /* Tabs */
+.admin-dash__tabs-wrap {
+  padding: var(--space-lg) 0;
+  border-bottom: 2px solid var(--baby-blue);
+}
+
 .admin-dash__tabs {
   display: flex;
   gap: var(--space-sm);
-  padding: var(--space-lg) 0;
-  border-bottom: 2px solid var(--baby-blue);
 }
 
 .admin-tab-btn {
@@ -63,6 +66,16 @@
   border-color: var(--blue-mid);
   box-shadow: var(--shadow-sm);
   font-weight: 600;
+}
+
+.admin-dash__mobile-nav {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.admin-dash__content {
+  padding-block: var(--space-xl);
 }
 
 /* Toast */

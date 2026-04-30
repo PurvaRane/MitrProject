@@ -35,7 +35,7 @@ function OverviewTab({ setTab }) {
 
   return (
     <div>
-      <div className="admin-stats-grid">
+      <div className="admin-stats-grid grid-responsive">
         {[
           { label: 'Total Users', val: stats?.totalUsers ?? '—', color: 'blue' },
           { label: 'Active Users', val: stats?.activeUsersCount ?? '—', color: 'mint' },
@@ -50,7 +50,7 @@ function OverviewTab({ setTab }) {
           </div>
         ))}
       </div>
-      <div className="admin-quick-actions">
+      <div className="admin-quick-actions grid-responsive">
         {[
           { icon: '📅', title: 'Manage Events', desc: 'Add, edit or delete events', tab: 'Events', color: 'blue' },
           { icon: '📝', title: 'User Submissions', desc: 'View reflections & images', tab: 'Submissions', color: 'mint' },
@@ -543,7 +543,7 @@ function AnalyticsTab() {
 
   return (
     <div>
-      <div className="admin-stats-grid" style={{ marginBottom: 'var(--space-xl)' }}>
+      <div className="admin-stats-grid grid-responsive" style={{ marginBottom: 'var(--space-xl)' }}>
         {[
           { label: 'Active Users', val: stats.activeUsersCount, color: 'blue' },
           { label: 'Inactive Users', val: stats.inactiveUsersCount, color: 'peach' },
@@ -612,32 +612,54 @@ function AnalyticsTab() {
 }
 
 // ── Main AdminDashboard ───────────────────────────────────────────────────────
+import { useSearchParams } from 'react-router-dom';
+
 export default function AdminDashboard() {
-  const [tab, setTab] = useState('Overview');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const tab = searchParams.get('tab') || 'Overview';
+
+  const setTab = (t) => {
+    setSearchParams({ tab: t });
+  };
 
   return (
     <div className="admin-dash">
       <div className="admin-dash__header">
         <div className="container admin-dash__header-inner">
-          <div>
+          <div className="admin-dash__header-text">
             <span className="section-tag">Admin Panel</span>
             <h1 className="admin-dash__title">COEP मित्र — Control Centre</h1>
             <p className="admin-dash__sub">Manage all platform content, challenge, and monitor student engagement.</p>
           </div>
-          <div className="admin-dash__header-actions">
+          <div className="admin-dash__header-actions desktop-only">
             <span className="admin-dash__welcome">Logged in as <strong>Admin</strong></span>
           </div>
         </div>
         <div className="container">
-          <div className="admin-dash__tabs">
-            {TABS.map(t => (
-              <button key={t} className={`admin-tab-btn ${tab === t ? 'admin-tab-btn--active' : ''}`} onClick={() => setTab(t)}>{t}</button>
-            ))}
+          <div className="admin-dash__tabs-wrap">
+            {/* Desktop Tabs */}
+            <div className="admin-dash__tabs desktop-only">
+              {TABS.map(t => (
+                <button key={t} className={`admin-tab-btn ${tab === t ? 'admin-tab-btn--active' : ''}`} onClick={() => setTab(t)}>{t}</button>
+              ))}
+            </div>
+            {/* Mobile Dropdown */}
+            <div className="admin-dash__mobile-nav mobile-only">
+              <label className="form-label" htmlFor="admin-tab-select">Select Section</label>
+              <select 
+                id="admin-tab-select"
+                className="form-input" 
+                value={tab} 
+                onChange={(e) => setTab(e.target.value)}
+              >
+                {TABS.map(t => <option key={t} value={t}>{t}</option>)}
+              </select>
+            </div>
           </div>
         </div>
       </div>
 
-      <div className="container" style={{ paddingBlock: 'var(--space-2xl)' }}>
+      <div className="container admin-dash__content">
         {tab === 'Overview'    && <OverviewTab setTab={setTab} />}
         {tab === 'Events'      && <EventsTab />}
         {tab === 'Reports'     && <ReportsTab />}

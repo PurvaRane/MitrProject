@@ -17,7 +17,13 @@ const studentLinks = [
 ];
 
 const adminLinks = [
-  { to: '/admin-dashboard', label: 'Dashboard' },
+  { to: '/admin-dashboard?tab=Overview',    label: 'Overview'    },
+  { to: '/admin-dashboard?tab=Events',      label: 'Events'      },
+  { to: '/admin-dashboard?tab=Reports',     label: 'Reports'     },
+  { to: '/admin-dashboard?tab=Challenge',   label: 'Challenge'   },
+  { to: '/admin-dashboard?tab=Wellness',    label: 'Wellness'    },
+  { to: '/admin-dashboard?tab=Submissions', label: 'Submissions' },
+  { to: '/admin-dashboard?tab=Analytics',   label: 'Analytics'   },
 ];
 
 export default function Navbar() {
@@ -58,15 +64,20 @@ export default function Navbar() {
 
         {/* Desktop nav */}
         <nav className="navbar__links" aria-label="Main navigation">
-          {links.map(({ to, label }) => (
-            <Link
-              key={to}
-              to={to}
-              className={`navbar__link ${location.pathname === to ? 'navbar__link--active' : ''}`}
-            >
-              {label}
-            </Link>
-          ))}
+            {links.map(({ to, label }) => {
+              const isActive = to.includes('?') 
+                ? location.pathname + location.search === to
+                : location.pathname === to;
+              return (
+                <Link
+                  key={to}
+                  to={to}
+                  className={`navbar__link ${isActive ? 'navbar__link--active' : ''}`}
+                >
+                  {label}
+                </Link>
+              );
+            })}
         </nav>
 
         {/* Actions */}
@@ -101,9 +112,20 @@ export default function Navbar() {
 
       {/* Mobile drawer */}
       <div className={`navbar__drawer ${menuOpen ? 'navbar__drawer--open' : ''}`}>
-        {links.map(({ to, label }) => (
-          <Link key={to} to={to} className="navbar__drawer-link">{label}</Link>
-        ))}
+        {links.map(({ to, label }) => {
+          const isActive = to.includes('?') 
+            ? location.pathname + location.search === to
+            : location.pathname === to;
+          return (
+            <Link 
+              key={to} 
+              to={to} 
+              className={`navbar__drawer-link ${isActive ? 'navbar__drawer-link--active' : ''}`}
+            >
+              {label}
+            </Link>
+          );
+        })}
         <div className="navbar__drawer-actions">
           {user ? (
             <button className="btn btn-secondary" onClick={handleLogout} style={{ width: '100%' }}>
