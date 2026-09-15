@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../App';
 import { useApp } from '../context/AppContext';
-import { adminAPI, submissionsAPI } from '../api';
+import { adminAPI, submissionsAPI, appointmentAPI } from '../api';
 import './AdminDashboard.css';
 
-const TABS = ['Overview', 'Events', 'Reports', 'Challenge', 'Wellness', 'Submissions', 'Analytics'];
+const TABS = ['Overview', 'Events', 'Appointments', 'Reports', 'Challenge', 'Wellness', 'Submissions', 'Analytics'];
 const CATEGORIES = ['Workshop', 'Awareness', 'Challenge', 'Seminar', 'Other'];
 
 function formatDate(d) {
@@ -53,6 +53,7 @@ function OverviewTab({ setTab }) {
       <div className="admin-quick-actions grid-responsive">
         {[
           { icon: '📅', title: 'Manage Events', desc: 'Add, edit or delete events', tab: 'Events', color: 'blue' },
+          { icon: '📆', title: 'Appointments', desc: 'Manage slots & bookings', tab: 'Appointments', color: 'peach' },
           { icon: '📝', title: 'User Submissions', desc: 'View reflections & images', tab: 'Submissions', color: 'mint' },
           { icon: '🌱', title: 'Challenge Control', desc: 'Set active day & manage tasks', tab: 'Challenge', color: 'lavender' },
           { icon: '📊', title: 'View Analytics', desc: 'Monitor trends & engagement', tab: 'Analytics', color: 'peach' },
@@ -611,6 +612,117 @@ function AnalyticsTab() {
   );
 }
 
+// ── Appointments Tab ──────────────────────────────────────────────────────────
+function AppointmentsTab() {
+  const [appointments, setAppointments] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [toast, setToast] = useState({ msg: '', type: 'success' });
+  const [filter, setFilter] = useState('all'); // all, upcoming, today, pending
+  
+  const showToast = (msg, type = 'success') => { setToast({ msg, type }); setTimeout(() => setToast({ msg: '', type: 'success' }), 3000); };
+
+  const fetchAppts = async () => {
+    setLoading(true);
+    try {
+      const res = await appointmentAPI.adminGetAll({ filter });
+      if (res.success) setAppointments(res.appointments);
+    } catch (err) {
+      showToast(err.message, 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => { fetchAppts(); }, [filter]);
+
+  const handleStatusChange = async (id, status) => {
+    try {
+      await appointmentAPI.adminUpdateStatus(id, status);
+      showToast(`Appointment marked as ${status}`);
+      fetchAppts();
+    } catch (err) {
+      showToast(err.message, 'error');
+    }
+  };
+
+  const handleCancel = async (id) => {
+    const reason = prompt("Enter cancellation reason (optional):");
+    if (reason === null) return;
+    try {
+      await appointmentAPI.adminCancelAppointment(id, reason);
+      showToast('Appointment cancelled');
+      fetchAppts();
+    } catch (err) {
+      showToast(err.message, 'error');
+    }
+  };
+
+  return (
+    <div>
+      <div className="admin-submissions-header">
+        <h2 className="admin-section-title">Manage Appointments</h2>
+        <div className="admin-submissions-filters card">
+          <div className="form-group">
+            <label className="form-label">Filter</label>
+            <select className="form-input" value={filter} onChange={e => setFilter(e.target.value)}>
+              <option value="all">All Appointments</option>
+              <option value="upcoming">Upcoming</option>
+              <option value="today">Today</option>
+              <option value="pending">Pending</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {loading ? (
+        <div className="admin-loading">Loading appointments…</div>
+      ) : appointments.length === 0 ? (
+        <div className="card admin-empty"><p>No appointments found.</p></div>
+      ) : (
+        <div className="admin-subs-table-wrap card">
+          <table className="admin-subs-table">
+            <thead>
+              <tr>
+                <th>Date & Time</th>
+                <th>Student</th>
+                <th>MIS ID</th>
+                <th>Status</th>
+                <th>Reason</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {appointments.map(a => (
+                <tr key={a._id}>
+                  <td>
+                    <strong>{formatDate(a.date)}</strong>
+                    <br/><span className="text-muted">{a.startTime}</span>
+                  </td>
+                  <td>{a.studentId?.name || 'Unknown'}</td>
+                  <td>{a.studentId?.misId || '—'}</td>
+                  <td><span className={`badge badge-${a.status === 'completed' ? 'mint' : a.status === 'cancelled' ? 'peach' : 'blue'}`}>{a.status}</span></td>
+                  <td><div title={a.reason} style={{maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'}}>{a.reason || '—'}</div></td>
+                  <td>
+                    <div style={{ display: 'flex', gap: '4px' }}>
+                      {a.status !== 'cancelled' && a.status !== 'completed' && (
+                        <>
+                          <button className="btn btn-mint btn-sm" onClick={() => handleStatusChange(a._id, 'completed')}>Done</button>
+                          <button className="btn btn-peach btn-sm" onClick={() => handleCancel(a._id)}>Cancel</button>
+                        </>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+      <Toast {...toast} />
+    </div>
+  );
+}
+
 // ── Main AdminDashboard ───────────────────────────────────────────────────────
 import { useSearchParams } from 'react-router-dom';
 
@@ -662,6 +774,7 @@ export default function AdminDashboard() {
       <div className="container admin-dash__content">
         {tab === 'Overview'    && <OverviewTab setTab={setTab} />}
         {tab === 'Events'      && <EventsTab />}
+        {tab === 'Appointments' && <AppointmentsTab />}
         {tab === 'Reports'     && <ReportsTab />}
         {tab === 'Challenge'   && <ChallengeTab />}
         {tab === 'Wellness'    && <WellnessTab />}

@@ -60,3 +60,57 @@
 @media (max-width: 600px) {
   .support-services__grid { grid-template-columns: 1fr; }
 }
+
+/* Counselor Card */
+.counselor-card {
+  display: flex;
+  gap: var(--space-2xl);
+  padding: var(--space-2xl);
+  background: white;
+  border-radius: var(--radius-lg);
+  border-left: 4px solid var(--blue-mid);
+}
+
+.counselor-card__content { flex: 2; }
+.counselor-card__actions {
+  flex: 1;
+  background: var(--off-white);
+  padding: var(--space-xl);
+  border-radius: var(--radius-md);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.counselor-card__name {
+  font-family: var(--font-heading);
+  font-size: 1.5rem;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+.counselor-card__designation { font-weight: 600; color: var(--blue-deep); font-size: 0.9375rem; margin-bottom: 4px; }
+.counselor-card__role { color: var(--text-secondary); font-size: 0.875rem; margin-bottom: var(--space-lg); }
+
+.counselor-card__details {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+.counselor-card__detail strong { color: var(--text-primary); margin-right: 4px; }
+
+.counselor-card__note {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+  margin-bottom: var(--space-lg);
+  text-align: center;
+}
+
+.w-full { width: 100%; }
+.text-center { text-align: center; }
+
+@media (max-width: 900px) {
+  .counselor-card { flex-direction: column; gap: var(--space-lg); padding: var(--space-xl); }
+}

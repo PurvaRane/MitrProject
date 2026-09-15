@@ -1,10 +1,26 @@
-import React from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { Link } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
+import { AuthContext } from '../App';
+import { appointmentAPI } from '../api';
 import './SupportPage.css';
 
 export default function SupportPage() {
   const { wellnessInfo, wellnessLoading } = useApp();
+  const { user } = useContext(AuthContext);
+  const [counselor, setCounselor] = useState(null);
+
+  useEffect(() => {
+    const fetchCounselor = async () => {
+      try {
+        const res = await appointmentAPI.getCounselor();
+        if (res.success) setCounselor(res.counselor);
+      } catch (err) {
+        console.error('Failed to fetch counselor', err);
+      }
+    };
+    fetchCounselor();
+  }, []);
 
   return (
     <div className="support-page">
@@ -58,6 +74,43 @@ export default function SupportPage() {
           </div>
         )}
       </section>
+
+      {/* Counselor Card */}
+      {counselor && (
+        <section className="section container">
+          <div className="card counselor-card">
+            <div className="counselor-card__content">
+              <div className="counselor-card__header">
+                <span className="section-tag">Professional Support</span>
+                <h2 className="counselor-card__name">{counselor.name}</h2>
+                <p className="counselor-card__designation">{counselor.designation}</p>
+                <p className="counselor-card__role">{counselor.role}</p>
+              </div>
+              
+              <div className="counselor-card__details">
+                <div className="counselor-card__detail">
+                  <strong>Department:</strong> {counselor.department}
+                </div>
+                <div className="counselor-card__detail">
+                  <strong>Institution:</strong> {counselor.institution}
+                </div>
+                <div className="counselor-card__detail">
+                  <strong>Email:</strong> {counselor.email}
+                </div>
+              </div>
+            </div>
+            
+            <div className="counselor-card__actions">
+              <p className="counselor-card__note">Confidential one-on-one sessions are available for all enrolled students.</p>
+              {user ? (
+                <Link to="/book-appointment" className="btn btn-primary w-full text-center" style={{ display: 'block' }}>Book an Appointment</Link>
+              ) : (
+                <Link to="/login" className="btn btn-secondary w-full text-center" style={{ display: 'block' }}>Login to Book</Link>
+              )}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* CTA */}
       <section className="section" style={{ background: 'linear-gradient(180deg, white 0%, var(--baby-blue) 100%)' }}>

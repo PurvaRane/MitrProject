@@ -14,6 +14,7 @@ import wellnessRoutes     from './routes/wellnessRoutes.js';
 import eventReportRoutes  from './routes/eventReportRoutes.js';
 import adminRoutes        from './routes/adminRoutes.js';
 import journalRoutes      from './routes/journalRoutes.js';
+import appointmentRoutes  from './routes/appointmentRoutes.js';
 
 dotenv.config();
 connectDB();
@@ -68,6 +69,7 @@ app.use('/api/wellness-info', wellnessRoutes);
 app.use('/api/event-reports', eventReportRoutes);
 app.use('/api/admin',         adminRoutes);
 app.use('/api/journal',       journalRoutes);
+app.use('/api/appointments',  appointmentRoutes);
 
 // ── 404 ───────────────────────────────────────────────────────────────────────
 app.use((req, res) => {

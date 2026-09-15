@@ -132,3 +132,22 @@ export const adminAPI = {
   getStats: () => request('/admin/stats'),
   getChallengeStats: () => request('/admin/challenge-stats'),
 };
+
+// ── Appointments ──────────────────────────────────────────────────────────────
+export const appointmentAPI = {
+  getCounselor: () => request('/appointments/counselor'),
+  getAvailability: (year, month) => request(`/appointments/availability?year=${year}&month=${month}`),
+  getDateSlots: (date) => request(`/appointments/availability/date?date=${date}`),
+  book: (data) => request('/appointments/book', { method: 'POST', body: JSON.stringify(data) }),
+  getMyAppointments: () => request('/appointments/my'),
+  cancelAppointment: (id) => request(`/appointments/cancel/${id}`, { method: 'PATCH' }),
+  // Admin
+  adminGetAll: (filters) => request(`/appointments/admin/all?${new URLSearchParams(filters)}`),
+  adminGetStats: () => request('/appointments/admin/stats'),
+  adminGetToday: () => request('/appointments/admin/today'),
+  adminSetAvailability: (data) => request('/appointments/admin/availability', { method: 'POST', body: JSON.stringify(data) }),
+  adminRemoveSlot: (data) => request('/appointments/admin/availability', { method: 'DELETE', body: JSON.stringify(data) }),
+  adminToggleDay: (data) => request('/appointments/admin/toggle-day', { method: 'PATCH', body: JSON.stringify(data) }),
+  adminUpdateStatus: (id, status) => request(`/appointments/admin/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status }) }),
+  adminCancelAppointment: (id, reason) => request(`/appointments/admin/${id}/cancel`, { method: 'PATCH', body: JSON.stringify({ reason }) }),
+};

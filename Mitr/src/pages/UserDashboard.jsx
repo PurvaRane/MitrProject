@@ -2,7 +2,7 @@ import React, { useContext, useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { AuthContext } from '../App';
 import { useApp } from '../context/AppContext';
-import { authAPI } from '../api';
+import { authAPI, appointmentAPI } from '../api';
 import OnboardingModal from '../components/OnboardingModal';
 import './UserDashboard.css';
 
@@ -31,6 +31,23 @@ export default function UserDashboard() {
   const [imagePreview, setImagePreview] = useState(null);
   const [expandReport, setExpandReport] = useState(null);
   const [showOnboarding, setShowOnboarding] = useState(false);
+
+  const [appointments, setAppointments] = useState({ upcoming: [], past: [] });
+  const [appointmentsLoading, setAppointmentsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchAppointments = async () => {
+      try {
+        const res = await appointmentAPI.getMyAppointments();
+        if (res.success) setAppointments({ upcoming: res.upcoming, past: res.past });
+      } catch (err) {
+        console.error('Failed to fetch appointments', err);
+      } finally {
+        setAppointmentsLoading(false);
+      }
+    };
+    fetchAppointments();
+  }, []);
 
   useEffect(() => {
     if (user && user.hasSeenOnboarding === false) {
@@ -208,6 +225,51 @@ export default function UserDashboard() {
                   {streak > 0 ? `${streak}-day streak` : 'Start your streak today'}
                 </span>
               </div>
+            </div>
+          )}
+        </section>
+
+        {/* ── My Appointments ── */}
+        <section className="user-dash__section">
+          <div className="user-dash__section-header">
+            <span className="section-tag">My Appointments</span>
+            <Link to="/book-appointment" className="btn btn-mint btn-sm">Book New</Link>
+          </div>
+          {appointmentsLoading ? (
+            <div className="ud-loading">Loading appointments…</div>
+          ) : appointments.upcoming.length === 0 && appointments.past.length === 0 ? (
+            <div className="user-dash__empty card">
+              <p>You have no appointments. Reach out to a counselor if you need support.</p>
+            </div>
+          ) : (
+            <div className="ud-appointments">
+              {appointments.upcoming.length > 0 && (
+                <div className="ud-appointments-group">
+                  <h3 className="ud-appointments-group-title">Upcoming</h3>
+                  {appointments.upcoming.map(a => (
+                    <div key={a._id} className="ud-appt-card upcoming card">
+                      <div className="ud-appt-card__left">
+                        <span className="badge badge-mint">{a.status}</span>
+                        <h4 className="ud-appt-card__date">{formatDate(a.date)} at {a.startTime}</h4>
+                        <p className="ud-appt-card__counselor">Counselor Session</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {appointments.past.length > 0 && (
+                <div className="ud-appointments-group mt-xl">
+                  <h3 className="ud-appointments-group-title">Past & Cancelled</h3>
+                  {appointments.past.slice(0, 3).map(a => (
+                    <div key={a._id} className="ud-appt-card past">
+                      <div className="ud-appt-card__left">
+                        <span className={`badge badge-${a.status === 'completed' ? 'blue' : 'peach'}`}>{a.status}</span>
+                        <span className="ud-appt-card__date">{formatDate(a.date)}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </section>

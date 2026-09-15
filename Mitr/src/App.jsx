@@ -14,6 +14,7 @@ import EventsPage     from './pages/EventsPage';
 import ChallengePage  from './pages/ChallengePage';
 import ReflectionPage from './pages/ReflectionPage';
 import SupportPage    from './pages/SupportPage';
+import BookAppointment from './pages/BookAppointment';
 import AdminDashboard from './pages/AdminDashboard';
 import UserDashboard  from './pages/UserDashboard';
 
@@ -120,6 +121,7 @@ function App() {
                 <Route path="/events"         element={<ProtectedRoute><EventsPage /></ProtectedRoute>} />
                 <Route path="/challenge"      element={<ProtectedRoute><ChallengePage /></ProtectedRoute>} />
                 <Route path="/reflect"        element={<ProtectedRoute><ReflectionPage /></ProtectedRoute>} />
+                <Route path="/book-appointment" element={<ProtectedRoute><BookAppointment /></ProtectedRoute>} />
 
                 {/* Admin routes */}
                 <Route path="/admin-dashboard" element={<ProtectedRoute requireAdmin><AdminDashboard /></ProtectedRoute>} />

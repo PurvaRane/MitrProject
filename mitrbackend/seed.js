@@ -16,6 +16,7 @@ import mongoose from 'mongoose';
 import connectDB from './config/db.js';
 import Challenge from './models/Challenge.js';
 import WellnessInfo from './models/WellnessInfo.js';
+import Counselor from './models/Counselor.js';
 
 dotenv.config();
 
@@ -81,6 +82,23 @@ const seed = async () => {
   } else {
     await WellnessInfo.create(DEFAULT_WELLNESS_INFO);
     console.log('✅ Default wellness info seeded.');
+  }
+
+  // ── Seed Counselor profile ────────────────────────────────────────────────
+  const counselor = await Counselor.findOne({ counselorId: 'dr-kshipra-moghe' });
+  if (counselor) {
+    console.log('⚠️  Counselor profile already exists — skipping.');
+  } else {
+    await Counselor.create({
+      counselorId: 'dr-kshipra-moghe',
+      name: 'Dr. Kshipra V. Moghe',
+      role: 'Nodal Officer & Incharge – Mental Health & Wellbeing Initiative: COEP "मित्र"',
+      designation: 'Asst. Professor – Psychology & Consulting Psychologist',
+      department: 'Department of Applied Sciences & Humanities',
+      institution: 'COEP Tech, Pune',
+      email: 'kam.appsci@coeptech.ac.in',
+    });
+    console.log('✅ Counselor profile seeded.');
   }
 
   console.log('\n📌 Admin login (static — no DB record):');
