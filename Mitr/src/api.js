@@ -76,6 +76,10 @@ export const eventsAPI = {
     request('/events', { method: 'POST', body: JSON.stringify(data) }),
   delete: (id) =>
     request(`/events/${id}`, { method: 'DELETE' }),
+  register: (id) => request(`/events/${id}/register`, { method: 'POST' }),
+  cancelRegistration: (id) => request(`/events/${id}/register`, { method: 'DELETE' }),
+  getRegistrations: (id) => request(`/events/${id}/registrations`),
+  getMyRegistrations: () => request('/events/my-registrations'),
 };
 
 // ── Wellness Info ─────────────────────────────────────────────────────────────
@@ -96,12 +100,18 @@ export const eventReportsAPI = {
 
 // ── Challenge ─────────────────────────────────────────────────────────────────
 export const challengeAPI = {
-  getActive: () => request('/challenge/active'),
   getAll: () => request('/challenge'),
-  createOrUpdate: (data) =>
-    request('/challenge', { method: 'POST', body: JSON.stringify(data) }),
-  activateDay: (day) =>
-    request('/challenge/activate', { method: 'PUT', body: JSON.stringify({ day }) }),
+  getById: (id) => request(`/challenge/${id}`),
+  create: (data) => request('/challenge', { method: 'POST', body: JSON.stringify(data) }),
+  update: (id, data) => request(`/challenge/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  delete: (id) => request(`/challenge/${id}`, { method: 'DELETE' }),
+  getParticipants: (id) => request(`/challenge/${id}/participants`),
+  addTask: (id, data) => request(`/challenge/${id}/tasks`, { method: 'POST', body: JSON.stringify(data) }),
+  updateTask: (id, taskId, data) => request(`/challenge/${id}/tasks/${taskId}`, { method: 'PUT', body: JSON.stringify(data) }),
+  deleteTask: (id, taskId) => request(`/challenge/${id}/tasks/${taskId}`, { method: 'DELETE' }),
+  join: (id) => request(`/challenge/${id}/join`, { method: 'POST' }),
+  completeTask: (id, taskId) => request(`/challenge/${id}/tasks/${taskId}/complete`, { method: 'POST' }),
+  submitFeedback: (id, taskId, data) => request(`/challenge/${id}/tasks/${taskId}/feedback`, { method: 'POST', body: JSON.stringify(data) }),
 };
 
 // ── Submissions ───────────────────────────────────────────────────────────────

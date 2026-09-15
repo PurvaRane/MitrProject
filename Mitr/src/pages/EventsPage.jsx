@@ -24,10 +24,22 @@ const CATEGORY_BADGE = {
 };
 
 export default function EventsPage() {
-  const { events, eventsLoading, fetchEvents } = useApp();
+  const { events, eventsLoading, fetchEvents, myRegistrations, registerForEvent, cancelEventRegistration } = useApp();
   const [filter, setFilter]       = useState('All');
-  const [registered, setRegistered] = useState({});
   const [fetchError, setFetchError] = useState(null);
+  const [registeringId, setRegisteringId] = useState(null);
+
+  const handleRegister = async (eventId, isReg) => {
+    setRegisteringId(eventId);
+    try {
+      if (isReg) await cancelEventRegistration(eventId);
+      else await registerForEvent(eventId);
+    } catch (err) {
+      alert(err.message || 'Action failed');
+    } finally {
+      setRegisteringId(null);
+    }
+  };
 
   // Re-fetch from API every time the category filter changes
   useEffect(() => {
@@ -101,11 +113,10 @@ export default function EventsPage() {
             {filtered.map((ev) => {
               const days  = getDaysUntil(ev.date);
               const badge = CATEGORY_BADGE[ev.category] || 'badge-blue';
-              const isReg = !!registered[ev._id || ev.id];
+              const isReg = myRegistrations.some(r => r.eventId === (ev._id || ev.id));
 
               return (
                 <div key={ev._id || ev.id} className="event-card card">
-                  {/* Image or gradient placeholder */}
                   {(ev.imageUrl || ev.image) ? (
                     <div className="event-card__img-wrap">
                       <img src={ev.imageUrl || ev.image} alt={ev.title} className="event-card__img" />
@@ -132,13 +143,17 @@ export default function EventsPage() {
                       <span>{formatDate(ev.date)}</span>
                     </div>
 
-                    <button
-                      className={`btn btn-sm ${isReg ? 'btn-mint' : 'btn-primary'}`}
-                      onClick={() => setRegistered(r => ({ ...r, [ev._id || ev.id]: true }))}
-                      disabled={isReg}
-                    >
-                      {isReg ? 'Registered' : 'Register Interest'}
-                    </button>
+                    {ev.registrationRequired ? (
+                      <button
+                        className={`btn btn-sm ${isReg ? 'btn-peach' : 'btn-primary'}`}
+                        onClick={() => handleRegister(ev._id || ev.id, isReg)}
+                        disabled={registeringId === (ev._id || ev.id)}
+                      >
+                        {registeringId === (ev._id || ev.id) ? '...' : isReg ? 'Cancel Registration' : 'Register Interest'}
+                      </button>
+                    ) : (
+                      <span className="badge badge-lavender">No Registration Required</span>
+                    )}
                   </div>
                 </div>
               );

@@ -30,6 +30,19 @@ const eventSchema = new mongoose.Schema(
       type: String, // 'admin' or user ID string
       default: 'admin',
     },
+    capacity: {
+      type: Number,
+      default: null, // null means unlimited
+    },
+    registrationRequired: {
+      type: Boolean,
+      default: false,
+    },
+    status: {
+      type: String,
+      enum: ['Upcoming', 'Ongoing', 'Completed', 'Cancelled'],
+      default: 'Upcoming',
+    },
   },
   { timestamps: true }
 );

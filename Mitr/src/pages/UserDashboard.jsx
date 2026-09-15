@@ -21,14 +21,9 @@ export default function UserDashboard() {
   const {
     events, eventsLoading,
     wellnessInfo, wellnessLoading,
-    eventReports, reportsLoading,
-    activeTask, activeDay, challengeLoading,
-    challengeProgress, markDone, saveReflection,
+    eventReports, reportsLoading
   } = useApp();
 
-  const [reflText,     setReflText]     = useState('');
-  const [reflMode,     setReflMode]     = useState(false);
-  const [imagePreview, setImagePreview] = useState(null);
   const [expandReport, setExpandReport] = useState(null);
   const [showOnboarding, setShowOnboarding] = useState(false);
 
@@ -55,29 +50,7 @@ export default function UserDashboard() {
     }
   }, [user]);
 
-  useEffect(() => {
-    setReflText(challengeProgress.reflections[activeDay] || '');
-  }, [activeDay, challengeProgress.reflections]);
 
-  const isDone    = !!challengeProgress.done[activeDay];
-  const hasRefl   = !!challengeProgress.reflections[activeDay];
-  const doneCount = challengeProgress.doneCount ?? 0;
-  const streak    = challengeProgress.streak ?? 0;
-  const progress  = Math.round((doneCount / 30) * 100);
-
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (ev) => setImagePreview(ev.target.result);
-    reader.readAsDataURL(file);
-  };
-
-  const handleSaveRefl = async () => {
-    await saveReflection(activeDay, reflText, imagePreview);
-    setReflMode(false);
-    setImagePreview(null);
-  };
 
   const handleOnboardingComplete = async () => {
     try {
@@ -104,22 +77,10 @@ export default function UserDashboard() {
               {user?.year && user?.branch ? `${user.year} · ${user.branch}` : 'COEP मित्र Wellness Platform'}
             </p>
           </div>
-          <div className="user-dash__stats-row">
-            <div className="user-dash__stat-chip glass">
-              <div className="user-dash__stat-val">{doneCount}<span>/30</span></div>
-              <div className="user-dash__stat-label">Days Done</div>
-            </div>
-            <div className="user-dash__stat-chip glass">
-              <div className="user-dash__stat-val">{streak}</div>
-              <div className="user-dash__stat-label">Day Streak</div>
-            </div>
+          <div className="user-dash__actions">
+            <Link to="/challenge" className="btn btn-mint btn-sm" style={{ marginRight: '1rem' }}>Discover Journeys</Link>
+            <Link to="/book-appointment" className="btn btn-primary btn-sm">Book Session</Link>
           </div>
-        </div>
-        <div className="container">
-          <div className="progress-bar-track" style={{ marginTop: 'var(--space-md)' }}>
-            <div className="progress-bar-fill" style={{ width: `${progress}%` }} />
-          </div>
-          <p className="user-dash__progress-label">{progress}% of 30-day challenge complete</p>
         </div>
       </div>
 
@@ -157,76 +118,20 @@ export default function UserDashboard() {
           </section>
         )}
 
-        {/* ── Today's Challenge ── */}
+        {/* ── Well-being Journeys CTA ── */}
         <section className="user-dash__section">
-          <div className="user-dash__section-header">
-            <span className="section-tag">30-Day Challenge</span>
-            <Link to="/challenge" className="user-dash__see-all">View details →</Link>
-          </div>
-          {challengeLoading ? (
-            <div className="ud-loading">Loading today's task…</div>
-          ) : !activeTask ? (
-            <div className="ud-empty-state"><p>No active challenge task. Check back soon.</p></div>
-          ) : (
-            <div className={`challenge-today card ${isDone ? 'challenge-today--done' : ''}`}>
-              <div className="challenge-today__top">
-                <div className="challenge-today__day-badge">Day {activeDay}</div>
-                {isDone && <div className="challenge-today__check">Completed</div>}
+          <div className="user-dash__refl-banner card glass" style={{ borderColor: 'var(--border)' }}>
+            <div className="user-dash__refl-banner-content">
+              <div className="user-dash__refl-icon" style={{ backgroundColor: 'rgba(56, 178, 172, 0.1)', color: 'var(--mint)' }}>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
               </div>
-              <h2 className="challenge-today__title">{activeTask.title}</h2>
-              <p className="challenge-today__desc">{activeTask.description}</p>
-              {activeTask.instructions && (
-                <div className="challenge-today__instructions">
-                  <strong>Instructions</strong>
-                  <p>{activeTask.instructions}</p>
-                </div>
-              )}
-              {!isDone && (
-                <div className="challenge-today__inputs">
-                  {!reflMode ? (
-                    <button className="btn btn-secondary btn-sm" onClick={() => { setReflMode(true); setReflText(challengeProgress.reflections[activeDay] || ''); }}>
-                      {hasRefl ? 'Edit Reflection' : 'Write Reflection'}
-                    </button>
-                  ) : (
-                    <div className="challenge-today__refl-box animate-fade-in">
-                      <textarea className="form-input" placeholder="How did this feel? What did you notice?" value={reflText} onChange={e => setReflText(e.target.value)} rows={3} autoFocus />
-                      
-                      <div className="challenge-today__upload-row">
-                        <label className="challenge-today__upload-label" htmlFor="ud-task-img">
-                          {imagePreview ? '📷 Image selected' : '📁 Add an image (optional)'}
-                        </label>
-                        <input id="ud-task-img" type="file" accept="image/*" style={{ display: 'none' }} onChange={handleImageChange} />
-                        {imagePreview && (
-                          <div className="challenge-today__img-preview-wrap">
-                            <img src={imagePreview} alt="Preview" className="challenge-today__img-preview" />
-                            <button className="btn-close-mini" onClick={() => setImagePreview(null)}>✕</button>
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="challenge-today__refl-actions">
-                        <button className="btn btn-mint btn-sm" onClick={handleSaveRefl}>Save Reflection</button>
-                        <button className="btn btn-secondary btn-sm" onClick={() => { setReflMode(false); setImagePreview(null); }}>Cancel</button>
-                      </div>
-                    </div>
-                  )}
-                  {hasRefl && !reflMode && (
-                    <div className="challenge-today__refl-preview">
-                      <em>{challengeProgress.reflections[activeDay].slice(0, 120)}{challengeProgress.reflections[activeDay].length > 120 ? '…' : ''}</em>
-                    </div>
-                  )}
-                </div>
-              )}
-              <div className="challenge-today__footer">
-                <button id="mark-done-btn" className={`btn ${isDone ? 'btn-mint' : 'btn-primary'}`} onClick={() => markDone(activeDay)} disabled={isDone}>
-                  {isDone ? 'Completed' : 'Mark as Done'}
-                </button>
-                <span className="challenge-today__progress-text">
-                  {streak > 0 ? `${streak}-day streak` : 'Start your streak today'}
-                </span>
+              <div>
+                <h3 className="user-dash__refl-title">Well-being Journeys</h3>
+                <p className="user-dash__refl-sub">Join guided challenges, complete tasks at your own pace, and build healthy habits.</p>
               </div>
             </div>
-          )}
+            <Link to="/challenge" className="btn btn-primary btn-sm">Explore Challenges</Link>
+          </div>
         </section>
 
         {/* ── My Appointments ── */}

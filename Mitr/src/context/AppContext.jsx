@@ -16,6 +16,7 @@ export function AppProvider({ children }) {
   // ── Events ────────────────────────────────────────────────────────────────
   const [events, setEvents]               = useState([]);
   const [eventsLoading, setEventsLoading] = useState(false);
+  const [myRegistrations, setMyRegistrations] = useState([]);
 
   const fetchEvents = useCallback(async (category) => {
     setEventsLoading(true);
@@ -30,7 +31,19 @@ export function AppProvider({ children }) {
     }
   }, []);
 
-  useEffect(() => { fetchEvents(); }, [fetchEvents]);
+  const fetchMyRegistrations = useCallback(async () => {
+    try {
+      const data = await eventsAPI.getMyRegistrations();
+      setMyRegistrations(data.registrations || []);
+    } catch (err) {
+      console.error('[Events] Registration fetch failed:', err.message);
+    }
+  }, []);
+
+  useEffect(() => { 
+    fetchEvents(); 
+    fetchMyRegistrations();
+  }, [fetchEvents, fetchMyRegistrations]);
 
   const addEvent = useCallback(async (eventData) => {
     const data = await eventsAPI.create(eventData);
@@ -42,6 +55,17 @@ export function AppProvider({ children }) {
     await eventsAPI.delete(id);
     setEvents(prev => prev.filter(e => (e._id || e.id) !== id));
   }, []);
+
+  const registerForEvent = useCallback(async (eventId) => {
+    const data = await eventsAPI.register(eventId);
+    await fetchMyRegistrations();
+    return data;
+  }, [fetchMyRegistrations]);
+
+  const cancelEventRegistration = useCallback(async (eventId) => {
+    await eventsAPI.cancelRegistration(eventId);
+    await fetchMyRegistrations();
+  }, [fetchMyRegistrations]);
 
   // ── Wellness Info ─────────────────────────────────────────────────────────
   const [wellnessInfo, setWellnessInfo]         = useState(null);
@@ -98,118 +122,38 @@ export function AppProvider({ children }) {
   }, []);
 
   // ── Challenge ─────────────────────────────────────────────────────────────
-  const [activeTask, setActiveTask]             = useState(null);
-  const [tasks, setTasks]                       = useState([]);
-  const [activeDay, setActiveDayState]          = useState(1);
+  const [challenges, setChallenges] = useState([]);
   const [challengeLoading, setChallengeLoading] = useState(false);
+  const [myChallenges, setMyChallenges] = useState({});
 
-  const fetchActiveChallenge = useCallback(async () => {
+  const fetchAllChallenges = useCallback(async () => {
     setChallengeLoading(true);
     try {
-      const data = await challengeAPI.getActive();
-      setActiveTask(data.challenge);
-      setActiveDayState(data.challenge.day);
+      const data = await challengeAPI.getAll();
+      setChallenges(data.challenges || []);
     } catch {
-      setActiveTask(null);
+      setChallenges([]);
     } finally {
       setChallengeLoading(false);
     }
   }, []);
 
-  const fetchAllChallenges = useCallback(async () => {
-    try {
-      const data = await challengeAPI.getAll();
-      setTasks(data.challenges || []);
-    } catch {
-      setTasks([]);
-    }
+  useEffect(() => { fetchAllChallenges(); }, [fetchAllChallenges]);
+
+  const joinChallenge = useCallback(async (challengeId) => {
+    const data = await challengeAPI.join(challengeId);
+    return data;
   }, []);
 
-  useEffect(() => { fetchActiveChallenge(); }, [fetchActiveChallenge]);
-
-  const setActiveDay = useCallback(async (day) => {
-    await challengeAPI.activateDay(day);
-    setActiveDayState(day);
-    await fetchActiveChallenge();
-  }, [fetchActiveChallenge]);
-
-  // ── Per-user challenge progress ───────────────────────────────────────────
-  const [challengeProgress, setChallengeProgress] = useState({
-    done: {}, reflections: {}, streak: 0, doneCount: 0,
-  });
-  const [progressLoading, setProgressLoading] = useState(false);
-
-  const syncUserProgress = useCallback(async () => {
-    setProgressLoading(true);
-    try {
-      const data = await userAPI.getProgress();
-      const done = {};
-      const reflections = {};
-      (data.submissions || []).forEach(s => {
-        if (s.isDone) done[s.challengeDay] = true;
-        if (s.reflectionText) reflections[s.challengeDay] = s.reflectionText;
-      });
-      const progress = {
-        done, reflections,
-        streak: data.streak || 0,
-        doneCount: data.doneCount || Object.keys(done).length,
-      };
-      setChallengeProgress(progress);
-      saveJSON('mitr_challenge_progress', progress);
-    } catch (err) {
-      console.error('[Progress] Sync failed:', err.message);
-      const cached = loadJSON('mitr_challenge_progress', { done: {}, reflections: {}, streak: 0, doneCount: 0 });
-      setChallengeProgress(cached);
-    } finally {
-      setProgressLoading(false);
-    }
+  const completeTask = useCallback(async (challengeId, taskId) => {
+    const data = await challengeAPI.completeTask(challengeId, taskId);
+    return data;
   }, []);
 
-  useEffect(() => { syncUserProgress(); }, [syncUserProgress]);
-
-  const markDone = useCallback(async (day) => {
-    try {
-      await submissionsAPI.submit({
-        challengeDay: day,
-        isDone: true,
-        reflectionText: challengeProgress.reflections[day] || '',
-      });
-      // Refresh progress to get accurate streak/count from server
-      await syncUserProgress();
-    } catch (err) {
-      console.error('[markDone] Backend save failed:', err.message);
-      // Fallback local update
-      setChallengeProgress(prev => {
-        const done = { ...prev.done, [day]: true };
-        let streak = 0;
-        for (let d = 1; d <= 30; d++) { if (done[d]) streak++; else break; }
-        const next = { ...prev, done, streak, doneCount: Object.keys(done).length };
-        saveJSON('mitr_challenge_progress', next);
-        return next;
-      });
-    }
-  }, [challengeProgress, syncUserProgress]);
-
-  const saveReflection = useCallback(async (day, text, imageUrl) => {
-    try {
-      await submissionsAPI.submit({
-        challengeDay: day,
-        reflectionText: text,
-        isDone: !!challengeProgress.done[day],
-        imageUrl,
-      });
-      // Refresh progress to get updated reflection state
-      await syncUserProgress();
-    } catch (err) {
-      console.error('[saveReflection] Backend save failed:', err.message);
-      // Fallback local update
-      setChallengeProgress(prev => {
-        const next = { ...prev, reflections: { ...prev.reflections, [day]: text } };
-        saveJSON('mitr_challenge_progress', next);
-        return next;
-      });
-    }
-  }, [challengeProgress, syncUserProgress]);
+  const submitTaskFeedback = useCallback(async (challengeId, taskId, payload) => {
+    const data = await challengeAPI.submitFeedback(challengeId, taskId, payload);
+    return data;
+  }, []);
 
   // ── Journal ───────────────────────────────────────────────────────────────
   const [journalEntries, setJournalEntries] = useState([]);
@@ -245,16 +189,14 @@ export function AppProvider({ children }) {
     <AppContext.Provider value={{
       // Events
       events, eventsLoading, fetchEvents, addEvent, removeEvent,
+      myRegistrations, fetchMyRegistrations, registerForEvent, cancelEventRegistration,
       // Wellness Info
       wellnessInfo, wellnessLoading, fetchWellnessInfo, saveWellnessInfo,
       // Event Reports
       eventReports, reportsLoading, fetchEventReports, addEventReport, removeEventReport,
       // Challenge
-      tasks, activeDay, setActiveDay, activeTask,
-      challengeLoading, fetchAllChallenges,
-      // Per-user progress
-      challengeProgress, progressLoading,
-      markDone, saveReflection, syncUserProgress,
+      challenges, challengeLoading, fetchAllChallenges,
+      joinChallenge, completeTask, submitTaskFeedback,
       // Journal
       journalEntries, journalLoading, fetchJournalEntries, addJournalEntry, removeJournalEntry,
     }}>

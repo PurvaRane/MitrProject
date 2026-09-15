@@ -1,22 +1,37 @@
 import express from 'express';
 import {
   getAllChallenges,
-  getActiveChallenge,
+  getChallengeById,
   createChallenge,
-  activateDay,
+  updateChallenge,
+  deleteChallenge,
+  addTask,
+  updateTask,
+  deleteTask,
+  joinChallenge,
+  completeTask,
+  submitFeedback,
+  getParticipants,
 } from '../controllers/challengeController.js';
 import { protect, adminOnly } from '../middleware/auth.js';
 
 const router = express.Router();
 
-// GET  /api/challenge/active  — any authenticated user (active day task)
-// GET  /api/challenge          — any authenticated user (all tasks; admin uses to manage)
-// POST /api/challenge          — admin only: seed a task
-// PUT  /api/challenge/activate — admin only: set active day
-
-router.get('/active', protect, getActiveChallenge);
+// Shared/Student routes
 router.get('/', protect, getAllChallenges);
+router.get('/:id', protect, getChallengeById);
+router.post('/:id/join', protect, joinChallenge);
+router.post('/:id/tasks/:taskId/complete', protect, completeTask);
+router.post('/:id/tasks/:taskId/feedback', protect, submitFeedback);
+
+// Admin routes
 router.post('/', protect, adminOnly, createChallenge);
-router.put('/activate', protect, adminOnly, activateDay);
+router.put('/:id', protect, adminOnly, updateChallenge);
+router.delete('/:id', protect, adminOnly, deleteChallenge);
+router.get('/:id/participants', protect, adminOnly, getParticipants);
+
+router.post('/:id/tasks', protect, adminOnly, addTask);
+router.put('/:id/tasks/:taskId', protect, adminOnly, updateTask);
+router.delete('/:id/tasks/:taskId', protect, adminOnly, deleteTask);
 
 export default router;

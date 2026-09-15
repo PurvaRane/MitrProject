@@ -8,11 +8,16 @@ const submissionSchema = new mongoose.Schema(
       required: true,
       index: true,
     },
-    challengeDay: {
-      type: Number,
+    challengeId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Challenge',
       required: true,
-      min: 1,
-      max: 30,
+      index: true,
+    },
+    taskId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'ChallengeTask',
+      required: true,
       index: true,
     },
     reflectionText: {
@@ -36,8 +41,8 @@ const submissionSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// Composite index: one submission per user per day
-submissionSchema.index({ userId: 1, challengeDay: 1 }, { unique: true });
+// Composite index: one submission per user per task
+submissionSchema.index({ userId: 1, challengeId: 1, taskId: 1 }, { unique: true });
 
 const Submission = mongoose.model('Submission', submissionSchema);
 export default Submission;

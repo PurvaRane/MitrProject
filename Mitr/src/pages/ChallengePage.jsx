@@ -1,214 +1,241 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
+import { challengeAPI } from '../api';
 import './ChallengePage.css';
 
-const ENCOURAGEMENTS = [
-  'Small steps matter.',
-  'Every day counts.',
-  'Progress, not perfection.',
-  'Be patient with yourself.',
-  'Growth is gradual.',
-];
-
 export default function ChallengePage() {
-  const {
-    activeTask, activeDay, challengeLoading,
-    challengeProgress, markDone, saveReflection,
-  } = useApp();
+  const { challenges, challengeLoading, joinChallenge, completeTask, submitTaskFeedback } = useApp();
+  
+  const [view, setView] = useState('discover'); // 'discover', 'details'
+  const [selectedId, setSelectedId] = useState(null);
+  
+  const [details, setDetails] = useState(null);
+  const [detailsLoading, setDetailsLoading] = useState(false);
+  const [actionLoading, setActionLoading] = useState(false);
+  
+  // Feedback form state
+  const [feedbackTask, setFeedbackTask] = useState(null);
+  const [mood, setMood] = useState('Good');
+  const [feedbackText, setFeedbackText] = useState('');
 
-  const [reflText,     setReflText]     = useState('');
-  const [reflMode,     setReflMode]     = useState(false);
-  const [imagePreview, setImagePreview] = useState(null);
-  const [enc,          setEnc]          = useState(0);
-
-  const isDone    = !!challengeProgress.done[activeDay];
-  const hasRefl   = !!challengeProgress.reflections[activeDay];
-  const doneCount = challengeProgress.doneCount ?? 0;
-  const progress  = Math.round((doneCount / 30) * 100);
-
-  useEffect(() => {
-    setReflText(challengeProgress.reflections[activeDay] || '');
-    setReflMode(false);
-    setImagePreview(null);
-  }, [activeDay, challengeProgress.reflections]);
-
-  useEffect(() => {
-    const timer = setInterval(() => setEnc(i => (i + 1) % ENCOURAGEMENTS.length), 5000);
-    return () => clearInterval(timer);
-  }, []);
-
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (ev) => setImagePreview(ev.target.result);
-    reader.readAsDataURL(file);
+  const loadChallengeDetails = async (id) => {
+    setDetailsLoading(true);
+    try {
+      const data = await challengeAPI.getById(id);
+      setDetails(data);
+    } catch (err) {
+      alert('Could not load challenge details');
+      setView('discover');
+    } finally {
+      setDetailsLoading(false);
+    }
   };
 
-  const handleSaveRefl = () => {
-    // We send imagePreview if it exists
-    saveReflection(activeDay, reflText, imagePreview);
-    setReflMode(false);
+  const handleSelectChallenge = (id) => {
+    setSelectedId(id);
+    setView('details');
+    loadChallengeDetails(id);
   };
 
-  if (challengeLoading) {
+  const handleJoin = async () => {
+    setActionLoading(true);
+    try {
+      await joinChallenge(selectedId);
+      await loadChallengeDetails(selectedId);
+    } catch (err) {
+      alert(err.message || 'Could not join challenge');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleComplete = async (taskId) => {
+    setActionLoading(true);
+    try {
+      await completeTask(selectedId, taskId);
+      await loadChallengeDetails(selectedId);
+      setFeedbackTask(taskId); // Open feedback form after completion
+    } catch (err) {
+      alert(err.message || 'Could not complete task');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleSubmitFeedback = async (taskId) => {
+    setActionLoading(true);
+    try {
+      await submitTaskFeedback(selectedId, taskId, { mood, text: feedbackText });
+      setFeedbackTask(null);
+      setMood('Good');
+      setFeedbackText('');
+      alert('Feedback saved!');
+    } catch (err) {
+      alert(err.message || 'Could not submit feedback');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  if (view === 'discover') {
+    return (
+      <div className="challenge-page">
+        <div className="challenge-header">
+          <div className="container">
+            <span className="section-tag">Well-being Journeys</span>
+            <h1 className="section-title">Discover Challenges</h1>
+            <div className="divider" />
+            <p className="section-subtitle">
+              Commit to small, daily actions. Build habits that support your mental and emotional well-being.
+            </p>
+          </div>
+        </div>
+
+        <section className="section container">
+          {challengeLoading ? (
+            <p style={{ textAlign: 'center', color: 'var(--text-muted)' }}>Loading challenges…</p>
+          ) : challenges.length === 0 ? (
+            <div className="events-empty">
+              <p>No challenges available right now. Check back soon!</p>
+            </div>
+          ) : (
+            <div className="events-grid grid-responsive">
+              {challenges.map(c => (
+                <div key={c._id} className="card event-card">
+                  <div className={`event-card__placeholder event-card__placeholder--challenge`} />
+                  <div className="event-card__body">
+                    <div className="event-card__top">
+                      <span className="badge badge-lavender">{c.category}</span>
+                      <span className="countdown-days"><strong>{c.duration}</strong> days</span>
+                    </div>
+                    <h3 className="event-card__title">{c.title}</h3>
+                    <p className="event-card__desc">{c.description}</p>
+                    <button className="btn btn-primary" onClick={() => handleSelectChallenge(c._id)} style={{ marginTop: '1rem' }}>
+                      View Details
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+      </div>
+    );
+  }
+
+  // Details View
+  if (detailsLoading || !details) {
     return (
       <div className="challenge-page">
         <div className="container" style={{ textAlign: 'center', paddingTop: '4rem' }}>
-          <p style={{ color: 'var(--text-muted)' }}>Loading today's challenge…</p>
+          <p style={{ color: 'var(--text-muted)' }}>Loading challenge details…</p>
         </div>
       </div>
     );
   }
 
-  if (!activeTask) {
-    return (
-      <div className="challenge-page">
-        <div className="container" style={{ textAlign: 'center', paddingTop: '4rem' }}>
-          <p style={{ color: 'var(--text-muted)' }}>No challenge task active yet. Check back soon.</p>
-        </div>
-      </div>
-    );
-  }
+  const { challenge, tasks, participation, completions } = details;
+  const isJoined = !!participation;
+  const progressPercent = participation ? Math.round((participation.progress / challenge.duration) * 100) : 0;
 
   return (
     <div className="challenge-page">
-      {/* Header */}
       <div className="challenge-header">
         <div className="container">
-          <span className="section-tag">30-Day Program</span>
-          <h1 className="section-title">Mental Health Challenge</h1>
+          <button className="btn btn-secondary btn-sm" onClick={() => setView('discover')} style={{ marginBottom: '1.5rem' }}>
+            ← Back to Discover
+          </button>
+          <span className="section-tag">{challenge.category}</span>
+          <h1 className="section-title">{challenge.title}</h1>
           <div className="divider" />
-          <p className="section-subtitle">
-            One small act of self-care per day. Complete today's task, reflect on it, and grow.
-          </p>
+          <p className="section-subtitle">{challenge.description}</p>
 
-          {/* Progress */}
-          <div className="challenge-progress glass">
-            <div className="challenge-progress__info">
-              <div>
-                <div className="challenge-progress__label">Your Progress</div>
-                <div className="challenge-progress__stat">
-                  <span className="challenge-progress__num">{doneCount}</span>
-                  <span className="challenge-progress__den"> / 30 days</span>
+          {isJoined ? (
+            <div className="challenge-progress glass" style={{ marginTop: '2rem' }}>
+              <div className="challenge-progress__info">
+                <div>
+                  <div className="challenge-progress__label">Your Progress</div>
+                  <div className="challenge-progress__stat">
+                    <span className="challenge-progress__num">{participation.progress}</span>
+                    <span className="challenge-progress__den"> / {challenge.duration} tasks</span>
+                  </div>
                 </div>
               </div>
-              <div className="challenge-progress__streak">
-                {challengeProgress.streak > 0 ? `${challengeProgress.streak}-day streak` : 'Start your streak today'}
-              </div>
-              <div className="challenge-progress__enc">
-                <span key={enc} className="affirmation-text">{ENCOURAGEMENTS[enc]}</span>
+              <div className="challenge-progress__bar-wrap">
+                <div className="progress-bar-track">
+                  <div className="progress-bar-fill" style={{ width: `${progressPercent}%` }} />
+                </div>
+                <span className="challenge-progress__percent">{progressPercent}% complete</span>
               </div>
             </div>
-            <div className="challenge-progress__bar-wrap">
-              <div className="progress-bar-track">
-                <div className="progress-bar-fill" style={{ width: `${progress}%` }} />
-              </div>
-              <span className="challenge-progress__percent">{progress}% complete</span>
+          ) : (
+            <div style={{ marginTop: '2rem' }}>
+              <button className="btn btn-mint" onClick={handleJoin} disabled={actionLoading}>
+                {actionLoading ? 'Joining...' : 'Join this Challenge'}
+              </button>
             </div>
-          </div>
+          )}
         </div>
       </div>
 
-      {/* Today's Task — only active day */}
       <section className="section container">
-        <div className="challenge-single-wrap">
-          <div className="challenge-active-label">
-            <span className="badge badge-lavender">Today's Task</span>
-            <span className="challenge-active-day">Day {activeDay} of 30</span>
-          </div>
-
-          <div className={`day-card day-card--featured card ${isDone ? 'day-card--done' : ''}`}>
-            <div className="day-card__head">
-              <div className="day-card__number">Day {activeTask.day}</div>
-              {isDone && <div className="day-card__check">Completed</div>}
-            </div>
-
-            <h2 className="day-card__title">{activeTask.title}</h2>
-            <p className="day-card__desc">{activeTask.description}</p>
-
-            {activeTask.instructions && (
-              <div className="challenge-instructions-box">
-                <strong>What to do:</strong>
-                <p>{activeTask.instructions}</p>
-              </div>
-            )}
-
-            {/* Reflection section */}
-            {!reflMode ? (
-              <>
-                {hasRefl && (
-                  <div className="day-card__refl-preview">
-                    <em>{challengeProgress.reflections[activeDay]}</em>
+        <h2 style={{ marginBottom: '1.5rem' }}>Challenge Tasks</h2>
+        {!isJoined && <p style={{ color: 'var(--text-muted)', marginBottom: '1.5rem' }}>Join the challenge to mark tasks as complete and track your progress.</p>}
+        
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          {tasks.map(t => {
+            const isCompleted = completions?.some(c => c.taskId === t._id);
+            return (
+              <div key={t._id} className={`day-card card ${isCompleted ? 'day-card--done' : ''}`} style={{ width: '100%' }}>
+                <div className="day-card__head">
+                  <div className="day-card__number">Day {t.dayNumber}</div>
+                  {isCompleted && <div className="day-card__check">Completed</div>}
+                </div>
+                <h3 className="day-card__title" style={{ fontSize: '1.2rem', marginBottom: '0.5rem' }}>{t.title}</h3>
+                <p className="day-card__desc" style={{ marginBottom: '1rem' }}>{t.description}</p>
+                {t.instructions && (
+                  <div className="challenge-instructions-box" style={{ marginBottom: '1rem' }}>
+                    <strong>What to do:</strong>
+                    <p>{t.instructions}</p>
                   </div>
                 )}
-                {!isDone && (
-                  <button
-                    className="btn btn-secondary btn-sm"
-                    onClick={() => setReflMode(true)}
-                    style={{ marginTop: 'var(--space-md)' }}
-                  >
-                    {hasRefl ? 'Edit Reflection' : 'Write Reflection'}
+                
+                {isJoined && !isCompleted && (
+                  <button className="btn btn-primary btn-sm" onClick={() => handleComplete(t._id)} disabled={actionLoading}>
+                    Mark as Done
                   </button>
                 )}
-              </>
-            ) : (
-              <div className="day-card__refl-box animate-fade-in">
-                <textarea
-                  className="form-input day-card__textarea"
-                  placeholder="How did this feel? What did you notice?"
-                  value={reflText}
-                  onChange={e => setReflText(e.target.value)}
-                  rows={4}
-                  autoFocus
-                />
-                <div className="day-card__upload-row">
-                  <label className="day-card__upload-label" htmlFor="task-img-upload">
-                    {imagePreview ? 'Image selected' : 'Upload an image (optional)'}
-                  </label>
-                  <input
-                    id="task-img-upload"
-                    type="file"
-                    accept="image/*"
-                    style={{ display: 'none' }}
-                    onChange={handleImageChange}
-                  />
-                  {imagePreview && (
-                    <div className="day-card__img-preview-wrap">
-                      <img src={imagePreview} alt="Uploaded" className="day-card__img-preview" />
-                      <button className="btn-close-mini" onClick={() => setImagePreview(null)}>✕</button>
+
+                {/* Feedback Form */}
+                {feedbackTask === t._id && (
+                  <div className="day-card__refl-box animate-fade-in" style={{ marginTop: '1rem' }}>
+                    <h4 style={{ marginBottom: '0.5rem' }}>How did you feel after completing this?</h4>
+                    <select className="form-input" value={mood} onChange={e => setMood(e.target.value)} style={{ marginBottom: '1rem' }}>
+                      <option>Great</option><option>Good</option><option>Okay</option><option>Difficult</option><option>Not helpful</option>
+                    </select>
+                    <textarea
+                      className="form-input day-card__textarea"
+                      placeholder="Add an optional reflection..."
+                      value={feedbackText}
+                      onChange={e => setFeedbackText(e.target.value)}
+                      rows={3}
+                    />
+                    <div className="day-card__refl-actions">
+                      <button className="btn btn-mint btn-sm" onClick={() => handleSubmitFeedback(t._id)} disabled={actionLoading}>Submit Feedback</button>
+                      <button className="btn btn-secondary btn-sm" onClick={() => setFeedbackTask(null)}>Cancel</button>
                     </div>
-                  )}
-                </div>
-                <div className="day-card__refl-actions">
-                  <button className="btn btn-mint btn-sm" onClick={handleSaveRefl}>Save Reflection</button>
-                  <button className="btn btn-secondary btn-sm" onClick={() => setReflMode(false)}>Cancel</button>
-                </div>
+                  </div>
+                )}
+
+                {isCompleted && feedbackTask !== t._id && (
+                  <button className="btn btn-secondary btn-sm" onClick={() => setFeedbackTask(t._id)} style={{ marginTop: '1rem' }}>
+                    Add / Edit Feedback
+                  </button>
+                )}
               </div>
-            )}
-
-            <div className="day-card__actions">
-              <button
-                id="challenge-mark-done-btn"
-                className={`btn ${isDone ? 'btn-mint' : 'btn-primary'}`}
-                onClick={() => markDone(activeDay)}
-                disabled={isDone}
-              >
-                {isDone ? 'Completed' : 'Mark as Done'}
-              </button>
-            </div>
-          </div>
-
-          {/* Locked future days notice */}
-          <div className="challenge-locked-notice glass">
-            <div className="challenge-locked-notice__icon">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-            </div>
-            <div>
-              <strong>Future tasks are unlocked day by day</strong>
-              <p>Each day's task is revealed by the Wellness Centre. Come back tomorrow for Day {Math.min(activeDay + 1, 30)}.</p>
-            </div>
-          </div>
+            );
+          })}
+          {tasks.length === 0 && <p>Tasks are being added to this challenge. Check back later.</p>}
         </div>
       </section>
     </div>

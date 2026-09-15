@@ -26,7 +26,7 @@ function Toast({ msg, type }) {
 
 // ── Overview Tab ──────────────────────────────────────────────────────────────
 function OverviewTab({ setTab }) {
-  const { events, eventReports, activeDay, activeTask } = useApp();
+  const { events, eventReports } = useApp();
   const [stats, setStats] = useState(null);
 
   useEffect(() => {
@@ -40,7 +40,6 @@ function OverviewTab({ setTab }) {
           { label: 'Total Users', val: stats?.totalUsers ?? '—', color: 'blue' },
           { label: 'Active Users', val: stats?.activeUsersCount ?? '—', color: 'mint' },
           { label: 'Total Submissions', val: stats?.totalSubmissions ?? '—', color: 'lavender' },
-          { label: 'Active Day', val: activeDay ?? '—', color: 'peach' },
           { label: 'Today\'s Completions', val: stats?.todayCompletions ?? '—', color: 'blue' },
           { label: 'Reflections', val: stats?.totalReflections ?? '—', color: 'mint' },
         ].map(s => (
@@ -68,14 +67,6 @@ function OverviewTab({ setTab }) {
           </div>
         ))}
       </div>
-      {activeTask && (
-        <div className="card admin-active-info">
-          <div className="admin-active-info__label">Currently Active Challenge</div>
-          <div className="admin-active-info__day">Day {activeDay}</div>
-          <div className="admin-active-info__task">{activeTask.title}</div>
-          <div className="admin-active-info__note">{activeTask.description}</div>
-        </div>
-      )}
     </div>
   );
 }
@@ -83,7 +74,7 @@ function OverviewTab({ setTab }) {
 // ── Events Tab ────────────────────────────────────────────────────────────────
 function EventsTab() {
   const { events, eventsLoading, addEvent, removeEvent } = useApp();
-  const [form, setForm] = useState({ title: '', description: '', date: '', category: 'Workshop', imageUrl: '' });
+  const [form, setForm] = useState({ title: '', description: '', date: '', category: 'Workshop', imageUrl: '', capacity: '', registrationRequired: false });
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState({ msg: '', type: 'success' });
 
@@ -97,8 +88,8 @@ function EventsTab() {
     if (!form.title || !form.date) { showToast('Title and date are required.', 'error'); return; }
     setLoading(true);
     try {
-      await addEvent(form);
-      setForm({ title: '', description: '', date: '', category: 'Workshop', imageUrl: '' });
+      await addEvent({ ...form, capacity: form.capacity ? parseInt(form.capacity) : null });
+      setForm({ title: '', description: '', date: '', category: 'Workshop', imageUrl: '', capacity: '', registrationRequired: false });
       showToast('Event added successfully.');
     } catch (err) { showToast(err.message, 'error'); }
     finally { setLoading(false); }
@@ -135,6 +126,18 @@ function EventsTab() {
               </select>
             </div>
             <div className="form-group">
+              <label className="admin-check-label">
+                <input type="checkbox" checked={form.registrationRequired} onChange={e => setForm(f => ({ ...f, registrationRequired: e.target.checked }))} />
+                Requires Registration
+              </label>
+            </div>
+            {form.registrationRequired && (
+              <div className="form-group">
+                <label className="form-label">Capacity (leave empty for unlimited)</label>
+                <input className="form-input" type="number" value={form.capacity} onChange={e => setForm(f => ({ ...f, capacity: e.target.value }))} placeholder="e.g. 50" />
+              </div>
+            )}
+            <div className="form-group">
               <label className="form-label">Image URL (optional)</label>
               <input className="form-input" value={form.imageUrl} onChange={e => setForm(f => ({ ...f, imageUrl: e.target.value }))} placeholder="https://..." />
             </div>
@@ -159,8 +162,16 @@ function EventsTab() {
                     <span>{formatDate(ev.date)}</span>
                   </div>
                   {ev.description && <div className="admin-event-item__desc">{ev.description.slice(0, 80)}{ev.description.length > 80 ? '…' : ''}</div>}
+                  {ev.registrationRequired && (
+                    <div className="admin-event-item__meta" style={{ marginTop: '8px' }}>
+                      <span className="badge badge-lavender">Reg: Required</span>
+                      {ev.capacity && <span className="badge badge-peach">Cap: {ev.capacity}</span>}
+                    </div>
+                  )}
                 </div>
-                <button className="admin-delete-btn" onClick={() => handleDelete(ev._id || ev.id)} title="Delete">✕</button>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <button className="admin-delete-btn" onClick={() => handleDelete(ev._id || ev.id)} title="Delete">✕</button>
+                </div>
               </div>
             ))}
           </div>
@@ -245,102 +256,198 @@ function ReportsTab() {
 
 // ── Challenge Tab ─────────────────────────────────────────────────────────────
 function ChallengeTab() {
-  const { tasks, activeDay, setActiveDay, fetchAllChallenges } = useApp();
-  const [selected, setSelected] = useState(null);
-  const [form, setForm] = useState({ day: '', title: '', description: '', instructions: '' });
+  const { challenges, fetchAllChallenges } = useApp();
+  const [view, setView] = useState('list'); // 'list', 'edit-challenge', 'tasks'
+  const [selectedChallenge, setSelectedChallenge] = useState(null);
+  
+  const [challengeForm, setChallengeForm] = useState({ title: '', description: '', category: 'Mental Well-being', duration: 7, startDate: '', endDate: '', status: 'Draft' });
+  const [tasks, setTasks] = useState([]);
+  const [taskForm, setTaskForm] = useState({ dayNumber: '', title: '', description: '', instructions: '' });
+  
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState({ msg: '', type: 'success' });
 
-  useEffect(() => { fetchAllChallenges(); }, [fetchAllChallenges]);
-
   const showToast = (msg, type = 'success') => { setToast({ msg, type }); setTimeout(() => setToast({ msg: '', type: 'success' }), 3000); };
 
-  const handleSelectDay = (day) => {
-    const task = tasks.find(t => t.day === day);
-    setSelected(day);
-    setForm(task ? { day: task.day, title: task.title, description: task.description, instructions: task.instructions || '' } : { day, title: '', description: '', instructions: '' });
+  const handleCreateOrUpdateChallenge = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const { challengeAPI } = await import('../api');
+      if (selectedChallenge) {
+        await challengeAPI.update(selectedChallenge._id, challengeForm);
+        showToast('Challenge updated.');
+      } else {
+        await challengeAPI.create(challengeForm);
+        showToast('Challenge created.');
+      }
+      await fetchAllChallenges();
+      setView('list');
+    } catch (err) { showToast(err.message, 'error'); }
+    finally { setLoading(false); }
+  };
+
+  const loadTasks = async (id) => {
+    setLoading(true);
+    try {
+      const { challengeAPI } = await import('../api');
+      const data = await challengeAPI.getById(id);
+      setTasks(data.tasks || []);
+    } catch (err) { showToast('Could not load tasks', 'error'); }
+    finally { setLoading(false); }
+  };
+
+  const handleManageTasks = (c) => {
+    setSelectedChallenge(c);
+    setTaskForm({ dayNumber: '', title: '', description: '', instructions: '' });
+    loadTasks(c._id);
+    setView('tasks');
   };
 
   const handleSaveTask = async (e) => {
     e.preventDefault();
-    if (!form.title || !form.description) { showToast('Title and description required.', 'error'); return; }
     setLoading(true);
     try {
       const { challengeAPI } = await import('../api');
-      await challengeAPI.createOrUpdate({ day: form.day, title: form.title, description: form.description, instructions: form.instructions });
-      await fetchAllChallenges();
-      showToast(`Day ${form.day} saved.`);
+      if (taskForm._id) {
+        await challengeAPI.updateTask(selectedChallenge._id, taskForm._id, taskForm);
+        showToast(`Task updated.`);
+      } else {
+        await challengeAPI.addTask(selectedChallenge._id, taskForm);
+        showToast(`Task created.`);
+      }
+      await loadTasks(selectedChallenge._id);
+      setTaskForm({ dayNumber: '', title: '', description: '', instructions: '' });
     } catch (err) { showToast(err.message, 'error'); }
     finally { setLoading(false); }
   };
 
-  const handleActivate = async () => {
-    if (!selected) return;
-    setLoading(true);
+  const handleDeleteChallenge = async (id) => {
+    if (!window.confirm('Delete this challenge?')) return;
     try {
-      await setActiveDay(selected);
-      showToast(`Day ${selected} is now active for all students.`);
+      const { challengeAPI } = await import('../api');
+      await challengeAPI.delete(id);
+      showToast('Challenge deleted.');
+      fetchAllChallenges();
     } catch (err) { showToast(err.message, 'error'); }
-    finally { setLoading(false); }
   };
+
+  if (view === 'edit-challenge') {
+    return (
+      <div className="card" style={{ padding: 'var(--space-xl)' }}>
+        <button className="btn btn-secondary btn-sm" onClick={() => setView('list')} style={{ marginBottom: '1rem' }}>← Back</button>
+        <h2 className="admin-section-title">{selectedChallenge ? 'Edit Challenge' : 'New Challenge'}</h2>
+        <form className="admin-form" onSubmit={handleCreateOrUpdateChallenge}>
+          <div className="form-group">
+            <label className="form-label">Title *</label>
+            <input className="form-input" value={challengeForm.title} onChange={e => setChallengeForm(f => ({ ...f, title: e.target.value }))} required />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Description *</label>
+            <textarea className="form-input" rows={3} value={challengeForm.description} onChange={e => setChallengeForm(f => ({ ...f, description: e.target.value }))} required />
+          </div>
+          <div style={{ display: 'flex', gap: '1rem' }}>
+            <div className="form-group" style={{ flex: 1 }}>
+              <label className="form-label">Duration (Days)</label>
+              <input className="form-input" type="number" min="1" value={challengeForm.duration} onChange={e => setChallengeForm(f => ({ ...f, duration: e.target.value }))} required />
+            </div>
+            <div className="form-group" style={{ flex: 1 }}>
+              <label className="form-label">Status</label>
+              <select className="form-input" value={challengeForm.status} onChange={e => setChallengeForm(f => ({ ...f, status: e.target.value }))}>
+                <option>Draft</option><option>Published</option><option>Active</option><option>Completed</option><option>Archived</option>
+              </select>
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: '1rem' }}>
+            <div className="form-group" style={{ flex: 1 }}>
+              <label className="form-label">Start Date *</label>
+              <input className="form-input" type="date" value={challengeForm.startDate ? challengeForm.startDate.split('T')[0] : ''} onChange={e => setChallengeForm(f => ({ ...f, startDate: e.target.value }))} required />
+            </div>
+            <div className="form-group" style={{ flex: 1 }}>
+              <label className="form-label">End Date *</label>
+              <input className="form-input" type="date" value={challengeForm.endDate ? challengeForm.endDate.split('T')[0] : ''} onChange={e => setChallengeForm(f => ({ ...f, endDate: e.target.value }))} required />
+            </div>
+          </div>
+          <button className="btn btn-primary" type="submit" disabled={loading}>{loading ? 'Saving…' : 'Save Challenge'}</button>
+        </form>
+        <Toast {...toast} />
+      </div>
+    );
+  }
+
+  if (view === 'tasks') {
+    return (
+      <div className="admin-two-col">
+        <div className="admin-form-side">
+          <button className="btn btn-secondary btn-sm" onClick={() => setView('list')} style={{ marginBottom: '1rem' }}>← Back to Challenges</button>
+          <div className="card" style={{ padding: 'var(--space-xl)' }}>
+            <h2 className="admin-section-title">{taskForm._id ? 'Edit Task' : 'Add New Task'}</h2>
+            <form className="admin-form" onSubmit={handleSaveTask}>
+              <div className="form-group">
+                <label className="form-label">Day Number *</label>
+                <input className="form-input" type="number" min="1" value={taskForm.dayNumber} onChange={e => setTaskForm(f => ({ ...f, dayNumber: e.target.value }))} required />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Title *</label>
+                <input className="form-input" value={taskForm.title} onChange={e => setTaskForm(f => ({ ...f, title: e.target.value }))} required />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Description *</label>
+                <textarea className="form-input" rows={2} value={taskForm.description} onChange={e => setTaskForm(f => ({ ...f, description: e.target.value }))} required />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Instructions (Optional)</label>
+                <textarea className="form-input" rows={3} value={taskForm.instructions} onChange={e => setTaskForm(f => ({ ...f, instructions: e.target.value }))} />
+              </div>
+              <button className="btn btn-primary" type="submit" disabled={loading}>{loading ? 'Saving…' : 'Save Task'}</button>
+              {taskForm._id && <button className="btn btn-secondary" type="button" onClick={() => setTaskForm({ dayNumber: '', title: '', description: '', instructions: '' })} style={{ marginLeft: '1rem' }}>Cancel Edit</button>}
+            </form>
+          </div>
+        </div>
+        <div className="admin-list-side">
+          <h2 className="admin-section-title">Tasks for {selectedChallenge.title}</h2>
+          <div className="admin-event-list">
+            {tasks.map(t => (
+              <div key={t._id} className="card admin-event-item" onClick={() => setTaskForm(t)} style={{ cursor: 'pointer' }}>
+                <div className="admin-event-item__body">
+                  <div className="admin-event-item__title">Day {t.dayNumber}: {t.title}</div>
+                  <div className="admin-event-item__desc">{t.description}</div>
+                </div>
+              </div>
+            ))}
+            {tasks.length === 0 && <p>No tasks added yet.</p>}
+          </div>
+        </div>
+        <Toast {...toast} />
+      </div>
+    );
+  }
 
   return (
     <div>
-      <div className="admin-challenge-layout">
-        <div className="admin-challenge-grid-side">
-          <div className="card admin-active-info" style={{ marginBottom: 'var(--space-lg)' }}>
-            <div className="admin-active-info__label">Currently Active</div>
-            <div className="admin-active-info__day">Day {activeDay}</div>
-            <div className="admin-active-info__note">Only Day {activeDay} tasks are visible to students.</div>
-          </div>
-          <div className="card" style={{ padding: 'var(--space-lg)' }}>
-            <p className="admin-challenge__hint">Click a day to view/edit. Green = has task content.</p>
-            <div className="admin-day-grid">
-              {Array.from({ length: 30 }, (_, i) => i + 1).map(d => {
-                const has = tasks.some(t => t.day === d);
-                return (
-                  <button
-                    key={d}
-                    className={`admin-day-btn ${d === activeDay ? 'admin-day-btn--active' : ''} ${has && d !== activeDay ? 'admin-day-btn--past' : ''}`}
-                    onClick={() => handleSelectDay(d)}
-                  >
-                    <span className="admin-day-btn__num">{d}</span>
-                  </button>
-                );
-              })}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+        <h2 className="admin-section-title">Manage Challenges</h2>
+        <button className="btn btn-mint" onClick={() => { setSelectedChallenge(null); setChallengeForm({ title: '', description: '', category: 'Mental Well-being', duration: 7, startDate: '', endDate: '', status: 'Draft' }); setView('edit-challenge'); }}>+ New Challenge</button>
+      </div>
+      <div className="admin-event-list">
+        {challenges.map(c => (
+          <div key={c._id} className="card admin-event-item">
+            <div className="admin-event-item__body">
+              <div className="admin-event-item__title">{c.title}</div>
+              <div className="admin-event-item__meta">
+                <span className={`badge ${c.status === 'Active' ? 'badge-mint' : 'badge-lavender'}`}>{c.status}</span>
+                <span>{c.duration} Days</span>
+              </div>
+              <div className="admin-event-item__desc">{c.description.slice(0, 80)}...</div>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <button className="btn btn-sm btn-primary" onClick={() => handleManageTasks(c)}>Tasks</button>
+              <button className="btn btn-sm btn-secondary" onClick={() => { setSelectedChallenge(c); setChallengeForm(c); setView('edit-challenge'); }}>Edit</button>
+              <button className="admin-delete-btn" onClick={() => handleDeleteChallenge(c._id)}>✕</button>
             </div>
           </div>
-        </div>
-
-        <div className="admin-challenge-form-side">
-          {selected ? (
-            <div className="card" style={{ padding: 'var(--space-xl)' }}>
-              <h2 className="admin-section-title">Day {selected} Task</h2>
-              <form className="admin-form" onSubmit={handleSaveTask}>
-                <div className="form-group">
-                  <label className="form-label">Title *</label>
-                  <input className="form-input" value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} placeholder="Task title" required />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Description *</label>
-                  <textarea className="form-input" rows={3} value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} placeholder="What is this task about?" required />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Instructions (what the user must do)</label>
-                  <textarea className="form-input" rows={4} value={form.instructions} onChange={e => setForm(f => ({ ...f, instructions: e.target.value }))} placeholder="Specific step-by-step instructions…" />
-                </div>
-                <div style={{ display: 'flex', gap: 'var(--space-md)', flexWrap: 'wrap' }}>
-                  <button className="btn btn-primary btn-sm" type="submit" disabled={loading}>{loading ? 'Saving…' : 'Save Task'}</button>
-                  <button className="btn btn-mint btn-sm" type="button" onClick={handleActivate} disabled={loading || selected === activeDay}>
-                    {selected === activeDay ? 'Currently Active' : `Activate Day ${selected}`}
-                  </button>
-                </div>
-              </form>
-            </div>
-          ) : (
-            <div className="card admin-empty"><p>Select a day from the grid to view or edit its task.</p></div>
-          )}
-        </div>
+        ))}
+        {challenges.length === 0 && <div className="card admin-empty"><p>No challenges exist yet.</p></div>}
       </div>
       <Toast {...toast} />
     </div>
