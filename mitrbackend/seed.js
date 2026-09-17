@@ -84,7 +84,7 @@ const seed = async () => {
   console.log('🎉 Seed complete!\n');
   await mongoose.connection.close();
   process.exit(0);
-};
+
 
 seed().catch((err) => {
   console.error('❌ Seed failed:', err);
