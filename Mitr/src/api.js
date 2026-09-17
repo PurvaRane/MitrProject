@@ -135,6 +135,7 @@ export const journalAPI = {
   create: (data) => request('/journal', { method: 'POST', body: JSON.stringify(data) }),
   getMy: () => request('/journal'),
   delete: (id) => request(`/journal/${id}`, { method: 'DELETE' }),
+  adminGetAll: () => request('/journal/all'),
 };
 
 // ── Admin Analytics ───────────────────────────────────────────────────────────
@@ -152,7 +153,10 @@ export const appointmentAPI = {
   getMyAppointments: () => request('/appointments/my'),
   cancelAppointment: (id) => request(`/appointments/cancel/${id}`, { method: 'PATCH' }),
   // Admin
-  adminGetAll: (filters) => request(`/appointments/admin/all?${new URLSearchParams(filters)}`),
+  adminGetAll: (params = {}) => {
+    const query = new URLSearchParams(params);
+    return request(`/appointments/admin/all?${query}`);
+  },
   adminGetStats: () => request('/appointments/admin/stats'),
   adminGetToday: () => request('/appointments/admin/today'),
   adminSetAvailability: (data) => request('/appointments/admin/availability', { method: 'POST', body: JSON.stringify(data) }),

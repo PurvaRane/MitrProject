@@ -1,15 +1,17 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../App';
 import { useApp } from '../context/AppContext';
-import { adminAPI, submissionsAPI, appointmentAPI } from '../api';
+import { adminAPI, submissionsAPI, appointmentAPI, journalAPI } from '../api';
 import './AdminDashboard.css';
 
-const TABS = ['Overview', 'Events', 'Appointments', 'Reports', 'Challenge', 'Wellness', 'Submissions', 'Analytics'];
+const TABS = ['Overview', 'Events', 'Appointments', 'Reports', 'Journeys', 'Wellness Centre', 'Submissions', 'Analytics'];
 const CATEGORIES = ['Workshop', 'Awareness', 'Challenge', 'Seminar', 'Other'];
 
 function formatDate(d) {
   if (!d) return '';
-  return new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+  // Handle plain YYYY-MM-DD strings without UTC midnight timezone shift
+  const dateObj = /^\d{4}-\d{2}-\d{2}$/.test(d) ? new Date(d + 'T12:00:00') : new Date(d);
+  return dateObj.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
 function formatDateTime(d) {
@@ -37,11 +39,12 @@ function OverviewTab({ setTab }) {
     <div>
       <div className="admin-stats-grid grid-responsive">
         {[
-          { label: 'Total Users', val: stats?.totalUsers ?? '—', color: 'blue' },
-          { label: 'Active Users', val: stats?.activeUsersCount ?? '—', color: 'mint' },
-          { label: 'Total Submissions', val: stats?.totalSubmissions ?? '—', color: 'lavender' },
-          { label: 'Today\'s Completions', val: stats?.todayCompletions ?? '—', color: 'blue' },
-          { label: 'Reflections', val: stats?.totalReflections ?? '—', color: 'mint' },
+          { label: 'Total Registered Students', val: stats?.totalUsers ?? '—', color: 'blue' },
+          { label: 'New Today', val: stats?.registrationsToday ?? '—', color: 'mint' },
+          { label: 'New This Week', val: stats?.registrationsThisWeek ?? '—', color: 'lavender' },
+          { label: 'Active Participants', val: stats?.activeUsersCount ?? '—', color: 'blue' },
+          { label: "Today's Completions", val: stats?.todayCompletions ?? '—', color: 'mint' },
+          { label: 'Total Reflections', val: stats?.totalReflections ?? '—', color: 'peach' },
         ].map(s => (
           <div key={s.label} className={`card admin-stat admin-stat--${s.color}`}>
             <div className="admin-stat__val">{s.val}</div>
@@ -54,7 +57,7 @@ function OverviewTab({ setTab }) {
           { icon: '📅', title: 'Manage Events', desc: 'Add, edit or delete events', tab: 'Events', color: 'blue' },
           { icon: '📆', title: 'Appointments', desc: 'Manage slots & bookings', tab: 'Appointments', color: 'peach' },
           { icon: '📝', title: 'User Submissions', desc: 'View reflections & images', tab: 'Submissions', color: 'mint' },
-          { icon: '🌱', title: 'Challenge Control', desc: 'Set active day & manage tasks', tab: 'Challenge', color: 'lavender' },
+          { icon: '🌱', title: 'Well-being Journeys', desc: 'Manage challenges & tasks', tab: 'Journeys', color: 'lavender' },
           { icon: '📊', title: 'View Analytics', desc: 'Monitor trends & engagement', tab: 'Analytics', color: 'peach' },
         ].map(q => (
           <div key={q.title} className="card admin-quick-card" onClick={() => setTab(q.tab)}>
@@ -532,100 +535,201 @@ function WellnessTab() {
 
 // ── Submissions Tab ───────────────────────────────────────────────────────────
 function SubmissionsTab() {
+  const [subTab, setSubTab] = useState('challenges'); // 'challenges' | 'journals'
+  
+  // Challenge Submissions State
   const [subs, setSubs] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [filters, setFilters] = useState({ day: '', hasReflection: 'false', hasImage: 'false' });
+  const [subsLoading, setSubsLoading] = useState(true);
+  const [filters, setFilters] = useState({ hasReflection: 'false', hasImage: 'false' });
 
+  // Journals State
+  const [journals, setJournals] = useState([]);
+  const [journalsLoading, setJournalsLoading] = useState(true);
+
+  // Fetch Challenge Submissions
   const fetchSubs = async () => {
-    setLoading(true);
+    setSubsLoading(true);
     try {
       const activeFilters = {};
-      if (filters.day) activeFilters.day = filters.day;
       if (filters.hasReflection === 'true') activeFilters.hasReflection = 'true';
       if (filters.hasImage === 'true') activeFilters.hasImage = 'true';
       
       const data = await submissionsAPI.getAll(activeFilters);
       setSubs(data.submissions || []);
     } catch (err) { console.error(err); }
-    finally { setLoading(false); }
+    finally { setSubsLoading(false); }
   };
 
-  useEffect(() => { fetchSubs(); }, [filters]);
+  // Fetch Journals
+  const fetchJournals = async () => {
+    setJournalsLoading(true);
+    try {
+      const res = await journalAPI.adminGetAll();
+      setJournals(res.entries || []);
+    } catch (err) { console.error(err); }
+    finally { setJournalsLoading(false); }
+  };
+
+  useEffect(() => {
+    if (subTab === 'challenges') fetchSubs();
+    if (subTab === 'journals') fetchJournals();
+  }, [subTab, filters]);
 
   return (
     <div>
       <div className="admin-submissions-header">
         <h2 className="admin-section-title">User Submissions & Reflections</h2>
-        <div className="admin-submissions-filters card">
-          <div className="form-group">
-            <label className="form-label">Filter by Day</label>
-            <select className="form-input" value={filters.day} onChange={e => setFilters(f => ({ ...f, day: e.target.value }))}>
-              <option value="">All Days</option>
-              {Array.from({ length: 30 }, (_, i) => i + 1).map(d => <option key={d} value={d}>Day {d}</option>)}
-            </select>
-          </div>
-          <div className="form-group">
-            <label className="form-label">Content</label>
-            <div style={{ display: 'flex', gap: 'var(--space-md)' }}>
-              <label className="admin-check-label">
-                <input type="checkbox" checked={filters.hasReflection === 'true'} onChange={e => setFilters(f => ({ ...f, hasReflection: e.target.checked ? 'true' : 'false' }))} />
-                Reflections
-              </label>
-              <label className="admin-check-label">
-                <input type="checkbox" checked={filters.hasImage === 'true'} onChange={e => setFilters(f => ({ ...f, hasImage: e.target.checked ? 'true' : 'false' }))} />
-                Images
-              </label>
-            </div>
-          </div>
-        </div>
+      </div>
+      
+      {/* Sub-tab switcher */}
+      <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.5rem' }}>
+        <button
+          className={`btn btn-sm ${subTab === 'challenges' ? 'btn-primary' : 'btn-secondary'}`}
+          onClick={() => setSubTab('challenges')}
+        >Challenge Submissions</button>
+        <button
+          className={`btn btn-sm ${subTab === 'journals' ? 'btn-primary' : 'btn-secondary'}`}
+          onClick={() => setSubTab('journals')}
+        >Personal Journals (Reflections)</button>
       </div>
 
-      {loading ? <div className="admin-loading">Loading submissions…</div> : subs.length === 0 ? (
-        <div className="card admin-empty"><p>No submissions found for these filters.</p></div>
-      ) : (
-        <div className="admin-subs-table-wrap card">
-          <table className="admin-subs-table">
-            <thead>
-              <tr>
-                <th>User</th>
-                <th>MIS ID</th>
-                <th>Day</th>
-                <th>Reflection</th>
-                <th>Image</th>
-                <th>Date</th>
-              </tr>
-            </thead>
-            <tbody>
-              {subs.map(s => (
-                <tr key={s._id}>
-                  <td>
-                    <div className="admin-sub-user">
-                      <strong>{s.userId?.name || 'Unknown'}</strong>
-                      <span>{s.userId?.branch} ({s.userId?.year})</span>
-                    </div>
-                  </td>
-                  <td>{s.userId?.misId || '—'}</td>
-                  <td><span className="badge badge-lavender">Day {s.challengeDay}</span></td>
-                  <td>
-                    {s.reflectionText ? (
-                      <div className="admin-sub-refl" title={s.reflectionText}>
-                        {s.reflectionText.slice(0, 50)}{s.reflectionText.length > 50 ? '…' : ''}
-                      </div>
-                    ) : <span className="admin-none">No reflection</span>}
-                  </td>
-                  <td>
-                    {s.imageUrl ? (
-                      <a href={s.imageUrl} target="_blank" rel="noreferrer" className="admin-sub-img-link">
-                        View Image
-                      </a>
-                    ) : <span className="admin-none">—</span>}
-                  </td>
-                  <td>{formatDateTime(s.submittedAt || s.createdAt)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+      {subTab === 'challenges' && (
+        <>
+          <div className="admin-submissions-filters card">
+            <div className="form-group">
+              <label className="form-label">Filter Content</label>
+              <div style={{ display: 'flex', gap: 'var(--space-md)' }}>
+                <label className="admin-check-label">
+                  <input type="checkbox" checked={filters.hasReflection === 'true'} onChange={e => setFilters(f => ({ ...f, hasReflection: e.target.checked ? 'true' : 'false' }))} />
+                  Has Reflection
+                </label>
+                <label className="admin-check-label">
+                  <input type="checkbox" checked={filters.hasImage === 'true'} onChange={e => setFilters(f => ({ ...f, hasImage: e.target.checked ? 'true' : 'false' }))} />
+                  Has Image
+                </label>
+              </div>
+            </div>
+          </div>
+
+          {subsLoading ? <div className="admin-loading">Loading submissions…</div> : subs.length === 0 ? (
+            <div className="card admin-empty"><p>No submissions found for these filters.</p></div>
+          ) : (
+            <div className="admin-subs-table-wrap card">
+              <table className="admin-subs-table">
+                <thead>
+                  <tr>
+                    <th>User</th>
+                    <th>MIS ID</th>
+                    <th>Challenge / Task</th>
+                    <th>Reflection</th>
+                    <th>Image</th>
+                    <th>Date</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {subs.map(s => (
+                    <tr key={s._id}>
+                      <td>
+                        <div className="admin-sub-user">
+                          <strong>{s.userId?.name || 'Unknown'}</strong>
+                          <span>{s.userId?.branch} ({s.userId?.year})</span>
+                        </div>
+                      </td>
+                      <td>{s.userId?.misId || '—'}</td>
+                      <td>
+                        {s.challengeId ? (
+                          <>
+                            <div style={{ fontWeight: '500', fontSize: '0.9rem' }}>{s.challengeId.title}</div>
+                            {s.taskId && <div className="text-muted" style={{ fontSize: '0.85rem' }}>Day {s.taskId.dayNumber}: {s.taskId.title}</div>}
+                          </>
+                        ) : (
+                          <span className="badge badge-lavender">Legacy Day {s.challengeDay}</span>
+                        )}
+                      </td>
+                      <td>
+                        {s.reflectionText ? (
+                          <div className="admin-sub-refl" title={s.reflectionText}>
+                            {s.reflectionText.slice(0, 50)}{s.reflectionText.length > 50 ? '…' : ''}
+                          </div>
+                        ) : <span className="admin-none">No reflection</span>}
+                      </td>
+                      <td>
+                        {s.imageUrl ? (
+                          <a href={s.imageUrl} target="_blank" rel="noreferrer" className="admin-sub-img-link">
+                            View Image
+                          </a>
+                        ) : <span className="admin-none">—</span>}
+                      </td>
+                      <td>{formatDateTime(s.submittedAt || s.createdAt)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </>
+      )}
+
+      {subTab === 'journals' && (
+        <>
+          {journalsLoading ? <div className="admin-loading">Loading journals…</div> : journals.length === 0 ? (
+            <div className="card admin-empty"><p>No journal reflections found.</p></div>
+          ) : (
+            <div className="admin-subs-table-wrap card">
+              <table className="admin-subs-table">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>User</th>
+                    <th>MIS ID</th>
+                    <th>Mood</th>
+                    <th>Reflection Title</th>
+                    <th>Content</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {journals.map(j => {
+                    const isAnon = j.isAnonymous;
+                    return (
+                      <tr key={j._id}>
+                        <td>{formatDateTime(j.createdAt)}</td>
+                        <td>
+                          {isAnon ? (
+                            <span className="badge badge-lavender">Anonymous</span>
+                          ) : (
+                            <div className="admin-sub-user">
+                              <strong>{j.userId?.name || 'Unknown'}</strong>
+                              <span>{j.userId?.branch} ({j.userId?.year})</span>
+                            </div>
+                          )}
+                        </td>
+                        <td>{isAnon ? '—' : (j.userId?.misId || '—')}</td>
+                        <td>
+                          {j.mood && j.mood !== 'none' ? (
+                            <span className="admin-mood-badge">
+                              {j.mood === 'happy' && '😊'}
+                              {j.mood === 'sad' && '😔'}
+                              {j.mood === 'stressed' && '😫'}
+                              {j.mood === 'anxious' && '😰'}
+                              {j.mood === 'motivated' && '🔥'}
+                              {j.mood === 'calm' && '😌'}
+                            </span>
+                          ) : '—'}
+                        </td>
+                        <td><strong>{j.title}</strong></td>
+                        <td>
+                          <div className="admin-sub-refl" title={j.body}>
+                            {j.body.slice(0, 80)}{j.body.length > 80 ? '…' : ''}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </>
       )}
     </div>
   );
@@ -696,7 +800,7 @@ function AnalyticsTab() {
                 </tr>
               </thead>
               <tbody>
-                {dayStats.map(r => (
+                {(stats.dayStats || []).map(r => (
                   <tr key={r.day}>
                     <td>Day {r.day}</td>
                     <td>{r.completions}</td>
@@ -719,13 +823,206 @@ function AnalyticsTab() {
   );
 }
 
+// ── Availability Calendar Sub-component ───────────────────────────────────────
+function AvailabilityManager() {
+  const [selDate, setSelDate] = useState('');
+  const [slots, setSlots] = useState([]);
+  const [slotsLoading, setSlotsLoading] = useState(false);
+  const [toast, setToast] = useState({ msg: '', type: 'success' });
+
+  // Slot generator state
+  const [genStart, setGenStart] = useState('09:00');
+  const [genEnd, setGenEnd]     = useState('17:00');
+  const [genInterval, setGenInterval] = useState(30); // minutes
+  const [genLoading, setGenLoading]   = useState(false);
+
+  const showToast = (msg, type = 'success') => {
+    setToast({ msg, type }); setTimeout(() => setToast({ msg: '', type: 'success' }), 3500);
+  };
+
+  // Load slots for the selected date
+  const loadSlots = async (date) => {
+    if (!date) return;
+    setSlotsLoading(true);
+    try {
+      // Use month availability to get all slots (including booked ones)
+      const [y, m] = date.split('-');
+      const res = await appointmentAPI.getAvailability(parseInt(y), parseInt(m));
+      const dayData = res.availability?.[date];
+      setSlots(dayData?.slots || []);
+    } catch (err) {
+      showToast('Could not load slots: ' + err.message, 'error');
+    } finally {
+      setSlotsLoading(false);
+    }
+  };
+
+  const handleDateChange = (date) => {
+    setSelDate(date);
+    loadSlots(date);
+  };
+
+  // Generate time slots from start to end with interval
+  const generateTimeSlots = () => {
+    const [sh, sm] = genStart.split(':').map(Number);
+    const [eh, em] = genEnd.split(':').map(Number);
+    const startMins = sh * 60 + sm;
+    const endMins   = eh * 60 + em;
+    const interval  = Number(genInterval);
+    const result = [];
+    for (let m = startMins; m + interval <= endMins; m += interval) {
+      const startH = String(Math.floor(m / 60)).padStart(2, '0');
+      const startM = String(m % 60).padStart(2, '0');
+      const endH   = String(Math.floor((m + interval) / 60)).padStart(2, '0');
+      const endM   = String((m + interval) % 60).padStart(2, '0');
+      result.push({ startTime: `${startH}:${startM}`, endTime: `${endH}:${endM}` });
+    }
+    return result;
+  };
+
+  const handleGenerate = async () => {
+    if (!selDate) { showToast('Please select a date first.', 'error'); return; }
+    const generated = generateTimeSlots();
+    if (generated.length === 0) { showToast('No slots generated. Check start/end/interval.', 'error'); return; }
+    setGenLoading(true);
+    try {
+      await appointmentAPI.adminSetAvailability({ date: selDate, slots: generated });
+      showToast(`✅ ${generated.length} slot(s) added for ${selDate}.`);
+      loadSlots(selDate);
+    } catch (err) {
+      showToast(err.message, 'error');
+    } finally {
+      setGenLoading(false);
+    }
+  };
+
+  const handleRemoveSlot = async (startTime) => {
+    if (!window.confirm(`Remove slot ${startTime} on ${selDate}?`)) return;
+    try {
+      await appointmentAPI.adminRemoveSlot({ date: selDate, startTime });
+      showToast('Slot removed.');
+      loadSlots(selDate);
+    } catch (err) {
+      showToast(err.message, 'error');
+    }
+  };
+
+  const handleToggleDay = async (isAvailable) => {
+    if (!selDate) return;
+    try {
+      await appointmentAPI.adminToggleDay({ date: selDate, isAvailable });
+      showToast(`All slots for ${selDate} ${isAvailable ? 'enabled' : 'disabled'}.`);
+      loadSlots(selDate);
+    } catch (err) {
+      showToast(err.message, 'error');
+    }
+  };
+
+  const today = new Date(new Date().getTime() + 5.5 * 60 * 60 * 1000).toISOString().slice(0, 10);
+
+  return (
+    <div className="avail-manager">
+      <h3 className="admin-section-title" style={{ marginBottom: '1rem' }}>📅 Manage Availability Slots</h3>
+      <div className="admin-two-col">
+        {/* Left: Date selector + Slot generator */}
+        <div className="admin-form-side">
+          <div className="card" style={{ padding: 'var(--space-xl)' }}>
+            <div className="form-group">
+              <label className="form-label">Select Date *</label>
+              <input
+                className="form-input"
+                type="date"
+                value={selDate}
+                min={today}
+                onChange={e => handleDateChange(e.target.value)}
+              />
+            </div>
+
+            <h4 style={{ marginBottom: '0.75rem', color: 'var(--text-muted)', fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Auto-generate Slots</h4>
+            <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+              <div className="form-group" style={{ flex: 1, minWidth: 100 }}>
+                <label className="form-label">Start Time</label>
+                <input className="form-input" type="time" value={genStart} onChange={e => setGenStart(e.target.value)} />
+              </div>
+              <div className="form-group" style={{ flex: 1, minWidth: 100 }}>
+                <label className="form-label">End Time</label>
+                <input className="form-input" type="time" value={genEnd} onChange={e => setGenEnd(e.target.value)} />
+              </div>
+              <div className="form-group" style={{ flex: 1, minWidth: 100 }}>
+                <label className="form-label">Interval (min)</label>
+                <select className="form-input" value={genInterval} onChange={e => setGenInterval(e.target.value)}>
+                  <option value={15}>15 min</option>
+                  <option value={20}>20 min</option>
+                  <option value={30}>30 min</option>
+                  <option value={45}>45 min</option>
+                  <option value={60}>60 min</option>
+                </select>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.5rem', flexWrap: 'wrap' }}>
+              <button className="btn btn-primary" onClick={handleGenerate} disabled={genLoading || !selDate}>
+                {genLoading ? 'Generating…' : `Generate Slots (${generateTimeSlots().length})`}
+              </button>
+              {selDate && (
+                <>
+                  <button className="btn btn-mint btn-sm" onClick={() => handleToggleDay(true)}>Enable All</button>
+                  <button className="btn btn-secondary btn-sm" onClick={() => handleToggleDay(false)}>Disable All</button>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Right: Current slots for selected date */}
+        <div className="admin-list-side">
+          {!selDate ? (
+            <div className="card admin-empty"><p>Select a date to view and manage its slots.</p></div>
+          ) : slotsLoading ? (
+            <div className="admin-loading">Loading slots…</div>
+          ) : slots.length === 0 ? (
+            <div className="card admin-empty"><p>No slots set for {selDate}. Use the generator on the left.</p></div>
+          ) : (
+            <div>
+              <h4 style={{ marginBottom: '0.75rem' }}>Slots for {selDate} ({slots.length})</h4>
+              <div className="admin-event-list">
+                {slots.map(s => (
+                  <div key={s._id || s.startTime} className="card admin-event-item" style={{ padding: '0.75rem 1rem' }}>
+                    <div className="admin-event-item__body">
+                      <div className="admin-event-item__title" style={{ fontSize: '1rem' }}>
+                        {s.startTime} – {s.endTime}
+                      </div>
+                      <span className={`badge badge-${s.status === 'booked' ? 'peach' : s.status === 'unavailable' ? 'lavender' : 'mint'}`}>
+                        {s.status === 'booked' ? 'Booked' : s.status === 'unavailable' ? 'Disabled' : 'Available'}
+                      </span>
+                    </div>
+                    {s.status !== 'booked' && (
+                      <button
+                        className="admin-delete-btn"
+                        onClick={() => handleRemoveSlot(s.startTime)}
+                        title="Remove slot"
+                      >✕</button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+      <Toast {...toast} />
+    </div>
+  );
+}
+
 // ── Appointments Tab ──────────────────────────────────────────────────────────
 function AppointmentsTab() {
+  const [subTab, setSubTab] = useState('appointments'); // 'appointments' | 'availability'
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState({ msg: '', type: 'success' });
-  const [filter, setFilter] = useState('all'); // all, upcoming, today, pending
-  
+  const [filter, setFilter] = useState('all');
+
   const showToast = (msg, type = 'success') => { setToast({ msg, type }); setTimeout(() => setToast({ msg: '', type: 'success' }), 3000); };
 
   const fetchAppts = async () => {
@@ -753,11 +1050,11 @@ function AppointmentsTab() {
   };
 
   const handleCancel = async (id) => {
-    const reason = prompt("Enter cancellation reason (optional):");
+    const reason = prompt('Enter cancellation reason (optional):');
     if (reason === null) return;
     try {
       await appointmentAPI.adminCancelAppointment(id, reason);
-      showToast('Appointment cancelled');
+      showToast('Appointment cancelled.');
       fetchAppts();
     } catch (err) {
       showToast(err.message, 'error');
@@ -766,66 +1063,92 @@ function AppointmentsTab() {
 
   return (
     <div>
-      <div className="admin-submissions-header">
-        <h2 className="admin-section-title">Manage Appointments</h2>
-        <div className="admin-submissions-filters card">
-          <div className="form-group">
-            <label className="form-label">Filter</label>
-            <select className="form-input" value={filter} onChange={e => setFilter(e.target.value)}>
-              <option value="all">All Appointments</option>
-              <option value="upcoming">Upcoming</option>
-              <option value="today">Today</option>
-              <option value="pending">Pending</option>
-            </select>
-          </div>
-        </div>
+      {/* Sub-tab switcher */}
+      <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.5rem' }}>
+        <button
+          className={`btn btn-sm ${subTab === 'appointments' ? 'btn-primary' : 'btn-secondary'}`}
+          onClick={() => setSubTab('appointments')}
+        >📋 Bookings</button>
+        <button
+          className={`btn btn-sm ${subTab === 'availability' ? 'btn-primary' : 'btn-secondary'}`}
+          onClick={() => setSubTab('availability')}
+        >📅 Set Availability</button>
       </div>
 
-      {loading ? (
-        <div className="admin-loading">Loading appointments…</div>
-      ) : appointments.length === 0 ? (
-        <div className="card admin-empty"><p>No appointments found.</p></div>
-      ) : (
-        <div className="admin-subs-table-wrap card">
-          <table className="admin-subs-table">
-            <thead>
-              <tr>
-                <th>Date & Time</th>
-                <th>Student</th>
-                <th>MIS ID</th>
-                <th>Status</th>
-                <th>Reason</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {appointments.map(a => (
-                <tr key={a._id}>
-                  <td>
-                    <strong>{formatDate(a.date)}</strong>
-                    <br/><span className="text-muted">{a.startTime}</span>
-                  </td>
-                  <td>{a.studentId?.name || 'Unknown'}</td>
-                  <td>{a.studentId?.misId || '—'}</td>
-                  <td><span className={`badge badge-${a.status === 'completed' ? 'mint' : a.status === 'cancelled' ? 'peach' : 'blue'}`}>{a.status}</span></td>
-                  <td><div title={a.reason} style={{maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'}}>{a.reason || '—'}</div></td>
-                  <td>
-                    <div style={{ display: 'flex', gap: '4px' }}>
-                      {a.status !== 'cancelled' && a.status !== 'completed' && (
-                        <>
-                          <button className="btn btn-mint btn-sm" onClick={() => handleStatusChange(a._id, 'completed')}>Done</button>
-                          <button className="btn btn-peach btn-sm" onClick={() => handleCancel(a._id)}>Cancel</button>
-                        </>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      {subTab === 'availability' && <AvailabilityManager />}
+
+      {subTab === 'appointments' && (
+        <div>
+          <div className="admin-submissions-header">
+            <h2 className="admin-section-title">All Appointments</h2>
+            <div className="admin-submissions-filters card">
+              <div className="form-group">
+                <label className="form-label">Filter</label>
+                <select className="form-input" value={filter} onChange={e => setFilter(e.target.value)}>
+                  <option value="all">All Appointments</option>
+                  <option value="upcoming">Upcoming Confirmed</option>
+                  <option value="today">Today Only</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          {loading ? (
+            <div className="admin-loading">Loading appointments…</div>
+          ) : appointments.length === 0 ? (
+            <div className="card admin-empty"><p>No appointments found.</p></div>
+          ) : (
+            <div className="admin-subs-table-wrap card">
+              <table className="admin-subs-table">
+                <thead>
+                  <tr>
+                    <th>Date &amp; Time</th>
+                    <th>Student</th>
+                    <th>MIS ID</th>
+                    <th>Status</th>
+                    <th>Reason</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {appointments.map(a => (
+                    <tr key={a._id}>
+                      <td>
+                        <strong>{formatDate(a.date)}</strong>
+                        <br/><span className="text-muted">{a.startTime} – {a.endTime}</span>
+                      </td>
+                      {/* Use pre-flattened fields returned by backend */}
+                      <td>{a.studentName || 'Unknown'}</td>
+                      <td>{a.studentMisId || '—'}</td>
+                      <td>
+                        <span className={`badge badge-${a.status === 'completed' ? 'mint' : a.status === 'cancelled' ? 'peach' : 'blue'}`}>
+                          {a.status}
+                        </span>
+                      </td>
+                      <td>
+                        <div title={a.reason} style={{ maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {a.reason || '—'}
+                        </div>
+                      </td>
+                      <td>
+                        <div style={{ display: 'flex', gap: '4px' }}>
+                          {a.status !== 'cancelled' && a.status !== 'completed' && (
+                            <>
+                              <button className="btn btn-mint btn-sm" onClick={() => handleStatusChange(a._id, 'completed')}>Done</button>
+                              <button className="btn btn-peach btn-sm" onClick={() => handleCancel(a._id)}>Cancel</button>
+                            </>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+          <Toast {...toast} />
         </div>
       )}
-      <Toast {...toast} />
     </div>
   );
 }
@@ -879,14 +1202,14 @@ export default function AdminDashboard() {
       </div>
 
       <div className="container admin-dash__content">
-        {tab === 'Overview'    && <OverviewTab setTab={setTab} />}
-        {tab === 'Events'      && <EventsTab />}
-        {tab === 'Appointments' && <AppointmentsTab />}
-        {tab === 'Reports'     && <ReportsTab />}
-        {tab === 'Challenge'   && <ChallengeTab />}
-        {tab === 'Wellness'    && <WellnessTab />}
-        {tab === 'Submissions' && <SubmissionsTab />}
-        {tab === 'Analytics'   && <AnalyticsTab />}
+        {tab === 'Overview'         && <OverviewTab setTab={setTab} />}
+        {tab === 'Events'           && <EventsTab />}
+        {tab === 'Appointments'     && <AppointmentsTab />}
+        {tab === 'Reports'          && <ReportsTab />}
+        {tab === 'Journeys'         && <ChallengeTab />}
+        {tab === 'Wellness Centre'  && <WellnessTab />}
+        {tab === 'Submissions'      && <SubmissionsTab />}
+        {tab === 'Analytics'        && <AnalyticsTab />}
       </div>
     </div>
   );

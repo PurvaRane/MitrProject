@@ -3,11 +3,12 @@ import { uploadImage } from '../config/cloudinary.js';
 
 // ── POST /api/submissions — User submits reflection/mark done ────────────────
 export const createOrUpdateSubmission = async (req, res) => {
-  const { challengeDay, reflectionText, isDone, imageUrl: rawImage } = req.body;
+  const { challengeDay, challengeId, taskId, reflectionText, isDone, imageUrl: rawImage } = req.body;
   const userId = req.user._id;
 
-  if (!challengeDay) {
-    return res.status(400).json({ success: false, message: 'challengeDay is required.' });
+  // At least challengeDay OR taskId is required
+  if (challengeDay == null && !taskId) {
+    return res.status(400).json({ success: false, message: 'challengeDay or taskId is required.' });
   }
 
   // Upload reflection image to Cloudinary if it's a base64 string
@@ -20,15 +21,25 @@ export const createOrUpdateSubmission = async (req, res) => {
     }
   }
 
+  // Build the query key: either daily-challenge or task-based
+  const queryKey = challengeDay != null
+    ? { userId, challengeDay: Number(challengeDay) }
+    : { userId, taskId };
+
+  const updatePayload = {
+    ...(challengeDay != null && { challengeDay: Number(challengeDay) }),
+    ...(challengeId && { challengeId }),
+    ...(taskId && { taskId }),
+    ...(reflectionText !== undefined && { reflectionText }),
+    ...(isDone === true && { isDone: true }),
+    ...(imageUrl && { imageUrl }),
+    submittedAt: new Date(),
+  };
+
   const submission = await Submission.findOneAndUpdate(
-    { userId, challengeDay },
-    {
-      ...(reflectionText !== undefined && { reflectionText }),
-      ...(isDone === true && { isDone: true }),
-      ...(imageUrl && { imageUrl }),
-      submittedAt: new Date(),
-    },
-    { new: true, upsert: true, runValidators: true }
+    queryKey,
+    updatePayload,
+    { new: true, upsert: true, runValidators: true, setDefaultsOnInsert: true }
   );
 
   res.status(200).json({ success: true, submission });
@@ -36,7 +47,7 @@ export const createOrUpdateSubmission = async (req, res) => {
 
 // ── GET /api/submissions/my — User's own submissions ────────────────────────
 export const getMySubmissions = async (req, res) => {
-  const submissions = await Submission.find({ userId: req.user._id }).sort({ challengeDay: 1 });
+  const submissions = await Submission.find({ userId: req.user._id }).sort({ challengeDay: 1, createdAt: -1 });
   res.status(200).json({ success: true, submissions });
 };
 
@@ -52,11 +63,13 @@ export const getAllSubmissions = async (req, res) => {
 
   const submissions = await Submission.find(query)
     .populate('userId', 'name misId branch year')
+    .populate('challengeId', 'title')
+    .populate('taskId', 'title dayNumber')
     .sort({ submittedAt: -1 });
 
   res.status(200).json({
     success: true,
     count: submissions.length,
-    submissions
+    submissions,
   });
 };

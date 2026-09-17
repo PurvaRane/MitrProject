@@ -184,7 +184,8 @@ export default function ChallengePage() {
         
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           {tasks.map(t => {
-            const isCompleted = completions?.some(c => c.taskId === t._id);
+            const isCompleted = completions?.some(c => String(c.taskId) === String(t._id));
+
             return (
               <div key={t._id} className={`day-card card ${isCompleted ? 'day-card--done' : ''}`} style={{ width: '100%' }}>
                 <div className="day-card__head">

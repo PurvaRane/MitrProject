@@ -34,3 +34,12 @@ export const deleteEntry = async (req, res) => {
   }
   res.status(200).json({ success: true, message: 'Entry deleted.' });
 };
+
+// ── GET /api/journal/all — Admin: all entries ───────────────────────────────
+export const getAllEntries = async (req, res) => {
+  const entries = await Journal.find({})
+    .populate('userId', 'name misId branch year')
+    .sort({ createdAt: -1 });
+  res.status(200).json({ success: true, count: entries.length, entries });
+};
+

@@ -225,7 +225,7 @@ export default function BookAppointment() {
                   <span className="step-num">2</span>
                   <h2>Select Time Slot</h2>
                 </div>
-                <p className="step-sub">Available slots for {new Date(selectedDate).toLocaleDateString('en-IN', { weekday: 'long', month: 'long', day: 'numeric'})}</p>
+                <p className="step-sub">Available slots for {new Date(selectedDate + 'T12:00:00').toLocaleDateString('en-IN', { weekday: 'long', month: 'long', day: 'numeric'})}</p>
                 
                 <div className="slots-grid">
                   {dateSlots.filter(s => s.isBookable).length === 0 ? (
@@ -260,7 +260,7 @@ export default function BookAppointment() {
                 </div>
                 
                 <div className="confirm-summary glass-baby-blue">
-                  <div><strong>Date:</strong> {selectedDate}</div>
+                  <div><strong>Date:</strong> {new Date(selectedDate + 'T12:00:00').toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</div>
                   <div><strong>Time:</strong> {selectedSlot.startTime} - {selectedSlot.endTime}</div>
                   <div><strong>Student:</strong> {user?.name} ({user?.misId})</div>
                 </div>

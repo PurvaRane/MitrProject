@@ -2,32 +2,51 @@ import Submission from '../models/Submission.js';
 import User from '../models/User.js';
 import Challenge from '../models/Challenge.js';
 import Event from '../models/Event.js';
+import EventReport from '../models/EventReport.js';
+
+// ── Helper: IST-aware today string (YYYY-MM-DD) ───────────────────────────────
+function getTodayIST() {
+  const now = new Date();
+  const istOffset = 5.5 * 60 * 60 * 1000;
+  const istDate = new Date(now.getTime() + istOffset);
+  return istDate.toISOString().slice(0, 10);
+}
 
 // ── GET /api/admin/stats ───────────────────────────────────────────────────
 export const getAdminStats = async (req, res) => {
+  const todayStr = getTodayIST();
+  const todayStart = new Date(todayStr + 'T00:00:00.000Z');
+  const sevenDaysAgo = new Date(todayStart);
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
   const [activeChallenge, totalUsers, totalEvents, totalReports] = await Promise.all([
-    Challenge.findOne({ isActive: true }),
+    Challenge.findOne({ status: 'Active' }),
     User.countDocuments(),
     Event.countDocuments(),
-    (await import('../models/EventReport.js')).default.countDocuments(),
+    EventReport.countDocuments(),
   ]);
 
-  // Unique participants (users who submitted at least 1 day, even if not marked "done")
+  // ── Registration tracking ─────────────────────────────────────────────────
+  const [registrationsToday, registrationsThisWeek] = await Promise.all([
+    User.countDocuments({ createdAt: { $gte: todayStart } }),
+    User.countDocuments({ createdAt: { $gte: sevenDaysAgo } }),
+  ]);
+
+  // Unique participants (users who submitted at least once)
   const participantIds = await Submission.distinct('userId');
   const activeUsersCount = participantIds.length;
   const inactiveUsersCount = totalUsers - activeUsersCount;
 
-  // ── Today's completions ───────────────────────────────────────────────────
-  const todayDay = activeChallenge?.day ?? 1;
+  // ── Today's completions (by submissions with isDone today) ─────────────────
+  const todayEnd = new Date(todayStart);
+  todayEnd.setDate(todayEnd.getDate() + 1);
+
   const todayCompletions = await Submission.countDocuments({
-    challengeDay: todayDay,
     isDone: true,
+    submittedAt: { $gte: todayStart, $lt: todayEnd },
   });
 
   // ── Weekly completions (last 7 days by submittedAt) ───────────────────────
-  const sevenDaysAgo = new Date();
-  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-
   const weeklyRaw = await Submission.aggregate([
     {
       $match: {
@@ -37,7 +56,13 @@ export const getAdminStats = async (req, res) => {
     },
     {
       $group: {
-        _id: { $dateToString: { format: '%Y-%m-%d', date: '$submittedAt' } },
+        // Group by IST date: add 5h30m offset before extracting date
+        _id: {
+          $dateToString: {
+            format: '%Y-%m-%d',
+            date: { $add: ['$submittedAt', 5.5 * 60 * 60 * 1000] },
+          },
+        },
         count: { $sum: 1 },
       },
     },
@@ -48,23 +73,23 @@ export const getAdminStats = async (req, res) => {
   weeklyRaw.forEach(r => { weeklyMap[r._id] = r.count; });
   const weeklyStats = [];
   for (let i = 6; i >= 0; i--) {
-    const d = new Date();
+    const d = new Date(todayStart);
     d.setDate(d.getDate() - i);
     const key = d.toISOString().slice(0, 10);
-    const label = d.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric' });
+    const label = new Date(key).toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric' });
     weeklyStats.push({ date: key, label, count: weeklyMap[key] || 0 });
   }
 
   // ── Engagement Metrics ────────────────────────────────────────────────────
   const totalSubmissions = await Submission.countDocuments();
   const totalReflections = await Submission.countDocuments({ reflectionText: { $exists: true, $ne: '' } });
-  
+
   const reflStats = await Submission.aggregate([
     { $match: { reflectionText: { $exists: true, $ne: '' } } },
     { $project: { wordCount: { $size: { $split: ['$reflectionText', ' '] } } } },
-    { $group: { _id: null, avgWords: { $avg: '$wordCount' }, totalWords: { $sum: '$wordCount' } } }
+    { $group: { _id: null, avgWords: { $avg: '$wordCount' }, totalWords: { $sum: '$wordCount' } } },
   ]);
-  
+
   const avgWords = reflStats.length > 0 ? Math.round(reflStats[0].avgWords) : 0;
 
   res.status(200).json({
@@ -75,6 +100,8 @@ export const getAdminStats = async (req, res) => {
       totalReports,
       activeUsersCount,
       inactiveUsersCount,
+      registrationsToday,
+      registrationsThisWeek,
       activeDay: activeChallenge?.day ?? null,
       activeDayTitle: activeChallenge?.title ?? 'N/A',
       todayCompletions,
@@ -95,9 +122,10 @@ export const getChallengeStats = async (req, res) => {
         completions: { $sum: { $cond: ['$isDone', 1, 0] } },
         reflections: { $sum: { $cond: [{ $gt: [{ $strLenCP: { $ifNull: ['$reflectionText', ''] } }, 0] }, 1, 0] } },
         images: { $sum: { $cond: [{ $gt: [{ $strLenCP: { $ifNull: ['$imageUrl', ''] } }, 0] }, 1, 0] } },
-      }
+      },
     },
-    { $sort: { _id: 1 } }
+    { $match: { _id: { $ne: null } } }, // Only day-based submissions
+    { $sort: { _id: 1 } },
   ]);
 
   const totalUsers = await User.countDocuments();

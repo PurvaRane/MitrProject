@@ -344,13 +344,32 @@ export const getAdminTodaySchedule = async (req, res) => {
 
 // ── GET /api/appointments/admin/all ──────────────────────────────────────────
 export const getAdminAllAppointments = async (req, res) => {
-  const { status, date, page = 1, limit = 50 } = req.query;
-  const filter = { counselorId: COUNSELOR_ID };
-  if (status) filter.status = status;
-  if (date) filter.date = date;
+  const { status, date, filter, page = 1, limit = 50 } = req.query;
+  const today = getTodayIST();
 
-  const total = await Appointment.countDocuments(filter);
-  const appointments = await Appointment.find(filter)
+  const mongoFilter = { counselorId: COUNSELOR_ID };
+
+  // Named filter shortcuts from the admin UI dropdown
+  if (filter && filter !== 'all') {
+    if (filter === 'upcoming') {
+      mongoFilter.date = { $gte: today };
+      mongoFilter.status = 'confirmed';
+    } else if (filter === 'today') {
+      mongoFilter.date = today;
+      mongoFilter.status = 'confirmed';
+    } else if (filter === 'pending') {
+      // Appointments confirmed but date is today or future — same as upcoming
+      mongoFilter.date = { $gte: today };
+      mongoFilter.status = 'confirmed';
+    }
+  } else {
+    // Individual param overrides
+    if (status) mongoFilter.status = status;
+    if (date) mongoFilter.date = date;
+  }
+
+  const total = await Appointment.countDocuments(mongoFilter);
+  const appointments = await Appointment.find(mongoFilter)
     .populate('studentId', 'name misId year branch')
     .sort({ date: -1, startTime: -1 })
     .skip((parseInt(page) - 1) * parseInt(limit))
@@ -358,6 +377,7 @@ export const getAdminAllAppointments = async (req, res) => {
 
   const result = appointments.map(a => ({
     ...a.toObject(),
+    // Flatten populated student fields for consistent frontend access
     studentName: a.studentId?.name || 'Unknown',
     studentInitials: getInitials(a.studentId?.name),
     studentMisId: a.studentId?.misId || '—',

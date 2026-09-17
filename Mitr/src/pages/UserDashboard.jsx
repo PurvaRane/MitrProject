@@ -8,7 +8,9 @@ import './UserDashboard.css';
 
 function formatDate(d) {
   if (!d) return '';
-  return new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+  // If it's a plain date string like "2026-09-18", parse at noon to avoid UTC midnight → wrong day in IST
+  const dateObj = /^\d{4}-\d{2}-\d{2}$/.test(d) ? new Date(d + 'T12:00:00') : new Date(d);
+  return dateObj.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
 function getDaysUntil(dateStr) {
