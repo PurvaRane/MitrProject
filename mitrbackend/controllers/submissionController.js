@@ -55,7 +55,7 @@ export const getMySubmissions = async (req, res) => {
 export const getAllSubmissions = async (req, res) => {
   const { day, userId, hasReflection, hasImage } = req.query;
 
-  const query = {};
+  const query = { challengeId: { $exists: true, $ne: null } };
   if (day) query.challengeDay = Number(day);
   if (userId) query.userId = userId;
   if (hasReflection === 'true') query.reflectionText = { $exists: true, $ne: '' };

@@ -3,7 +3,7 @@ import { AuthContext } from '../App';
 import { useApp } from '../context/AppContext';
 import { adminAPI, submissionsAPI, appointmentAPI, journalAPI } from '../api';
 import './AdminDashboard.css';
-
+import './BookAppointment.css';
 const TABS = ['Overview', 'Events', 'Appointments', 'Reports', 'Journeys', 'Wellness Centre', 'Submissions', 'Analytics'];
 const CATEGORIES = ['Workshop', 'Awareness', 'Challenge', 'Seminar', 'Other'];
 
@@ -643,7 +643,7 @@ function SubmissionsTab() {
                             {s.taskId && <div className="text-muted" style={{ fontSize: '0.85rem' }}>Day {s.taskId.dayNumber}: {s.taskId.title}</div>}
                           </>
                         ) : (
-                          <span className="badge badge-lavender">Legacy Day {s.challengeDay}</span>
+                          <span className="badge badge-lavender">Challenge Submission</span>
                         )}
                       </td>
                       <td>
@@ -830,6 +830,10 @@ function AvailabilityManager() {
   const [slotsLoading, setSlotsLoading] = useState(false);
   const [toast, setToast] = useState({ msg: '', type: 'success' });
 
+  const [currentMonth, setCurrentMonth] = useState(new Date().getMonth() + 1);
+  const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
+  const [monthAvailability, setMonthAvailability] = useState({});
+
   // Slot generator state
   const [genStart, setGenStart] = useState('09:00');
   const [genEnd, setGenEnd]     = useState('17:00');
@@ -839,6 +843,19 @@ function AvailabilityManager() {
   const showToast = (msg, type = 'success') => {
     setToast({ msg, type }); setTimeout(() => setToast({ msg: '', type: 'success' }), 3500);
   };
+
+  const fetchMonthAvailability = async (year, month) => {
+    try {
+      const res = await appointmentAPI.getAvailability(year, month);
+      if (res.success) setMonthAvailability(res.availability);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  useEffect(() => {
+    fetchMonthAvailability(currentYear, currentMonth);
+  }, [currentYear, currentMonth]);
 
   // Load slots for the selected date
   const loadSlots = async (date) => {
@@ -860,6 +877,55 @@ function AvailabilityManager() {
   const handleDateChange = (date) => {
     setSelDate(date);
     loadSlots(date);
+  };
+
+  const getDaysInMonth = (year, month) => new Date(year, month, 0).getDate();
+  const getFirstDayOfMonth = (year, month) => new Date(year, month - 1, 1).getDay();
+
+  const handlePrevMonth = () => {
+    if (currentMonth === 1) { setCurrentMonth(12); setCurrentYear(y => y - 1); }
+    else { setCurrentMonth(m => m - 1); }
+  };
+
+  const handleNextMonth = () => {
+    if (currentMonth === 12) { setCurrentMonth(1); setCurrentYear(y => y + 1); }
+    else { setCurrentMonth(m => m + 1); }
+  };
+
+  const renderCalendar = () => {
+    const days = getDaysInMonth(currentYear, currentMonth);
+    const firstDay = getFirstDayOfMonth(currentYear, currentMonth);
+    const todayStr = new Date(new Date().getTime() + 5.5 * 60 * 60 * 1000).toISOString().slice(0, 10);
+
+    const grid = [];
+    for (let i = 0; i < firstDay; i++) {
+      grid.push(<div key={`empty-${i}`} className="calendar-day empty"></div>);
+    }
+
+    for (let d = 1; d <= days; d++) {
+      const dateStr = `${currentYear}-${String(currentMonth).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+      const dayData = monthAvailability[dateStr];
+      const isPast = dateStr < todayStr;
+      
+      let statusClass = 'unavailable';
+      if (dayData && !isPast) {
+        if (dayData.availableSlots > 0) statusClass = 'available';
+        else if (dayData.bookedSlots > 0) statusClass = 'booked';
+      }
+
+      grid.push(
+        <button
+          key={d}
+          className={`calendar-day ${statusClass} ${selDate === dateStr ? 'selected' : ''}`}
+          disabled={isPast}
+          onClick={() => handleDateChange(dateStr)}
+        >
+          <span className="calendar-day-num">{d}</span>
+          {statusClass === 'available' && <span className="calendar-day-dots">●</span>}
+        </button>
+      );
+    }
+    return grid;
   };
 
   // Generate time slots from start to end with interval
@@ -927,15 +993,23 @@ function AvailabilityManager() {
         {/* Left: Date selector + Slot generator */}
         <div className="admin-form-side">
           <div className="card" style={{ padding: 'var(--space-xl)' }}>
-            <div className="form-group">
-              <label className="form-label">Select Date *</label>
-              <input
-                className="form-input"
-                type="date"
-                value={selDate}
-                min={today}
-                onChange={e => handleDateChange(e.target.value)}
-              />
+            <div className="calendar-widget mb-xl" style={{ marginBottom: '1.5rem' }}>
+              <div className="calendar-header">
+                <button onClick={handlePrevMonth}>&lt;</button>
+                <strong>{["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"][currentMonth - 1]} {currentYear}</strong>
+                <button onClick={handleNextMonth}>&gt;</button>
+              </div>
+              <div className="calendar-weekdays">
+                <span>Su</span><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span>
+              </div>
+              <div className="calendar-grid">
+                {renderCalendar()}
+              </div>
+              <div className="calendar-legend" style={{ marginTop: '1rem', display: 'flex', gap: '1rem', justifyContent: 'center', fontSize: '0.85rem' }}>
+                <div><span className="dot dot-avail"></span> Available</div>
+                <div><span className="dot dot-booked"></span> Full</div>
+                <div><span className="dot dot-unavail"></span> Unavailable</div>
+              </div>
             </div>
 
             <h4 style={{ marginBottom: '0.75rem', color: 'var(--text-muted)', fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Auto-generate Slots</h4>
@@ -1177,28 +1251,7 @@ export default function AdminDashboard() {
             <span className="admin-dash__welcome">Logged in as <strong>Admin</strong></span>
           </div>
         </div>
-        <div className="container">
-          <div className="admin-dash__tabs-wrap">
-            {/* Desktop Tabs */}
-            <div className="admin-dash__tabs desktop-only">
-              {TABS.map(t => (
-                <button key={t} className={`admin-tab-btn ${tab === t ? 'admin-tab-btn--active' : ''}`} onClick={() => setTab(t)}>{t}</button>
-              ))}
-            </div>
-            {/* Mobile Dropdown */}
-            <div className="admin-dash__mobile-nav mobile-only">
-              <label className="form-label" htmlFor="admin-tab-select">Select Section</label>
-              <select 
-                id="admin-tab-select"
-                className="form-input" 
-                value={tab} 
-                onChange={(e) => setTab(e.target.value)}
-              >
-                {TABS.map(t => <option key={t} value={t}>{t}</option>)}
-              </select>
-            </div>
-          </div>
-        </div>
+
       </div>
 
       <div className="container admin-dash__content">

@@ -116,9 +116,20 @@ export const getAdminStats = async (req, res) => {
 // ── GET /api/admin/challenge-stats — Per-day breakdown ────────────────────
 export const getChallengeStats = async (req, res) => {
   const dayStatsRaw = await Submission.aggregate([
+    // Lookup the task to get dayNumber
+    {
+      $lookup: {
+        from: 'challengetasks',
+        localField: 'taskId',
+        foreignField: '_id',
+        as: 'task',
+      }
+    },
+    { $unwind: { path: '$task', preserveNullAndEmptyArrays: true } },
     {
       $group: {
-        _id: '$challengeDay',
+        // Use task.dayNumber if available, fallback to challengeDay for any legacy ones that might still be there, or just ignore nulls
+        _id: { $ifNull: ['$task.dayNumber', '$challengeDay'] },
         completions: { $sum: { $cond: ['$isDone', 1, 0] } },
         reflections: { $sum: { $cond: [{ $gt: [{ $strLenCP: { $ifNull: ['$reflectionText', ''] } }, 0] }, 1, 0] } },
         images: { $sum: { $cond: [{ $gt: [{ $strLenCP: { $ifNull: ['$imageUrl', ''] } }, 0] }, 1, 0] } },
