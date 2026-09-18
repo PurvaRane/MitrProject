@@ -137,24 +137,16 @@ export default function HomePage() {
           <div className="container">
             <div className="challenge-banner__inner glass">
               <div className="challenge-banner__content">
-                <span className="badge badge-mint">30-Day Programme</span>
-                <h2 className="challenge-banner__title">Mental Health Challenge</h2>
+                <span className="badge badge-mint">Well-being Challenges</span>
+                <h2 className="challenge-banner__title">Join a Challenge</h2>
                 <p className="challenge-banner__sub">
-                  One structured self-care task per day — journaling, breathing, gratitude, and more.
-                  Login to track your personal progress and streak.
+                  Participate in well-being challenges to build long-term healthy habits.
+                  Login to track your personal progress.
                 </p>
                 <div className="challenge-banner__cta">
-                  <Link to="/login" className="btn btn-primary">Access Challenge</Link>
+                  <Link to="/login" className="btn btn-primary">Access Challenges</Link>
                   <Link to="/register" className="btn btn-secondary">Create Account</Link>
                 </div>
-              </div>
-              <div className="challenge-banner__progress">
-                <div className="challenge-mini-days">
-                  {Array.from({ length: 30 }, (_, i) => (
-                    <div key={i} className="challenge-mini-day">{i + 1}</div>
-                  ))}
-                </div>
-                <p className="challenge-banner__streak">30 days of intentional wellbeing</p>
               </div>
             </div>
           </div>

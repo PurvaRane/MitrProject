@@ -17,7 +17,7 @@ export default function OnboardingModal({ onComplete }) {
       icon: '📅',
     },
     {
-      title: 'Take the 30-Day Challenge',
+      title: 'Join Well-being Challenges',
       text: 'Engage in small, meaningful daily acts of self-care. Write reflections and track your journey.',
       icon: '✨',
     },

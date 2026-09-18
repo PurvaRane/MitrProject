@@ -223,7 +223,7 @@ export default function RegisterPage() {
           <h2 className="register-side__title">Join the community</h2>
           <ul className="register-side__list">
             {[
-              'Access the 30-day mental health challenge',
+              'Access well-being challenges',
               'Track your personal wellbeing journey',
               'Register for wellness events',
               'Write private daily reflections',

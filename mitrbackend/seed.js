@@ -28,7 +28,7 @@ const DEFAULT_WELLNESS_INFO = {
   vision: 'To create a campus where every student has access to meaningful mental health support — and where wellbeing is treated as integral to academic excellence, not separate from it.',
   services: [
     { title: 'Individual Counselling', description: 'Confidential one-on-one sessions with trained counsellors, available by appointment.' },
-    { title: '30-Day Wellness Challenge', description: 'A structured daily programme of self-care tasks designed to build long-term healthy habits.' },
+    { title: 'Well-being Challenges', description: 'Participate in various well-being challenges to build long-term healthy habits.' },
     { title: 'Wellness Events', description: 'Workshops, awareness sessions, and peer-led activities organised throughout the academic year.' },
     { title: 'Reflection Journal', description: 'A private digital journaling space for students to document thoughts, emotions, and growth.' },
   ],
