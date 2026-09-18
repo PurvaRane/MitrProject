@@ -6,7 +6,7 @@ const router = express.Router();
 
 // GET  /api/wellness-info   — any authenticated user
 // POST /api/wellness-info   — admin only (upsert)
-router.get('/', protect, getWellnessInfo);
+router.get('/', getWellnessInfo);
 router.post('/', protect, adminOnly, upsertWellnessInfo);
 
 export default router;

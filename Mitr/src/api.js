@@ -153,6 +153,7 @@ export const appointmentAPI = {
   getMyAppointments: () => request('/appointments/my'),
   cancelAppointment: (id) => request(`/appointments/cancel/${id}`, { method: 'PATCH' }),
   // Admin
+  adminUpdateCounselor: (data) => request('/appointments/admin/counselor', { method: 'PATCH', body: JSON.stringify(data) }),
   adminGetAll: (params = {}) => {
     const query = new URLSearchParams(params);
     return request(`/appointments/admin/all?${query}`);
@@ -164,4 +165,34 @@ export const appointmentAPI = {
   adminToggleDay: (data) => request('/appointments/admin/toggle-day', { method: 'PATCH', body: JSON.stringify(data) }),
   adminUpdateStatus: (id, status) => request(`/appointments/admin/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status }) }),
   adminCancelAppointment: (id, reason) => request(`/appointments/admin/${id}/cancel`, { method: 'PATCH', body: JSON.stringify({ reason }) }),
+};
+
+export const teamAPI = {
+  getPublic: () => request('/team'),
+  adminGetAll: () => request('/team/admin'),
+  create: (data) => request('/team', { method: 'POST', body: JSON.stringify(data) }),
+  update: (id, data) => request(`/team/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+  reorder: (order) => request('/team/reorder', { method: 'PATCH', body: JSON.stringify({ order }) }),
+  delete: (id) => request(`/team/${id}`, { method: 'DELETE' }),
+};
+
+export const pastEventsAPI = {
+  getAll: (params = {}) => {
+    const query = new URLSearchParams(params);
+    const qs = query.toString();
+    return request(`/past-events${qs ? `?${qs}` : ''}`);
+  },
+  getById: (id) => request(`/past-events/${id}`),
+  adminGetAll: () => request('/past-events/admin/all'),
+  create: (data) => request('/past-events', { method: 'POST', body: JSON.stringify(data) }),
+  update: (id, data) => request(`/past-events/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  delete: (id) => request(`/past-events/${id}`, { method: 'DELETE' }),
+};
+
+export const platformContentAPI = {
+  getPublished: () => request('/platform-content'),
+  adminGet: () => request('/platform-content/admin'),
+  saveDraft: (data) => request('/platform-content/draft', { method: 'POST', body: JSON.stringify(data) }),
+  publish: (data) => request('/platform-content/publish', { method: 'POST', body: JSON.stringify(data) }),
+  revert: () => request('/platform-content/revert', { method: 'POST' }),
 };

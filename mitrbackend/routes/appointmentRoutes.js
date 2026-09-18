@@ -1,6 +1,7 @@
 import express from 'express';
 import {
   getCounselor,
+  updateCounselor,
   getMonthAvailability,
   getDateSlots,
   bookAppointment,
@@ -28,6 +29,7 @@ router.get('/my', protect, getMyAppointments);
 router.patch('/cancel/:id', protect, cancelMyAppointment);
 
 // ── Admin Routes ──────────────────────────────────────────────────────────────
+router.patch('/admin/counselor', protect, adminOnly, updateCounselor);
 router.get('/admin/stats', protect, adminOnly, getAdminAppointmentStats);
 router.get('/admin/today', protect, adminOnly, getAdminTodaySchedule);
 router.get('/admin/all', protect, adminOnly, getAdminAllAppointments);

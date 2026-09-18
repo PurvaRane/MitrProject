@@ -1,13 +1,13 @@
 import mongoose from 'mongoose';
 
-// Generate a unique appointment ID like "MWC-A1B2C3"
+// Generate a unique appointment ID like "MITR-APPT-8F42"
 function generateAppointmentId() {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-  let result = 'MWC-';
-  for (let i = 0; i < 6; i++) {
-    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let suffix = '';
+  for (let i = 0; i < 4; i++) {
+    suffix += chars.charAt(Math.floor(Math.random() * chars.length));
   }
-  return result;
+  return `MITR-APPT-${suffix}`;
 }
 
 const appointmentSchema = new mongoose.Schema(
@@ -38,6 +38,33 @@ const appointmentSchema = new mongoose.Schema(
     endTime: {
       type: String, // "10:30"
       required: [true, 'End time is required'],
+    },
+    studentMIS: {
+      type: String,
+      trim: true,
+      default: '',
+    },
+    studentFirstName: {
+      type: String,
+      trim: true,
+      maxlength: [80, 'First name too long'],
+      default: '',
+    },
+    studentLastName: {
+      type: String,
+      trim: true,
+      maxlength: [80, 'Last name too long'],
+      default: '',
+    },
+    studentBranch: {
+      type: String,
+      trim: true,
+      default: '',
+    },
+    studentInitials: {
+      type: String,
+      trim: true,
+      default: '',
     },
     reason: {
       type: String,

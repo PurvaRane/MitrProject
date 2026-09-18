@@ -20,12 +20,61 @@ function isPastDate(dateStr) {
   return dateStr < today;
 }
 
-// ── Helper: generate student initials from name ──────────────────────────────
-function getInitials(name) {
+// ── Helper: generate student initials from first/last or full name ───────────
+function getInitials(firstName, lastName, fullName) {
+  const first = (firstName || '').trim();
+  const last = (lastName || '').trim();
+  if (first && last) return (first.charAt(0) + last.charAt(0)).toUpperCase();
+  const name = (fullName || `${first} ${last}`).trim();
   if (!name) return '??';
-  const parts = name.trim().split(/\s+/);
+  const parts = name.split(/\s+/);
   if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
   return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
+}
+
+function splitName(fullName = '') {
+  const parts = fullName.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return { firstName: '', lastName: '' };
+  if (parts.length === 1) return { firstName: parts[0], lastName: '' };
+  return { firstName: parts[0], lastName: parts.slice(1).join(' ') };
+}
+
+async function uniqueAppointmentId(Appointment) {
+  for (let i = 0; i < 8; i++) {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let suffix = '';
+    for (let j = 0; j < 4; j++) suffix += chars.charAt(Math.floor(Math.random() * chars.length));
+    const code = `MITR-APPT-${suffix}`;
+    const exists = await Appointment.exists({ appointmentId: code });
+    if (!exists) return code;
+  }
+  return `MITR-APPT-${Date.now().toString(36).slice(-4).toUpperCase()}`;
+}
+
+function scheduleAppointmentView(appt) {
+  const first = appt.studentFirstName || appt.studentId?.name?.split(/\s+/)[0] || '';
+  const last = appt.studentLastName || appt.studentId?.name?.split(/\s+/).slice(1).join(' ') || '';
+  const fullName = `${first} ${last}`.trim() || appt.studentId?.name || 'Unknown';
+  const initials = appt.studentInitials || getInitials(first, last, fullName);
+  const mis = appt.studentMIS || appt.studentId?.misId || '—';
+  return {
+    _id: appt._id,
+    appointmentId: appt.appointmentId,
+    studentInitials: initials,
+    studentMIS: mis,
+    date: appt.date,
+    startTime: appt.startTime,
+    endTime: appt.endTime,
+    status: appt.status,
+    reason: appt.reason,
+    details: {
+      studentName: fullName,
+      studentFirstName: first,
+      studentLastName: last,
+      studentBranch: appt.studentBranch || appt.studentId?.branch || '',
+      studentYear: appt.studentId?.year || '',
+    },
+  };
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -51,6 +100,22 @@ export const getCounselor = async (req, res) => {
   }
 
   res.status(200).json({ success: true, counselor });
+};
+
+export const updateCounselor = async (req, res) => {
+  const allowed = ['name', 'role', 'designation', 'department', 'institution', 'email'];
+  let counselor = await Counselor.findOne({ counselorId: COUNSELOR_ID });
+  if (!counselor) {
+    counselor = await Counselor.create({ counselorId: COUNSELOR_ID });
+  }
+  for (const key of allowed) {
+    if (req.body[key] !== undefined) counselor[key] = String(req.body[key]).trim();
+  }
+  if (!counselor.name || !counselor.email) {
+    return res.status(400).json({ success: false, message: 'Counselor name and email are required.' });
+  }
+  await counselor.save();
+  res.status(200).json({ success: true, counselor, message: 'Counselor information updated.' });
 };
 
 // ── GET /api/appointments/availability?year=2026&month=9 ─────────────────────
@@ -125,7 +190,7 @@ export const getDateSlots = async (req, res) => {
 // ── POST /api/appointments/book ──────────────────────────────────────────────
 // Book an appointment — with atomic double-booking protection
 export const bookAppointment = async (req, res) => {
-  const { date, startTime, reason } = req.body;
+  const { date, startTime, reason, studentMIS, studentFirstName, studentLastName, studentBranch } = req.body;
   const studentId = req.user._id;
 
   if (!date || !startTime) {
@@ -134,6 +199,31 @@ export const bookAppointment = async (req, res) => {
 
   if (isPastDate(date)) {
     return res.status(400).json({ success: false, message: 'Cannot book appointments for past dates.' });
+  }
+
+  const student = await User.findById(studentId);
+  if (!student) {
+    return res.status(401).json({ success: false, message: 'Student account not found.' });
+  }
+
+  const split = splitName(student.name || '');
+  const firstName = (studentFirstName || split.firstName || '').trim();
+  const lastName = (studentLastName || split.lastName || '').trim();
+  const branch = (studentBranch || student.branch || '').trim();
+  const mis = (studentMIS || student.misId || '').trim();
+
+  if (!mis || !firstName || !lastName || !branch) {
+    return res.status(400).json({
+      success: false,
+      message: 'MIS, first name, last name and branch are required.',
+    });
+  }
+
+  if (mis !== student.misId) {
+    return res.status(400).json({
+      success: false,
+      message: 'MIS must match the MIS registered on your account.',
+    });
   }
 
   // Check if student already has a confirmed appointment for this date
@@ -165,13 +255,14 @@ export const bookAppointment = async (req, res) => {
   if (!claimedSlot) {
     return res.status(409).json({
       success: false,
-      message: 'This slot was just booked by another student. Please choose another available time.',
+      message: 'This slot was just booked by another student. Please select another available time.',
     });
   }
 
   // Create the appointment
   try {
     const appointment = await Appointment.create({
+      appointmentId: await uniqueAppointmentId(Appointment),
       studentId,
       counselorId: COUNSELOR_ID,
       date,
@@ -179,21 +270,24 @@ export const bookAppointment = async (req, res) => {
       endTime: claimedSlot.endTime,
       reason: reason || '',
       status: 'confirmed',
+      studentMIS: mis,
+      studentFirstName: firstName,
+      studentLastName: lastName,
+      studentBranch: branch,
+      studentInitials: getInitials(firstName, lastName, student.name),
     });
-
-    // Populate student info for response
-    const student = await User.findById(studentId);
 
     res.status(201).json({
       success: true,
       message: 'Appointment confirmed successfully.',
       appointment: {
         ...appointment.toObject(),
-        student: student ? {
-          name: student.name,
-          misId: student.misId,
-          initials: getInitials(student.name),
-        } : null,
+        student: {
+          name: `${firstName} ${lastName}`.trim(),
+          misId: mis,
+          initials: appointment.studentInitials,
+          branch,
+        },
       },
     });
   } catch (err) {
@@ -203,7 +297,7 @@ export const bookAppointment = async (req, res) => {
     if (err.code === 11000) {
       return res.status(409).json({
         success: false,
-        message: 'This slot was just booked by another student. Please choose another available time.',
+        message: 'This slot was just booked by another student. Please select another available time.',
       });
     }
     throw err;
@@ -331,8 +425,8 @@ export const getAdminTodaySchedule = async (req, res) => {
       appointment: appt ? {
         _id: appt._id,
         appointmentId: appt.appointmentId,
-        studentName: appt.studentId?.name || 'Unknown',
-        studentInitials: getInitials(appt.studentId?.name),
+        studentInitials: appt.studentInitials || getInitials(appt.studentFirstName, appt.studentLastName, appt.studentId?.name),
+        studentMIS: appt.studentMIS || appt.studentId?.misId || '—',
         reason: appt.reason,
         status: appt.status,
       } : null,
@@ -376,13 +470,10 @@ export const getAdminAllAppointments = async (req, res) => {
     .limit(parseInt(limit));
 
   const result = appointments.map(a => ({
-    ...a.toObject(),
-    // Flatten populated student fields for consistent frontend access
-    studentName: a.studentId?.name || 'Unknown',
-    studentInitials: getInitials(a.studentId?.name),
-    studentMisId: a.studentId?.misId || '—',
-    studentYear: a.studentId?.year || '',
-    studentBranch: a.studentId?.branch || '',
+    ...scheduleAppointmentView(a),
+    createdAt: a.createdAt,
+    cancelledBy: a.cancelledBy,
+    cancelReason: a.cancelReason,
   }));
 
   res.status(200).json({ success: true, appointments: result, total, page: parseInt(page) });

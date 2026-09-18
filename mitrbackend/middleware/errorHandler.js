@@ -1,6 +1,6 @@
 // ── Global error handler middleware ──────────────────────────────────────────
 const errorHandler = (err, req, res, next) => {
-  let statusCode = err.statusCode || 500;
+  let statusCode = err.statusCode || err.status || 500;
   let message = err.message || 'Internal Server Error';
 
   // Mongoose duplicate key error

@@ -7,6 +7,49 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
+const ALLOWED_TYPES = new Set(['image/jpeg', 'image/jpg', 'image/png', 'image/webp']);
+const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
+
+export function validateImagePayload(value) {
+  if (!value || typeof value !== 'string') {
+    return { ok: false, message: 'An image is required.' };
+  }
+  if (value.startsWith('http://') || value.startsWith('https://')) {
+    return { ok: true, kind: 'url' };
+  }
+  const match = value.match(/^data:(image\/(?:jpeg|jpg|png|webp));base64,/i);
+  if (!match) {
+    return { ok: false, message: 'Unsupported image format. Use JPG, PNG or WebP.' };
+  }
+  const mime = match[1].toLowerCase();
+  if (!ALLOWED_TYPES.has(mime) && mime !== 'image/jpg') {
+    return { ok: false, message: 'Unsupported image format. Use JPG, PNG or WebP.' };
+  }
+  const b64 = value.split(',')[1] || '';
+  const bytes = Math.ceil((b64.length * 3) / 4);
+  if (bytes > MAX_IMAGE_BYTES) {
+    return { ok: false, message: 'Image is too large. Maximum size is 8 MB.' };
+  }
+  return { ok: true, kind: 'base64' };
+}
+
+export async function resolveImage(value, folder = 'mitr') {
+  const check = validateImagePayload(value);
+  if (!check.ok) {
+    const err = new Error(check.message);
+    err.status = 400;
+    throw err;
+  }
+  if (check.kind === 'url') return value;
+  const uploaded = await uploadImage(value, folder);
+  if (!uploaded) {
+    const err = new Error('Image storage is not configured. Please try again later.');
+    err.status = 503;
+    throw err;
+  }
+  return uploaded;
+}
+
 /**
  * Upload a base64 image string to Cloudinary.
  * Returns the secure URL.

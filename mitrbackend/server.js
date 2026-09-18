@@ -15,6 +15,9 @@ import eventReportRoutes  from './routes/eventReportRoutes.js';
 import adminRoutes        from './routes/adminRoutes.js';
 import journalRoutes      from './routes/journalRoutes.js';
 import appointmentRoutes  from './routes/appointmentRoutes.js';
+import teamRoutes         from './routes/teamRoutes.js';
+import pastEventRoutes    from './routes/pastEventRoutes.js';
+import platformContentRoutes from './routes/platformContentRoutes.js';
 
 dotenv.config();
 connectDB();
@@ -70,6 +73,9 @@ app.use('/api/event-reports', eventReportRoutes);
 app.use('/api/admin',         adminRoutes);
 app.use('/api/journal',       journalRoutes);
 app.use('/api/appointments',  appointmentRoutes);
+app.use('/api/team',          teamRoutes);
+app.use('/api/past-events',   pastEventRoutes);
+app.use('/api/platform-content', platformContentRoutes);
 
 // ── 404 ───────────────────────────────────────────────────────────────────────
 app.use((req, res) => {

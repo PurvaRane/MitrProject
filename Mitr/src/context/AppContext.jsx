@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { eventsAPI, challengeAPI, submissionsAPI, userAPI, wellnessAPI, eventReportsAPI, journalAPI } from '../api';
+import { eventsAPI, challengeAPI, submissionsAPI, userAPI, wellnessAPI, eventReportsAPI, journalAPI, pastEventsAPI, platformContentAPI } from '../api';
 
 export const AppContext = createContext(null);
 
@@ -185,6 +185,37 @@ export function AppProvider({ children }) {
     setJournalEntries(prev => prev.filter(e => (e._id || e.id) !== id));
   }, []);
 
+  // ── Past events (historical gallery) ──────────────────────────────────────
+  const [pastEvents, setPastEvents] = useState([]);
+  const [pastEventsLoading, setPastEventsLoading] = useState(false);
+  const [platformContent, setPlatformContent] = useState(null);
+
+  const fetchPastEvents = useCallback(async (params) => {
+    setPastEventsLoading(true);
+    try {
+      const data = await pastEventsAPI.getAll(params);
+      setPastEvents(data.events || []);
+      return data;
+    } catch (err) {
+      console.error('[PastEvents] Fetch failed:', err.message);
+      setPastEvents([]);
+      return { events: [] };
+    } finally {
+      setPastEventsLoading(false);
+    }
+  }, []);
+
+  const fetchPlatformContent = useCallback(async () => {
+    try {
+      const data = await platformContentAPI.getPublished();
+      setPlatformContent(data.content || null);
+    } catch (err) {
+      console.error('[PlatformContent] Fetch failed:', err.message);
+    }
+  }, []);
+
+  useEffect(() => { fetchPastEvents(); fetchPlatformContent(); }, [fetchPastEvents, fetchPlatformContent]);
+
   return (
     <AppContext.Provider value={{
       // Events
@@ -199,6 +230,8 @@ export function AppProvider({ children }) {
       joinChallenge, completeTask, submitTaskFeedback,
       // Journal
       journalEntries, journalLoading, fetchJournalEntries, addJournalEntry, removeJournalEntry,
+      pastEvents, pastEventsLoading, fetchPastEvents,
+      platformContent, fetchPlatformContent,
     }}>
       {children}
     </AppContext.Provider>
