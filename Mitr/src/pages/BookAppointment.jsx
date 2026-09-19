@@ -23,6 +23,12 @@ export default function BookAppointment() {
   const [reason, setReason] = useState('');
   const [appointmentId, setAppointmentId] = useState('');
 
+  // Student info (pre-filled from account, editable)
+  const [studentMIS, setStudentMIS] = useState('');
+  const [studentFirstName, setStudentFirstName] = useState('');
+  const [studentLastName, setStudentLastName] = useState('');
+  const [studentBranch, setStudentBranch] = useState('');
+
   // Calendar State
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth() + 1); // 1-12
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
@@ -30,6 +36,18 @@ export default function BookAppointment() {
   useEffect(() => {
     fetchCounselor();
   }, []);
+
+  // Pre-fill student info from account
+  useEffect(() => {
+    if (user) {
+      setStudentMIS(user.misId || '');
+      // Split name into first/last
+      const parts = (user.name || '').trim().split(/\s+/);
+      setStudentFirstName(parts[0] || '');
+      setStudentLastName(parts.slice(1).join(' ') || '');
+      setStudentBranch(user.branch || '');
+    }
+  }, [user]);
 
   useEffect(() => {
     fetchMonthAvailability(currentYear, currentMonth);
@@ -76,6 +94,10 @@ export default function BookAppointment() {
 
   const handleBooking = async () => {
     if (!selectedDate || !selectedSlot) return;
+    if (!studentMIS || !studentFirstName || !studentLastName || !studentBranch) {
+      setError('Please fill in all required details (MIS, First Name, Last Name, Branch).');
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
@@ -83,6 +105,10 @@ export default function BookAppointment() {
         date: selectedDate,
         startTime: selectedSlot.startTime,
         reason,
+        studentMIS,
+        studentFirstName,
+        studentLastName,
+        studentBranch,
       });
       if (res.success) {
         setAppointmentId(res.appointment.appointmentId);
@@ -160,6 +186,22 @@ export default function BookAppointment() {
 
   const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
+  const formatDisplayDate = (dateStr) =>
+    new Date(dateStr + 'T12:00:00').toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' });
+
+  const BRANCH_OPTIONS = [
+    'Computer Science and Engineering',
+    'Electronics and Telecommunication Engineering',
+    'Mechanical Engineering',
+    'Civil Engineering',
+    'Electrical Engineering',
+    'Instrumentation and Control Engineering',
+    'Metallurgy and Materials Technology',
+    'Manufacturing Science and Engineering',
+    'AI/ML',
+    'AI/DS',
+  ];
+
   return (
     <div className="book-appointment-page">
       <div className="container">
@@ -174,6 +216,16 @@ export default function BookAppointment() {
               <span>{counselor.designation}</span>
             </div>
           )}
+        </div>
+
+        {/* Step indicator */}
+        <div className="book-steps">
+          {['Select Date', 'Choose Time', 'Your Details', 'Confirmed'].map((label, idx) => (
+            <div key={label} className={`book-step-indicator ${step > idx + 1 ? 'done' : step === idx + 1 ? 'active' : ''}`}>
+              <div className="book-step-circle">{step > idx + 1 ? '✓' : idx + 1}</div>
+              <span className="book-step-label desktop-only">{label}</span>
+            </div>
+          ))}
         </div>
 
         {/* Error Toast */}
@@ -256,29 +308,104 @@ export default function BookAppointment() {
               <div className="step-content animate-fade-in">
                 <div className="book-step-header">
                   <span className="step-num">3</span>
-                  <h2>Confirm Details</h2>
-                </div>
-                
-                <div className="confirm-summary glass-baby-blue">
-                  <div><strong>Date:</strong> {new Date(selectedDate + 'T12:00:00').toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</div>
-                  <div><strong>Time:</strong> {selectedSlot.startTime} - {selectedSlot.endTime}</div>
-                  <div><strong>Student:</strong> {user?.name} ({user?.misId})</div>
+                  <h2>Your Details</h2>
                 </div>
 
-                <div className="form-group mt-xl">
-                  <label>Reason for Appointment (Optional)</label>
-                  <textarea 
-                    className="form-input" 
-                    rows="3" 
-                    placeholder="Briefly describe what you'd like to discuss..."
-                    value={reason}
-                    onChange={(e) => setReason(e.target.value)}
-                  ></textarea>
+                {/* Privacy Note */}
+                <div className="privacy-note-block">
+                  <div className="privacy-note-icon">🔒</div>
+                  <div>
+                    <strong>Your Privacy Matters</strong>
+                    <p>
+                      Your appointment information is kept confidential and is not displayed publicly.
+                      For scheduling, the system uses your <em>MIS</em>, <em>initials</em>, and <em>Appointment ID</em>.
+                      When you arrive, simply tell Dr. {counselor?.name?.split(' ').slice(1).join(' ') || 'Kshipra V. Moghe'} your Appointment ID.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Appointment summary */}
+                <div className="confirm-summary glass-baby-blue">
+                  <div><strong>Date:</strong> {formatDisplayDate(selectedDate)}</div>
+                  <div><strong>Time:</strong> {selectedSlot.startTime} – {selectedSlot.endTime}</div>
+                  {counselor && <div><strong>Counselor:</strong> {counselor.name}</div>}
+                </div>
+
+                {/* Student Details Form */}
+                <div className="student-details-form">
+                  <h4 className="student-details-heading">Your Information</h4>
+                  <p className="student-details-sub">Pre-filled from your account. Please verify before confirming.</p>
+
+                  <div className="form-group">
+                    <label className="form-label">MIS Number *</label>
+                    <input
+                      className="form-input"
+                      value={studentMIS}
+                      onChange={e => setStudentMIS(e.target.value)}
+                      placeholder="Your 9-digit MIS"
+                      maxLength={9}
+                      readOnly
+                      style={{ background: 'var(--off-white)', cursor: 'not-allowed', opacity: 0.8 }}
+                    />
+                    <span className="form-hint">MIS must match your registered account.</span>
+                  </div>
+
+                  <div style={{ display: 'flex', gap: '1rem' }}>
+                    <div className="form-group" style={{ flex: 1 }}>
+                      <label className="form-label">First Name *</label>
+                      <input
+                        className="form-input"
+                        value={studentFirstName}
+                        onChange={e => setStudentFirstName(e.target.value)}
+                        placeholder="First Name"
+                        required
+                      />
+                    </div>
+                    <div className="form-group" style={{ flex: 1 }}>
+                      <label className="form-label">Last Name *</label>
+                      <input
+                        className="form-input"
+                        value={studentLastName}
+                        onChange={e => setStudentLastName(e.target.value)}
+                        placeholder="Last Name"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label">Branch *</label>
+                    <select
+                      className="form-input"
+                      value={studentBranch}
+                      onChange={e => setStudentBranch(e.target.value)}
+                      required
+                    >
+                      <option value="">Select your branch</option>
+                      {BRANCH_OPTIONS.map(b => <option key={b} value={b}>{b}</option>)}
+                    </select>
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label">Reason for Appointment <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>(Optional)</span></label>
+                    <textarea
+                      className="form-input"
+                      rows="3"
+                      placeholder="Briefly describe what you'd like to discuss..."
+                      value={reason}
+                      onChange={e => setReason(e.target.value)}
+                      maxLength={500}
+                    />
+                  </div>
                 </div>
 
                 <div className="step-actions">
                   <button className="btn btn-secondary" onClick={() => setStep(2)}>← Back</button>
-                  <button className="btn btn-mint" onClick={handleBooking} disabled={loading}>
+                  <button
+                    className="btn btn-mint"
+                    onClick={handleBooking}
+                    disabled={loading || !studentMIS || !studentFirstName || !studentLastName || !studentBranch}
+                  >
                     {loading ? 'Confirming...' : 'Confirm Appointment'}
                   </button>
                 </div>
@@ -289,13 +416,28 @@ export default function BookAppointment() {
               <div className="step-content text-center animate-fade-in">
                 <div className="success-icon">✓</div>
                 <h2 className="success-title">Appointment Confirmed!</h2>
-                <p className="success-sub">Your appointment has been successfully booked.</p>
+                <p className="success-sub">Your appointment has been successfully booked with Dr. {counselor?.name?.split(' ').slice(1).join(' ') || 'Kshipra V. Moghe'}.</p>
                 
                 <div className="ticket glass-mint">
-                  <div className="ticket-id">ID: {appointmentId}</div>
-                  <div className="ticket-detail"><strong>Date:</strong> {selectedDate}</div>
-                  <div className="ticket-detail"><strong>Time:</strong> {selectedSlot?.startTime}</div>
+                  <div className="ticket-label">Your Appointment ID</div>
+                  <div className="ticket-id">{appointmentId}</div>
+                  <div className="ticket-divider" />
+                  <div className="ticket-detail"><strong>Date:</strong> {formatDisplayDate(selectedDate)}</div>
+                  <div className="ticket-detail"><strong>Time:</strong> {selectedSlot?.startTime} – {selectedSlot?.endTime}</div>
                   <div className="ticket-detail"><strong>Counselor:</strong> {counselor?.name}</div>
+                </div>
+
+                <div className="appt-instructions card glass-blue">
+                  <div className="appt-instructions-icon">💡</div>
+                  <div>
+                    <strong>When you arrive for your appointment:</strong>
+                    <p>
+                      Simply tell <strong>Dr. {counselor?.name?.split(' ').slice(1).join(' ') || 'Kshipra V. Moghe'}</strong> your Appointment ID: <strong className="appt-id-inline">{appointmentId}</strong>
+                    </p>
+                    <p style={{ marginTop: '0.5rem', fontSize: '0.875rem', color: 'var(--text-muted)' }}>
+                      Your full name is not displayed in the public schedule — only your initials and appointment ID are used.
+                    </p>
+                  </div>
                 </div>
 
                 <div className="mt-2xl">

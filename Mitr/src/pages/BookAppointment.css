@@ -277,3 +277,191 @@
   .book-card { min-height: auto; }
   .dimmed-on-mobile { opacity: 0.5; pointer-events: none; }
 }
+
+/* ── Step Indicator ───────────────────────────────────────────────────────── */
+.book-steps {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  margin-bottom: var(--space-2xl);
+  position: relative;
+}
+.book-steps::before {
+  content: '';
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  right: 14px;
+  height: 2px;
+  background: var(--baby-blue);
+  z-index: 0;
+}
+.book-step-indicator {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  z-index: 1;
+  gap: 6px;
+}
+.book-step-circle {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--off-white);
+  border: 2px solid var(--blue-mid);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  transition: all var(--transition-mid);
+}
+.book-step-indicator.active .book-step-circle {
+  background: var(--blue-deep);
+  border-color: var(--blue-deep);
+  color: white;
+  box-shadow: 0 0 0 4px rgba(127, 179, 211, 0.25);
+}
+.book-step-indicator.done .book-step-circle {
+  background: var(--mint-deep);
+  border-color: var(--mint-deep);
+  color: white;
+}
+.book-step-label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-align: center;
+}
+.book-step-indicator.active .book-step-label { color: var(--blue-text); font-weight: 600; }
+.book-step-indicator.done .book-step-label { color: var(--mint-deep); }
+
+/* ── Privacy Note Block ───────────────────────────────────────────────────── */
+.privacy-note-block {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-md);
+  background: linear-gradient(135deg, rgba(214,234,248,0.6), rgba(232,218,239,0.4));
+  border: 1px solid rgba(174, 214, 241, 0.7);
+  border-radius: var(--radius-md);
+  padding: var(--space-lg);
+  margin-bottom: var(--space-xl);
+}
+.privacy-note-icon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.privacy-note-block strong {
+  display: block;
+  color: var(--blue-text);
+  font-size: 0.9375rem;
+  margin-bottom: 6px;
+}
+.privacy-note-block p {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  line-height: 1.65;
+}
+.privacy-note-block em {
+  font-style: normal;
+  background: rgba(174, 214, 241, 0.5);
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-weight: 600;
+  color: var(--blue-text);
+}
+
+/* ── Student Details Form ─────────────────────────────────────────────────── */
+.student-details-form {
+  margin-top: var(--space-lg);
+  padding-top: var(--space-lg);
+  border-top: 1px solid var(--baby-blue);
+}
+.student-details-heading {
+  font-family: var(--font-heading);
+  font-size: 1.1rem;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+.student-details-sub {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  margin-bottom: var(--space-lg);
+}
+.form-hint {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+@media (max-width: 600px) {
+  .student-details-form > div[style*="flex"] { flex-direction: column !important; }
+}
+
+/* ── Enhanced Ticket ──────────────────────────────────────────────────────── */
+.ticket-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--mint-deep);
+  margin-bottom: var(--space-sm);
+  text-align: center;
+}
+.ticket-id {
+  font-family: var(--font-heading);
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--mint-deep);
+  margin-bottom: var(--space-md);
+  text-align: center;
+  letter-spacing: 0.05em;
+}
+.ticket-divider {
+  height: 1px;
+  background: rgba(82, 190, 128, 0.3);
+  margin: var(--space-md) 0;
+  background-image: repeating-linear-gradient(90deg, rgba(82,190,128,0.4) 0, rgba(82,190,128,0.4) 8px, transparent 8px, transparent 16px);
+}
+
+/* ── Appointment Instructions ─────────────────────────────────────────────── */
+.appt-instructions {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-md);
+  padding: var(--space-lg);
+  border-radius: var(--radius-md);
+  margin: var(--space-xl) auto 0;
+  max-width: 420px;
+  text-align: left;
+}
+.appt-instructions-icon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+.appt-instructions strong {
+  display: block;
+  color: var(--blue-text);
+  font-size: 0.9375rem;
+  margin-bottom: 6px;
+}
+.appt-instructions p {
+  font-size: 0.9375rem;
+  color: var(--text-secondary);
+  line-height: 1.65;
+}
+.appt-id-inline {
+  background: rgba(174, 214, 241, 0.5);
+  padding: 2px 8px;
+  border-radius: 4px;
+  color: var(--blue-text);
+  font-family: monospace;
+  font-size: 1.05em;
+}
+
+.mt-2xl { margin-top: var(--space-2xl); }
+

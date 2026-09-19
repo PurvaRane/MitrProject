@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../App';
 import { useApp } from '../context/AppContext';
-import { adminAPI, submissionsAPI, appointmentAPI, journalAPI } from '../api';
+import { adminAPI, submissionsAPI, appointmentAPI, journalAPI, pastEventsAPI, teamAPI, platformContentAPI } from '../api';
 import './AdminDashboard.css';
 import './BookAppointment.css';
-const TABS = ['Overview', 'Events', 'Appointments', 'Reports', 'Journeys', 'Wellness Centre', 'Submissions', 'Analytics'];
+const TABS = ['Overview', 'Events', 'Past Events', 'Team', 'Platform Content', 'Appointments', 'Reports', 'Journeys', 'Wellness Centre', 'Submissions', 'Analytics'];
 const CATEGORIES = ['Workshop', 'Awareness', 'Challenge', 'Seminar', 'Other'];
 
 function formatDate(d) {
@@ -55,6 +55,9 @@ function OverviewTab({ setTab }) {
       <div className="admin-quick-actions grid-responsive">
         {[
           { icon: '📅', title: 'Manage Events', desc: 'Add, edit or delete events', tab: 'Events', color: 'blue' },
+          { icon: '📸', title: 'Past Events', desc: 'Manage historical gallery', tab: 'Past Events', color: 'lavender' },
+          { icon: '👥', title: 'Manage Team', desc: 'I-Care We-Care members', tab: 'Team', color: 'mint' },
+          { icon: '📝', title: 'Platform Content', desc: 'Edit homepage text', tab: 'Platform Content', color: 'peach' },
           { icon: '📆', title: 'Appointments', desc: 'Manage slots & bookings', tab: 'Appointments', color: 'peach' },
           { icon: '📝', title: 'User Submissions', desc: 'View reflections & images', tab: 'Submissions', color: 'mint' },
           { icon: '🌱', title: 'Well-being Journeys', desc: 'Manage challenges & tasks', tab: 'Journeys', color: 'lavender' },
@@ -1191,9 +1194,22 @@ function AppointmentsTab() {
                         <strong>{formatDate(a.date)}</strong>
                         <br/><span className="text-muted">{a.startTime} – {a.endTime}</span>
                       </td>
-                      {/* Use pre-flattened fields returned by backend */}
-                      <td>{a.studentName || 'Unknown'}</td>
-                      <td>{a.studentMisId || '—'}</td>
+                      <td>
+                        <div style={{ display: 'flex', flexDirection: 'column' }}>
+                          <strong title={a.details?.studentName}>{a.studentInitials || '??'}</strong>
+                          <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{a.details?.studentBranch || ''}</span>
+                        </div>
+                      </td>
+                      <td>
+                        <div style={{ display: 'flex', flexDirection: 'column' }}>
+                          <span>{a.studentMIS || '—'}</span>
+                          {a.appointmentId && (
+                            <span style={{ fontSize: '0.8rem', color: 'var(--blue-deep)', fontFamily: 'monospace' }}>
+                              {a.appointmentId}
+                            </span>
+                          )}
+                        </div>
+                      </td>
                       <td>
                         <span className={`badge badge-${a.status === 'completed' ? 'mint' : a.status === 'cancelled' ? 'peach' : 'blue'}`}>
                           {a.status}
@@ -1227,7 +1243,264 @@ function AppointmentsTab() {
   );
 }
 
+// ── Past Events Tab ───────────────────────────────────────────────────────────
+function PastEventsTab() {
+  const [events, setEvents] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [form, setForm] = useState({ title: '', eventDate: '', location: '', category: 'Workshop', shortDescription: '', description: '', organizer: '', featuredImage: '' });
+  const [toast, setToast] = useState({ msg: '', type: 'success' });
+
+  const fetchEvents = async () => {
+    setLoading(true);
+    try {
+      const res = await pastEventsAPI.adminGetAll();
+      if (res.success) setEvents(res.events || []);
+    } catch (err) {
+      setToast({ msg: err.message, type: 'error' });
+    } finally { setLoading(false); }
+  };
+
+  useEffect(() => { fetchEvents(); }, []);
+
+  const handleAdd = async (e) => {
+    e.preventDefault();
+    if (!form.title) { setToast({ msg: 'Title is required', type: 'error' }); return; }
+    try {
+      await pastEventsAPI.create(form);
+      setForm({ title: '', eventDate: '', location: '', category: 'Workshop', shortDescription: '', description: '', organizer: '', featuredImage: '' });
+      fetchEvents();
+      setToast({ msg: 'Past event added.', type: 'success' });
+    } catch (err) { setToast({ msg: err.message, type: 'error' }); }
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('Delete this past event?')) return;
+    try {
+      await pastEventsAPI.delete(id);
+      fetchEvents();
+    } catch (err) { setToast({ msg: err.message, type: 'error' }); }
+  };
+
+  return (
+    <div>
+      <h2 className="admin-section-title">Past Events Gallery</h2>
+      <form className="admin-form card" onSubmit={handleAdd}>
+        <div className="form-group"><label className="form-label">Title *</label><input className="form-input" value={form.title} onChange={e => setForm({...form, title: e.target.value})} required /></div>
+        <div style={{ display: 'flex', gap: '1rem' }}>
+          <div className="form-group" style={{ flex: 1 }}><label className="form-label">Category</label><select className="form-input" value={form.category} onChange={e => setForm({...form, category: e.target.value})}><option value="Workshop">Workshop</option><option value="Awareness">Awareness</option><option value="Challenge">Challenge</option><option value="Other">Other</option></select></div>
+          <div className="form-group" style={{ flex: 1 }}><label className="form-label">Event Date</label><input type="date" className="form-input" value={form.eventDate} onChange={e => setForm({...form, eventDate: e.target.value})} /></div>
+        </div>
+        <div className="form-group"><label className="form-label">Location</label><input className="form-input" value={form.location} onChange={e => setForm({...form, location: e.target.value})} /></div>
+        <div className="form-group"><label className="form-label">Featured Image URL (Base64/URL)</label><input className="form-input" value={form.featuredImage} onChange={e => setForm({...form, featuredImage: e.target.value})} /></div>
+        <div className="form-group"><label className="form-label">Short Description</label><textarea className="form-input" rows="2" value={form.shortDescription} onChange={e => setForm({...form, shortDescription: e.target.value})} /></div>
+        <button type="submit" className="btn btn-primary">Add Past Event</button>
+      </form>
+      {loading ? <div className="admin-loading">Loading past events…</div> : (
+        <div className="admin-list">
+          {events.map(ev => (
+            <div key={ev._id} className="admin-list-item card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div className="admin-list-item__main" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                <div style={{ width: 60, height: 60, background: 'var(--off-white)', flexShrink: 0, borderRadius: 4, overflow: 'hidden' }}>
+                  {ev.featuredImage ? <img src={ev.featuredImage} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt=""/> : <div style={{width:'100%', height:'100%', display:'flex', alignItems:'center', justifyContent:'center'}}>📷</div>}
+                </div>
+                <div>
+                  <strong style={{ display: 'block', marginBottom: '4px' }}>{ev.title}</strong>
+                  <div className="text-muted" style={{ fontSize: '0.85rem' }}>{ev.category} • {ev.eventDate ? formatDate(ev.eventDate) : 'No date'}</div>
+                </div>
+              </div>
+              <div className="admin-list-item__actions">
+                <button className="btn btn-peach btn-sm" onClick={() => handleDelete(ev._id)}>Delete</button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+      <Toast {...toast} />
+    </div>
+  );
+}
+
+// ── Team Tab ──────────────────────────────────────────────────────────────────
+function TeamTab() {
+  const [members, setMembers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [form, setForm] = useState({ name: '', role: '', contact: '', isCore: false });
+  const [toast, setToast] = useState({ msg: '', type: 'success' });
+
+  const fetchTeam = async () => {
+    setLoading(true);
+    try {
+      const res = await teamAPI.adminGetAll();
+      if (res.success) setMembers(res.members || []);
+    } catch (err) { setToast({ msg: err.message, type: 'error' }); }
+    finally { setLoading(false); }
+  };
+
+  useEffect(() => { fetchTeam(); }, []);
+
+  const handleAdd = async (e) => {
+    e.preventDefault();
+    if (!form.name || !form.role) { setToast({ msg: 'Name and role are required', type: 'error' }); return; }
+    try {
+      await teamAPI.create(form);
+      setForm({ name: '', role: '', contact: '', isCore: false });
+      fetchTeam();
+      setToast({ msg: 'Team member added.', type: 'success' });
+    } catch (err) { setToast({ msg: err.message, type: 'error' }); }
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('Delete this team member?')) return;
+    try {
+      await teamAPI.delete(id);
+      fetchTeam();
+    } catch (err) { setToast({ msg: err.message, type: 'error' }); }
+  };
+
+  return (
+    <div>
+      <h2 className="admin-section-title">Manage I-Care We-Care Team</h2>
+      <form className="admin-form card" onSubmit={handleAdd}>
+        <div style={{ display: 'flex', gap: '1rem' }}>
+          <div className="form-group" style={{ flex: 1 }}><label className="form-label">Name *</label><input className="form-input" value={form.name} onChange={e => setForm({...form, name: e.target.value})} required /></div>
+          <div className="form-group" style={{ flex: 1 }}><label className="form-label">Role *</label><input className="form-input" value={form.role} onChange={e => setForm({...form, role: e.target.value})} required /></div>
+        </div>
+        <div className="form-group"><label className="form-label">Contact (Email/Phone)</label><input className="form-input" value={form.contact} onChange={e => setForm({...form, contact: e.target.value})} /></div>
+        <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <input type="checkbox" id="isCore" checked={form.isCore} onChange={e => setForm({...form, isCore: e.target.checked})} />
+          <label htmlFor="isCore">Core Member?</label>
+        </div>
+        <button type="submit" className="btn btn-mint">Add Member</button>
+      </form>
+      
+      {loading ? <div className="admin-loading">Loading team…</div> : (
+        <div className="admin-list">
+          {members.map(m => (
+            <div key={m._id} className="admin-list-item card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div className="admin-list-item__main">
+                <div>
+                  <strong style={{ display: 'block', marginBottom: '4px' }}>{m.name} {m.isCore && <span className="badge badge-mint" style={{ marginLeft: '8px' }}>Core</span>}</strong>
+                  <div className="text-muted" style={{ fontSize: '0.85rem' }}>{m.role} {m.contact ? ` • ${m.contact}` : ''}</div>
+                </div>
+              </div>
+              <div className="admin-list-item__actions">
+                <button className="btn btn-peach btn-sm" onClick={() => handleDelete(m._id)}>Delete</button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+      <Toast {...toast} />
+    </div>
+  );
+}
+
+// ── Platform Content Tab ──────────────────────────────────────────────────────
+function PlatformContentTab() {
+  const [content, setContent] = useState(null);
+  const [draft, setDraft] = useState({ 
+    heroTitle: '', heroSubtitle: '', 
+    aboutText: '', visionText: '' 
+  });
+  const [loading, setLoading] = useState(true);
+  const [toast, setToast] = useState({ msg: '', type: 'success' });
+
+  const fetchContent = async () => {
+    setLoading(true);
+    try {
+      const res = await platformContentAPI.adminGet();
+      if (res.success) {
+        setContent(res.content);
+        // Load draft if exists, else published
+        const src = res.content.draftVersion || res.content.publishedVersion || {};
+        setDraft({
+          heroTitle: src.heroTitle || '',
+          heroSubtitle: src.heroSubtitle || '',
+          aboutText: src.aboutText || '',
+          visionText: src.visionText || '',
+        });
+      }
+    } catch (err) { setToast({ msg: err.message, type: 'error' }); }
+    finally { setLoading(false); }
+  };
+
+  useEffect(() => { fetchContent(); }, []);
+
+  const handleSaveDraft = async (e) => {
+    e.preventDefault();
+    try {
+      await platformContentAPI.saveDraft(draft);
+      setToast({ msg: 'Draft saved successfully.', type: 'success' });
+      fetchContent();
+    } catch (err) { setToast({ msg: err.message, type: 'error' }); }
+  };
+
+  const handlePublish = async () => {
+    if (!window.confirm('Publish these changes to the live platform?')) return;
+    try {
+      await platformContentAPI.publish(draft);
+      setToast({ msg: 'Changes published successfully.', type: 'success' });
+      fetchContent();
+    } catch (err) { setToast({ msg: err.message, type: 'error' }); }
+  };
+
+  const handleRevert = async () => {
+    if (!window.confirm('Discard draft and revert to published version?')) return;
+    try {
+      await platformContentAPI.revert();
+      setToast({ msg: 'Reverted to published version.', type: 'success' });
+      fetchContent();
+    } catch (err) { setToast({ msg: err.message, type: 'error' }); }
+  };
+
+  return (
+    <div>
+      <div className="admin-submissions-header">
+        <h2 className="admin-section-title">Manage Platform Content</h2>
+        {content?.hasDraft && (
+          <span className="badge badge-peach" style={{ marginLeft: '1rem' }}>Unpublished Changes</span>
+        )}
+      </div>
+      {loading ? <div className="admin-loading">Loading content…</div> : (
+        <div className="card" style={{ padding: 'var(--space-xl)' }}>
+          <form onSubmit={handleSaveDraft}>
+            <h3 style={{ marginBottom: '1rem', fontFamily: 'var(--font-heading)', color: 'var(--blue-deep)' }}>Hero Section</h3>
+            <div className="form-group">
+              <label className="form-label">Hero Title</label>
+              <input className="form-input" value={draft.heroTitle} onChange={e => setDraft({...draft, heroTitle: e.target.value})} />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Hero Subtitle</label>
+              <textarea className="form-input" rows="2" value={draft.heroSubtitle} onChange={e => setDraft({...draft, heroSubtitle: e.target.value})} />
+            </div>
+            
+            <h3 style={{ marginTop: '2rem', marginBottom: '1rem', fontFamily: 'var(--font-heading)', color: 'var(--blue-deep)' }}>About / Vision</h3>
+            <div className="form-group">
+              <label className="form-label">About Text</label>
+              <textarea className="form-input" rows="4" value={draft.aboutText} onChange={e => setDraft({...draft, aboutText: e.target.value})} />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Vision Text</label>
+              <textarea className="form-input" rows="3" value={draft.visionText} onChange={e => setDraft({...draft, visionText: e.target.value})} />
+            </div>
+            
+            <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem' }}>
+              <button type="submit" className="btn btn-secondary">Save as Draft</button>
+              <button type="button" className="btn btn-mint" onClick={handlePublish}>Publish to Live</button>
+              {content?.hasDraft && (
+                <button type="button" className="btn btn-peach" onClick={handleRevert}>Discard Draft</button>
+              )}
+            </div>
+          </form>
+        </div>
+      )}
+      <Toast {...toast} />
+    </div>
+  );
+}
+
 // ── Main AdminDashboard ───────────────────────────────────────────────────────
+
 import { useSearchParams } from 'react-router-dom';
 
 export default function AdminDashboard() {
@@ -1257,6 +1530,9 @@ export default function AdminDashboard() {
       <div className="container admin-dash__content">
         {tab === 'Overview'         && <OverviewTab setTab={setTab} />}
         {tab === 'Events'           && <EventsTab />}
+        {tab === 'Past Events'      && <PastEventsTab />}
+        {tab === 'Team'             && <TeamTab />}
+        {tab === 'Platform Content' && <PlatformContentTab />}
         {tab === 'Appointments'     && <AppointmentsTab />}
         {tab === 'Reports'          && <ReportsTab />}
         {tab === 'Journeys'         && <ChallengeTab />}

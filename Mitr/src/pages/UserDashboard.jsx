@@ -2,7 +2,7 @@ import React, { useContext, useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { AuthContext } from '../App';
 import { useApp } from '../context/AppContext';
-import { authAPI, appointmentAPI } from '../api';
+import { authAPI, appointmentAPI, pastEventsAPI } from '../api';
 import OnboardingModal from '../components/OnboardingModal';
 import './UserDashboard.css';
 
@@ -13,9 +13,109 @@ function formatDate(d) {
   return dateObj.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
+function formatEventYear(dateStr) {
+  if (!dateStr) return '';
+  return new Date(dateStr).getFullYear();
+}
+
 function getDaysUntil(dateStr) {
   const diff = new Date(dateStr) - new Date();
   return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
+}
+
+// ── Past Event Modal ──────────────────────────────────────────────────────────
+function PastEventModal({ event, onClose }) {
+  const [galleryIdx, setGalleryIdx] = useState(0);
+  const images = event.images || [];
+  const featured = event.featuredImage;
+
+  useEffect(() => {
+    const handleKey = (e) => {
+      if (e.key === 'Escape') onClose();
+      if (e.key === 'ArrowRight') setGalleryIdx(i => Math.min(i + 1, images.length - 1));
+      if (e.key === 'ArrowLeft') setGalleryIdx(i => Math.max(i - 1, 0));
+    };
+    document.addEventListener('keydown', handleKey);
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.removeEventListener('keydown', handleKey);
+      document.body.style.overflow = '';
+    };
+  }, [images.length, onClose]);
+
+  return (
+    <div className="past-event-modal-overlay" onClick={onClose}>
+      <div className="past-event-modal" onClick={e => e.stopPropagation()}>
+        <button className="past-event-modal__close" onClick={onClose} aria-label="Close">✕</button>
+
+        <div className="past-event-modal__header">
+          <span className="badge badge-lavender">{event.category}</span>
+          <h2 className="past-event-modal__title">{event.title}</h2>
+          <div className="past-event-modal__meta">
+            {event.eventDate && <span>📅 {formatDate(event.eventDate)}</span>}
+            {event.location && <span>📍 {event.location}</span>}
+            {event.organizer && <span>🏛️ {event.organizer}</span>}
+          </div>
+        </div>
+
+        {/* Image Gallery */}
+        {images.length > 0 ? (
+          <div className="past-event-gallery">
+            <div className="past-event-gallery__main">
+              <img
+                src={images[galleryIdx]?.url}
+                alt={images[galleryIdx]?.caption || event.title}
+                className="past-event-gallery__featured-img"
+              />
+              {images.length > 1 && (
+                <>
+                  <button
+                    className="gallery-nav gallery-nav--prev"
+                    onClick={() => setGalleryIdx(i => Math.max(i - 1, 0))}
+                    disabled={galleryIdx === 0}
+                  >‹</button>
+                  <button
+                    className="gallery-nav gallery-nav--next"
+                    onClick={() => setGalleryIdx(i => Math.min(i + 1, images.length - 1))}
+                    disabled={galleryIdx === images.length - 1}
+                  >›</button>
+                  <div className="gallery-counter">{galleryIdx + 1} / {images.length}</div>
+                </>
+              )}
+              {images[galleryIdx]?.caption && (
+                <div className="gallery-caption">{images[galleryIdx].caption}</div>
+              )}
+            </div>
+            {images.length > 1 && (
+              <div className="past-event-gallery__thumbs">
+                {images.map((img, i) => (
+                  <button
+                    key={i}
+                    className={`gallery-thumb ${galleryIdx === i ? 'active' : ''}`}
+                    onClick={() => setGalleryIdx(i)}
+                  >
+                    <img src={img.url} alt={img.caption || `Photo ${i + 1}`} />
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        ) : featured ? (
+          <div className="past-event-gallery">
+            <img src={featured} alt={event.title} className="past-event-gallery__featured-img" />
+          </div>
+        ) : null}
+
+        {/* Description */}
+        {(event.shortDescription || event.description) && (
+          <div className="past-event-modal__desc">
+            <h3>About the Event</h3>
+            <p>{event.description || event.shortDescription}</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
 }
 
 export default function UserDashboard() {
@@ -23,11 +123,14 @@ export default function UserDashboard() {
   const {
     events, eventsLoading,
     wellnessInfo, wellnessLoading,
-    eventReports, reportsLoading
+    eventReports, reportsLoading,
+    pastEvents, pastEventsLoading,
+    fetchPastEvents,
   } = useApp();
 
   const [expandReport, setExpandReport] = useState(null);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [selectedPastEvent, setSelectedPastEvent] = useState(null);
 
   const [appointments, setAppointments] = useState({ upcoming: [], past: [] });
   const [appointmentsLoading, setAppointmentsLoading] = useState(true);
@@ -52,8 +155,6 @@ export default function UserDashboard() {
     }
   }, [user]);
 
-
-
   const handleOnboardingComplete = async () => {
     try {
       await authAPI.completeOnboarding();
@@ -68,6 +169,9 @@ export default function UserDashboard() {
   return (
     <div className="user-dash">
       {showOnboarding && <OnboardingModal onComplete={handleOnboardingComplete} />}
+      {selectedPastEvent && (
+        <PastEventModal event={selectedPastEvent} onClose={() => setSelectedPastEvent(null)} />
+      )}
 
       {/* Header */}
       <div className="user-dash__header">
@@ -159,6 +263,9 @@ export default function UserDashboard() {
                         <span className="badge badge-mint">{a.status}</span>
                         <h4 className="ud-appt-card__date">{formatDate(a.date)} at {a.startTime}</h4>
                         <p className="ud-appt-card__counselor">Counselor Session</p>
+                        {a.appointmentId && (
+                          <p className="ud-appt-card__id">ID: <strong>{a.appointmentId}</strong></p>
+                        )}
                       </div>
                     </div>
                   ))}
@@ -211,6 +318,66 @@ export default function UserDashboard() {
                   </div>
                 );
               })}
+            </div>
+          )}
+        </section>
+
+        {/* ── Past Events Gallery ── */}
+        <section className="user-dash__section past-events-section">
+          <div className="user-dash__section-header">
+            <span className="section-tag">Memories</span>
+            <h2 className="past-events-section-title">Moments from COEP मित्र</h2>
+          </div>
+          <p className="past-events-subtitle">
+            A look back at the activities, workshops and initiatives conducted by COEP "मित्र".
+          </p>
+
+          {pastEventsLoading ? (
+            <div className="ud-loading">Loading events gallery…</div>
+          ) : pastEvents.length === 0 ? (
+            <div className="user-dash__empty past-events-empty">
+              <div className="past-events-empty-icon">🌱</div>
+              <p>Past activities and event moments will appear here.</p>
+            </div>
+          ) : (
+            <div className="past-events-grid">
+              {pastEvents.slice(0, 6).map(ev => (
+                <div
+                  key={ev._id}
+                  className="past-event-card card animate-fade-in"
+                  onClick={() => setSelectedPastEvent(ev)}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={e => e.key === 'Enter' && setSelectedPastEvent(ev)}
+                >
+                  <div className="past-event-card__img-wrap">
+                    {ev.featuredImage ? (
+                      <img src={ev.featuredImage} alt={ev.title} className="past-event-card__img" />
+                    ) : (
+                      <div className="past-event-card__placeholder">
+                        <span>📷</span>
+                      </div>
+                    )}
+                    <div className="past-event-card__overlay">
+                      <span className="past-event-card__view-btn">View Photos →</span>
+                    </div>
+                    <span className="past-event-card__category badge badge-lavender">{ev.category}</span>
+                    {ev.images?.length > 0 && (
+                      <span className="past-event-card__count">📷 {ev.images.length}</span>
+                    )}
+                  </div>
+                  <div className="past-event-card__body">
+                    <h3 className="past-event-card__title">{ev.title}</h3>
+                    <div className="past-event-card__meta">
+                      {ev.eventDate && <span>{formatEventYear(ev.eventDate)}</span>}
+                      {ev.location && <span>· {ev.location}</span>}
+                    </div>
+                    {ev.shortDescription && (
+                      <p className="past-event-card__desc">{ev.shortDescription.slice(0, 80)}{ev.shortDescription.length > 80 ? '…' : ''}</p>
+                    )}
+                  </div>
+                </div>
+              ))}
             </div>
           )}
         </section>
