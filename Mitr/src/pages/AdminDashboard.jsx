@@ -1247,6 +1247,7 @@ function AppointmentsTab() {
 function PastEventsTab() {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState(false);
   const [form, setForm] = useState({ title: '', eventDate: '', location: '', category: 'Workshop', shortDescription: '', description: '', organizer: '', featuredImage: '' });
   const [toast, setToast] = useState({ msg: '', type: 'success' });
 
@@ -1265,12 +1266,14 @@ function PastEventsTab() {
   const handleAdd = async (e) => {
     e.preventDefault();
     if (!form.title) { setToast({ msg: 'Title is required', type: 'error' }); return; }
+    setActionLoading(true);
     try {
       await pastEventsAPI.create(form);
       setForm({ title: '', eventDate: '', location: '', category: 'Workshop', shortDescription: '', description: '', organizer: '', featuredImage: '' });
       fetchEvents();
       setToast({ msg: 'Past event added.', type: 'success' });
     } catch (err) { setToast({ msg: err.message, type: 'error' }); }
+    finally { setActionLoading(false); }
   };
 
   const handleDelete = async (id) => {
@@ -1293,7 +1296,7 @@ function PastEventsTab() {
         <div className="form-group"><label className="form-label">Location</label><input className="form-input" value={form.location} onChange={e => setForm({...form, location: e.target.value})} /></div>
         <div className="form-group"><label className="form-label">Featured Image URL (Base64/URL)</label><input className="form-input" value={form.featuredImage} onChange={e => setForm({...form, featuredImage: e.target.value})} /></div>
         <div className="form-group"><label className="form-label">Short Description</label><textarea className="form-input" rows="2" value={form.shortDescription} onChange={e => setForm({...form, shortDescription: e.target.value})} /></div>
-        <button type="submit" className="btn btn-primary">Add Past Event</button>
+        <button type="submit" className="btn btn-primary" disabled={actionLoading}>{actionLoading ? 'Saving...' : 'Add Past Event'}</button>
       </form>
       {loading ? <div className="admin-loading">Loading past events…</div> : (
         <div className="admin-list">
@@ -1324,6 +1327,7 @@ function PastEventsTab() {
 function TeamTab() {
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState(false);
   const [form, setForm] = useState({ name: '', role: '', contact: '', isCore: false });
   const [toast, setToast] = useState({ msg: '', type: 'success' });
 
@@ -1341,12 +1345,14 @@ function TeamTab() {
   const handleAdd = async (e) => {
     e.preventDefault();
     if (!form.name || !form.role) { setToast({ msg: 'Name and role are required', type: 'error' }); return; }
+    setActionLoading(true);
     try {
       await teamAPI.create(form);
       setForm({ name: '', role: '', contact: '', isCore: false });
       fetchTeam();
       setToast({ msg: 'Team member added.', type: 'success' });
     } catch (err) { setToast({ msg: err.message, type: 'error' }); }
+    finally { setActionLoading(false); }
   };
 
   const handleDelete = async (id) => {
@@ -1370,7 +1376,7 @@ function TeamTab() {
           <input type="checkbox" id="isCore" checked={form.isCore} onChange={e => setForm({...form, isCore: e.target.checked})} />
           <label htmlFor="isCore">Core Member?</label>
         </div>
-        <button type="submit" className="btn btn-mint">Add Member</button>
+        <button type="submit" className="btn btn-mint" disabled={actionLoading}>{actionLoading ? 'Saving...' : 'Add Member'}</button>
       </form>
       
       {loading ? <div className="admin-loading">Loading team…</div> : (
@@ -1403,6 +1409,7 @@ function PlatformContentTab() {
     aboutText: '', visionText: '' 
   });
   const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState(false);
   const [toast, setToast] = useState({ msg: '', type: 'success' });
 
   const fetchContent = async () => {
@@ -1428,20 +1435,24 @@ function PlatformContentTab() {
 
   const handleSaveDraft = async (e) => {
     e.preventDefault();
+    setActionLoading(true);
     try {
       await platformContentAPI.saveDraft(draft);
       setToast({ msg: 'Draft saved successfully.', type: 'success' });
       fetchContent();
     } catch (err) { setToast({ msg: err.message, type: 'error' }); }
+    finally { setActionLoading(false); }
   };
 
   const handlePublish = async () => {
     if (!window.confirm('Publish these changes to the live platform?')) return;
+    setActionLoading(true);
     try {
       await platformContentAPI.publish(draft);
       setToast({ msg: 'Changes published successfully.', type: 'success' });
       fetchContent();
     } catch (err) { setToast({ msg: err.message, type: 'error' }); }
+    finally { setActionLoading(false); }
   };
 
   const handleRevert = async () => {
@@ -1485,10 +1496,10 @@ function PlatformContentTab() {
             </div>
             
             <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem' }}>
-              <button type="submit" className="btn btn-secondary">Save as Draft</button>
-              <button type="button" className="btn btn-mint" onClick={handlePublish}>Publish to Live</button>
+              <button type="submit" className="btn btn-secondary" disabled={actionLoading}>Save as Draft</button>
+              <button type="button" className="btn btn-mint" onClick={handlePublish} disabled={actionLoading}>Publish to Live</button>
               {content?.hasDraft && (
-                <button type="button" className="btn btn-peach" onClick={handleRevert}>Discard Draft</button>
+                <button type="button" className="btn btn-peach" onClick={handleRevert} disabled={actionLoading}>Discard Draft</button>
               )}
             </div>
           </form>
