@@ -145,13 +145,13 @@ export function AppProvider({ children }) {
     return data;
   }, []);
 
-  const completeDay = useCallback(async (challengeId, dayNumber) => {
-    const data = await challengeAPI.completeDay(challengeId, dayNumber);
+  const completeTask = useCallback(async (challengeId, taskId) => {
+    const data = await challengeAPI.completeTask(challengeId, taskId);
     return data;
   }, []);
 
-  const submitChallengeFeedback = useCallback(async (challengeId, dayNumber, payload) => {
-    const data = await challengeAPI.submitFeedback(challengeId, dayNumber, payload);
+  const submitTaskFeedback = useCallback(async (challengeId, taskId, payload) => {
+    const data = await challengeAPI.submitFeedback(challengeId, taskId, payload);
     return data;
   }, []);
 
@@ -227,7 +227,7 @@ export function AppProvider({ children }) {
       eventReports, reportsLoading, fetchEventReports, addEventReport, removeEventReport,
       // Challenge
       challenges, challengeLoading, fetchAllChallenges,
-      joinChallenge, completeDay, submitChallengeFeedback,
+      joinChallenge, completeTask, submitTaskFeedback,
       // Journal
       journalEntries, journalLoading, fetchJournalEntries, addJournalEntry, removeJournalEntry,
       pastEvents, pastEventsLoading, fetchPastEvents,

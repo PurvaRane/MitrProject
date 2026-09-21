@@ -106,9 +106,12 @@ export const challengeAPI = {
   update: (id, data) => request(`/challenge/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   delete: (id) => request(`/challenge/${id}`, { method: 'DELETE' }),
   getParticipants: (id) => request(`/challenge/${id}/participants`),
+  addTask: (id, data) => request(`/challenge/${id}/tasks`, { method: 'POST', body: JSON.stringify(data) }),
+  updateTask: (id, taskId, data) => request(`/challenge/${id}/tasks/${taskId}`, { method: 'PUT', body: JSON.stringify(data) }),
+  deleteTask: (id, taskId) => request(`/challenge/${id}/tasks/${taskId}`, { method: 'DELETE' }),
   join: (id) => request(`/challenge/${id}/join`, { method: 'POST' }),
-  completeDay: (id, dayNumber) => request(`/challenge/${id}/day/${dayNumber}/complete`, { method: 'POST' }),
-  submitFeedback: (id, dayNumber, data) => request(`/challenge/${id}/day/${dayNumber}/feedback`, { method: 'POST', body: JSON.stringify(data) }),
+  completeTask: (id, taskId) => request(`/challenge/${id}/tasks/${taskId}/complete`, { method: 'POST' }),
+  submitFeedback: (id, taskId, data) => request(`/challenge/${id}/tasks/${taskId}/feedback`, { method: 'POST', body: JSON.stringify(data) }),
 };
 
 // ── Submissions ───────────────────────────────────────────────────────────────
