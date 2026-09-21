@@ -19,6 +19,7 @@ const studentLinks = [
 const adminLinks = [
   { to: '/admin-dashboard?tab=Overview',    label: 'Overview'    },
   { to: '/admin-dashboard?tab=Events',      label: 'Events'      },
+  { to: '/admin-dashboard?tab=Past Events', label: 'Past Events' },
   { to: '/admin-dashboard?tab=Appointments',label: 'Appointments'},
   { to: '/admin-dashboard?tab=Reports',     label: 'Reports'     },
   { to: '/admin-dashboard?tab=Journeys',    label: 'Challenge'   },

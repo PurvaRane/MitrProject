@@ -5,11 +5,8 @@ import {
   createChallenge,
   updateChallenge,
   deleteChallenge,
-  addTask,
-  updateTask,
-  deleteTask,
   joinChallenge,
-  completeTask,
+  completeDay,
   submitFeedback,
   getParticipants,
 } from '../controllers/challengeController.js';
@@ -21,17 +18,13 @@ const router = express.Router();
 router.get('/', protect, getAllChallenges);
 router.get('/:id', protect, getChallengeById);
 router.post('/:id/join', protect, joinChallenge);
-router.post('/:id/tasks/:taskId/complete', protect, completeTask);
-router.post('/:id/tasks/:taskId/feedback', protect, submitFeedback);
+router.post('/:id/day/:dayNumber/complete', protect, completeDay);
+router.post('/:id/day/:dayNumber/feedback', protect, submitFeedback);
 
 // Admin routes
 router.post('/', protect, adminOnly, createChallenge);
 router.put('/:id', protect, adminOnly, updateChallenge);
 router.delete('/:id', protect, adminOnly, deleteChallenge);
 router.get('/:id/participants', protect, adminOnly, getParticipants);
-
-router.post('/:id/tasks', protect, adminOnly, addTask);
-router.put('/:id/tasks/:taskId', protect, adminOnly, updateTask);
-router.delete('/:id/tasks/:taskId', protect, adminOnly, deleteTask);
 
 export default router;
