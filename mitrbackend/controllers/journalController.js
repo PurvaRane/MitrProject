@@ -22,12 +22,18 @@ export const createEntry = async (req, res) => {
 
 // ── GET /api/journal — Get user's entries ────────────────────────────────────
 export const getMyEntries = async (req, res) => {
+  if (req.user._id === 'admin') {
+    return res.status(200).json({ success: true, count: 0, entries: [] });
+  }
   const entries = await Journal.find({ userId: req.user._id }).sort({ createdAt: -1 });
   res.status(200).json({ success: true, count: entries.length, entries });
 };
 
 // ── DELETE /api/journal/:id — Delete entry ───────────────────────────────────
 export const deleteEntry = async (req, res) => {
+  if (req.user._id === 'admin') {
+    return res.status(403).json({ success: false, message: 'Admins cannot delete personal journals here.' });
+  }
   const entry = await Journal.findOneAndDelete({ _id: req.params.id, userId: req.user._id });
   if (!entry) {
     return res.status(404).json({ success: false, message: 'Entry not found.' });

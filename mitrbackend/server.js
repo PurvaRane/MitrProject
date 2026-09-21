@@ -28,6 +28,8 @@ const app = express();
 const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:3000',
+  'http://coepmitr.coeptech.ac.in',
+  'https://coepmitr.coeptech.ac.in',
   process.env.CLIENT_URL,
 ].filter(Boolean);
 

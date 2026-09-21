@@ -21,8 +21,8 @@ const adminLinks = [
   { to: '/admin-dashboard?tab=Events',      label: 'Events'      },
   { to: '/admin-dashboard?tab=Appointments',label: 'Appointments'},
   { to: '/admin-dashboard?tab=Reports',     label: 'Reports'     },
-  { to: '/admin-dashboard?tab=Challenge',   label: 'Challenge'   },
-  { to: '/admin-dashboard?tab=Wellness',    label: 'Wellness'    },
+  { to: '/admin-dashboard?tab=Journeys',    label: 'Challenge'   },
+  { to: '/admin-dashboard?tab=Wellness Centre', label: 'Wellness'    },
   { to: '/admin-dashboard?tab=Submissions', label: 'Submissions' },
   { to: '/admin-dashboard?tab=Analytics',   label: 'Analytics'   },
 ];
