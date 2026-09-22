@@ -2,7 +2,7 @@ import React, { useState, useContext, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../App';
 import './Navbar.css';
-
+import mitrlogo from '/public/assets/mitrlogo.png';
 const publicLinks = [
   { to: '/',        label: 'Home'    },
   { to: '/support', label: 'Support' },
@@ -47,23 +47,41 @@ export default function Navbar() {
 
   const handleLogout = () => { logout(); navigate('/login'); };
 
-  return (
-    <header className={`navbar ${scrolled ? 'navbar--scrolled' : ''}`}>
-      <div className="navbar__inner container">
-        {/* Logo */}
-        <Link
-          to={user?.role === 'admin' ? '/admin-dashboard' : user ? '/user-dashboard' : '/'}
-          className="navbar__logo"
-        >
-          <div className="navbar__logo-mark" />
-          <div className="navbar__logo-text">
-            <span className="navbar__logo-name">COEP मित्र</span>
-            <span className="navbar__logo-sub">
-              {user?.role === 'admin' ? 'Admin Panel' : 'Wellness Centre'}
-            </span>
-          </div>
-        </Link>
+return (
+  <header className={`navbar ${scrolled ? 'navbar--scrolled' : ''}`}>
+    <div className="navbar__inner container">
 
+      <Link
+        to={
+          user?.role === 'admin'
+            ? '/admin-dashboard'
+            : user
+              ? '/user-dashboard'
+              : '/'
+        }
+        className="navbar__logo"
+      >
+
+        <div className="navbar__logo-mark">
+          <img
+            src={mitrlogo}
+            alt="COEP मित्र logo"
+          />
+        </div>
+
+        <div className="navbar__logo-text">
+          <span className="navbar__logo-name">
+            COEP मित्र
+          </span>
+
+          <span className="navbar__logo-sub">
+            {user?.role === 'admin'
+              ? 'Admin Panel'
+              : 'Wellness Centre'}
+          </span>
+        </div>
+
+      </Link>
         {/* Desktop nav */}
         <nav className="navbar__links" aria-label="Main navigation">
             {links.map(({ to, label }) => {
