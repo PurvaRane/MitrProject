@@ -33,6 +33,20 @@ export default function HomePage() {
         <div className="hero__blob hero__blob--2" />
         <div className="hero__blob hero__blob--3" />
 
+        {/* Add the supplied files at public/assets/coeplogo.png and
+            public/assets/mitrlogo.png. Text fallbacks keep the hero polished
+            until those approved assets are present. */}
+        <div className="hero__brand-logos" aria-label="COEP and COEP Mitr logos">
+          <div className="hero__brand-logo">
+            <img src="/assets/coeplogo.png" alt="COEP Tech logo" onError={e => { e.currentTarget.style.display = 'none'; e.currentTarget.parentElement.classList.add('hero__brand-logo--fallback'); }} />
+            <span aria-hidden="true">COEP</span>
+          </div>
+          <div className="hero__brand-logo">
+            <img src="/assets/mitrlogo.png" alt="COEP Mitr logo" onError={e => { e.currentTarget.style.display = 'none'; e.currentTarget.parentElement.classList.add('hero__brand-logo--fallback'); }} />
+            <span aria-hidden="true">मित्र</span>
+          </div>
+        </div>
+
         <div className="hero__content container">
           <div className="hero__text animate-fade-in-up">
             <span className="badge badge-blue hero__badge">COEP मित्र · Wellness Centre</span>

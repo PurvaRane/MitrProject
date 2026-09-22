@@ -78,6 +78,7 @@
   color: var(--text-secondary);
   transition: all var(--transition-fast);
   position: relative;
+  white-space: nowrap;
 }
 
 .navbar__link::after {
@@ -171,7 +172,8 @@
 }
 
 .navbar__drawer--open {
-  max-height: 480px;
+  max-height: 75vh;
+  overflow-y: auto;
 }
 
 .navbar__drawer-link {
@@ -198,7 +200,7 @@
   flex-direction: column;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1400px) {
   .navbar__links  { display: none; }
   .navbar__actions { display: none; }
   .navbar__hamburger { display: flex; }

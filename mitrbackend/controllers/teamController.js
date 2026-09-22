@@ -1,16 +1,51 @@
 import TeamMember from '../models/TeamMember.js';
 import { resolveImage } from '../config/cloudinary.js';
 
+// First-run content from the approved I-Care We-Care poster. It is inserted
+// only into an entirely empty collection and remains fully admin-manageable.
+const INITIAL_TEAM = [
+  { name: 'Yash', phone: '8999893770', email: 'yashmore2428@gmail.com', displayOrder: 0 },
+  { name: 'Sakshi', phone: '9403371329', email: 'sakshib.200512@gmail.com', displayOrder: 1 },
+  { name: 'Purva', phone: '8530062608', email: 'purvarane.2623@gmail.com', displayOrder: 2 },
+  { name: 'Om', phone: '7350909448', email: 'omitrawellness@gmail.com', displayOrder: 3 },
+  { name: 'Ritu', phone: '9011939795', email: 'ritu.kars23@gmail.com', displayOrder: 4 },
+  { name: 'Ishwari', phone: '9809095666', email: 'ishwari0720@gmail.com', displayOrder: 5 },
+];
+
+let initialTeamPromise;
+async function ensureInitialTeam() {
+  if (!initialTeamPromise) {
+    initialTeamPromise = (async () => {
+      if ((await TeamMember.countDocuments()) === 0) {
+        await TeamMember.insertMany(INITIAL_TEAM.map(member => ({
+          ...member,
+          isVisible: true,
+          createdBy: 'initial-content',
+          updatedBy: 'initial-content',
+        })));
+      }
+    })();
+  }
+  try {
+    await initialTeamPromise;
+  } catch (error) {
+    initialTeamPromise = undefined;
+    throw error;
+  }
+}
+
 function actor(req) {
   return req.user?.role === 'admin' ? 'admin' : (req.user?._id?.toString() || 'admin');
 }
 
 export const getPublicTeam = async (_req, res) => {
+  await ensureInitialTeam();
   const members = await TeamMember.find({ isVisible: true }).sort({ displayOrder: 1, createdAt: 1 });
   res.status(200).json({ success: true, members });
 };
 
 export const getAdminTeam = async (_req, res) => {
+  await ensureInitialTeam();
   const members = await TeamMember.find().sort({ displayOrder: 1, createdAt: 1 });
   res.status(200).json({ success: true, members });
 };

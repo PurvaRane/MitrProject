@@ -30,7 +30,11 @@ export const deleteChallenge = async (req, res) => {
 
 // ── ADMIN: Tasks ─────────────────────────────────────────────────────────────
 export const addTask = async (req, res) => {
-  const { challengeId } = req.params;
+  // The route is /:id/tasks; using challengeId here left the required model
+  // field undefined and caused "Path `challengeId` is required" in the admin.
+  const { id: challengeId } = req.params;
+  const challenge = await Challenge.exists({ _id: challengeId });
+  if (!challenge) return res.status(404).json({ success: false, message: 'Challenge not found.' });
   const task = await ChallengeTask.create({ ...req.body, challengeId });
   res.status(201).json({ success: true, task });
 };
@@ -49,7 +53,7 @@ export const deleteTask = async (req, res) => {
 };
 
 export const getParticipants = async (req, res) => {
-  const { challengeId } = req.params;
+  const { id: challengeId } = req.params;
   const participations = await ChallengeParticipation.find({ challengeId }).populate('studentId', 'name misId email');
   res.status(200).json({ success: true, participations });
 };

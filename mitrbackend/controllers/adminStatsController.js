@@ -3,6 +3,9 @@ import User from '../models/User.js';
 import Challenge from '../models/Challenge.js';
 import Event from '../models/Event.js';
 import EventReport from '../models/EventReport.js';
+import ChallengeCompletion from '../models/ChallengeCompletion.js';
+import ChallengeFeedback from '../models/ChallengeFeedback.js';
+import ChallengeParticipation from '../models/ChallengeParticipation.js';
 
 // ── Helper: IST-aware today string (YYYY-MM-DD) ───────────────────────────────
 function getTodayIST() {
@@ -15,7 +18,9 @@ function getTodayIST() {
 // ── GET /api/admin/stats ───────────────────────────────────────────────────
 export const getAdminStats = async (req, res) => {
   const todayStr = getTodayIST();
-  const todayStart = new Date(todayStr + 'T00:00:00.000Z');
+  // Use actual midnight in India rather than UTC midnight, so early-morning
+  // activity is included in the correct dashboard day.
+  const todayStart = new Date(todayStr + 'T00:00:00+05:30');
   const sevenDaysAgo = new Date(todayStart);
   sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
@@ -33,21 +38,28 @@ export const getAdminStats = async (req, res) => {
   ]);
 
   // Unique participants (users who submitted at least once)
-  const participantIds = await Submission.distinct('userId');
-  const activeUsersCount = participantIds.length;
+  const [legacyParticipantIds, challengeParticipantIds] = await Promise.all([
+    Submission.distinct('userId'),
+    ChallengeParticipation.distinct('studentId'),
+  ]);
+  const activeUsersCount = new Set([
+    ...legacyParticipantIds.map(String),
+    ...challengeParticipantIds.map(String),
+  ]).size;
   const inactiveUsersCount = totalUsers - activeUsersCount;
 
   // ── Today's completions (by submissions with isDone today) ─────────────────
   const todayEnd = new Date(todayStart);
   todayEnd.setDate(todayEnd.getDate() + 1);
 
-  const todayCompletions = await Submission.countDocuments({
-    isDone: true,
-    submittedAt: { $gte: todayStart, $lt: todayEnd },
-  });
+  const [legacyTodayCompletions, taskTodayCompletions] = await Promise.all([
+    Submission.countDocuments({ isDone: true, submittedAt: { $gte: todayStart, $lt: todayEnd } }),
+    ChallengeCompletion.countDocuments({ completedAt: { $gte: todayStart, $lt: todayEnd } }),
+  ]);
+  const todayCompletions = legacyTodayCompletions + taskTodayCompletions;
 
   // ── Weekly completions (last 7 days by submittedAt) ───────────────────────
-  const weeklyRaw = await Submission.aggregate([
+  const legacyWeeklyRaw = await Submission.aggregate([
     {
       $match: {
         isDone: true,
@@ -69,8 +81,15 @@ export const getAdminStats = async (req, res) => {
     { $sort: { _id: 1 } },
   ]);
 
+  const taskWeeklyRaw = await ChallengeCompletion.aggregate([
+    { $match: { completedAt: { $gte: sevenDaysAgo } } },
+    { $group: {
+      _id: { $dateToString: { format: '%Y-%m-%d', date: { $add: ['$completedAt', 5.5 * 60 * 60 * 1000] } } },
+      count: { $sum: 1 },
+    } },
+  ]);
   const weeklyMap = {};
-  weeklyRaw.forEach(r => { weeklyMap[r._id] = r.count; });
+  [...legacyWeeklyRaw, ...taskWeeklyRaw].forEach(r => { weeklyMap[r._id] = (weeklyMap[r._id] || 0) + r.count; });
   const weeklyStats = [];
   for (let i = 6; i >= 0; i--) {
     const d = new Date(todayStart);
@@ -81,16 +100,30 @@ export const getAdminStats = async (req, res) => {
   }
 
   // ── Engagement Metrics ────────────────────────────────────────────────────
-  const totalSubmissions = await Submission.countDocuments();
-  const totalReflections = await Submission.countDocuments({ reflectionText: { $exists: true, $ne: '' } });
-
-  const reflStats = await Submission.aggregate([
-    { $match: { reflectionText: { $exists: true, $ne: '' } } },
-    { $project: { wordCount: { $size: { $split: ['$reflectionText', ' '] } } } },
-    { $group: { _id: null, avgWords: { $avg: '$wordCount' }, totalWords: { $sum: '$wordCount' } } },
+  const [legacySubmissionCount, taskCompletionCount, legacyReflectionCount, taskReflectionCount] = await Promise.all([
+    Submission.countDocuments(),
+    ChallengeCompletion.countDocuments(),
+    Submission.countDocuments({ reflectionText: { $exists: true, $ne: '' } }),
+    ChallengeFeedback.countDocuments({ text: { $exists: true, $ne: '' } }),
   ]);
+  const totalSubmissions = legacySubmissionCount + taskCompletionCount;
+  const totalReflections = legacyReflectionCount + taskReflectionCount;
 
-  const avgWords = reflStats.length > 0 ? Math.round(reflStats[0].avgWords) : 0;
+  const [legacyReflectionWords, taskReflectionWords] = await Promise.all([
+    Submission.aggregate([
+      { $match: { reflectionText: { $exists: true, $ne: '' } } },
+      { $project: { wordCount: { $size: { $split: ['$reflectionText', ' '] } } } },
+      { $group: { _id: null, totalWords: { $sum: '$wordCount' }, count: { $sum: 1 } } },
+    ]),
+    ChallengeFeedback.aggregate([
+      { $match: { text: { $exists: true, $ne: '' } } },
+      { $project: { wordCount: { $size: { $split: ['$text', ' '] } } } },
+      { $group: { _id: null, totalWords: { $sum: '$wordCount' }, count: { $sum: 1 } } },
+    ]),
+  ]);
+  const wordTotal = (legacyReflectionWords[0]?.totalWords || 0) + (taskReflectionWords[0]?.totalWords || 0);
+  const wordCount = (legacyReflectionWords[0]?.count || 0) + (taskReflectionWords[0]?.count || 0);
+  const avgWords = wordCount ? Math.round(wordTotal / wordCount) : 0;
 
   res.status(200).json({
     success: true,
@@ -115,7 +148,7 @@ export const getAdminStats = async (req, res) => {
 
 // ── GET /api/admin/challenge-stats — Per-day breakdown ────────────────────
 export const getChallengeStats = async (req, res) => {
-  const dayStatsRaw = await Submission.aggregate([
+  const legacyDayStats = await Submission.aggregate([
     // Lookup the task to get dayNumber
     {
       $lookup: {
@@ -139,15 +172,38 @@ export const getChallengeStats = async (req, res) => {
     { $sort: { _id: 1 } },
   ]);
 
-  const totalUsers = await User.countDocuments();
+  const [completionDayStats, feedbackDayStats, totalUsers] = await Promise.all([
+    ChallengeCompletion.aggregate([
+      { $lookup: { from: 'challengetasks', localField: 'taskId', foreignField: '_id', as: 'task' } },
+      { $unwind: '$task' },
+      { $group: { _id: '$task.dayNumber', completions: { $sum: 1 } } },
+    ]),
+    ChallengeFeedback.aggregate([
+      { $match: { text: { $exists: true, $ne: '' } } },
+      { $lookup: { from: 'challengetasks', localField: 'taskId', foreignField: '_id', as: 'task' } },
+      { $unwind: '$task' },
+      { $group: { _id: '$task.dayNumber', reflections: { $sum: 1 } } },
+    ]),
+    User.countDocuments(),
+  ]);
 
-  const rows = dayStatsRaw.map(d => ({
-    day: d._id,
-    completions: d.completions,
-    reflections: d.reflections,
-    images: d.images,
-    percentage: totalUsers > 0 ? Math.round((d.completions / totalUsers) * 100) : 0,
-  }));
+  const byDay = new Map();
+  const ensureDay = (day) => {
+    if (!byDay.has(day)) byDay.set(day, { day, completions: 0, reflections: 0, images: 0 });
+    return byDay.get(day);
+  };
+  legacyDayStats.forEach(row => {
+    const target = ensureDay(row._id);
+    target.completions += row.completions;
+    target.reflections += row.reflections;
+    target.images += row.images;
+  });
+  completionDayStats.forEach(row => { ensureDay(row._id).completions += row.completions; });
+  feedbackDayStats.forEach(row => { ensureDay(row._id).reflections += row.reflections; });
+
+  const rows = [...byDay.values()]
+    .sort((a, b) => a.day - b.day)
+    .map(row => ({ ...row, percentage: totalUsers > 0 ? Math.round((row.completions / totalUsers) * 100) : 0 }));
 
   res.status(200).json({ success: true, rows, totalUsers });
 };
