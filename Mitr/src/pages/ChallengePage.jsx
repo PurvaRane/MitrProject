@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { challengeAPI } from '../api';
 import './ChallengePage.css';
@@ -23,7 +23,7 @@ export default function ChallengePage() {
     try {
       const data = await challengeAPI.getById(id);
       setDetails(data);
-    } catch (err) {
+    } catch {
       alert('Could not load challenge details');
       setView('discover');
     } finally {
@@ -185,6 +185,13 @@ export default function ChallengePage() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           {tasks.map(t => {
             const isCompleted = completions?.some(c => String(c.taskId) === String(t._id));
+            const savedFeedback = details.feedback?.find(f => String(f.taskId) === String(t._id));
+
+            const openFeedback = () => {
+              setFeedbackTask(t._id);
+              setMood(savedFeedback?.mood || 'Good');
+              setFeedbackText(savedFeedback?.text || '');
+            };
 
             return (
               <div key={t._id} className={`day-card card ${isCompleted ? 'day-card--done' : ''}`} style={{ width: '100%' }}>
@@ -223,15 +230,18 @@ export default function ChallengePage() {
                     />
                     <div className="day-card__refl-actions">
                       <button className="btn btn-mint btn-sm" onClick={() => handleSubmitFeedback(t._id)} disabled={actionLoading}>Submit Feedback</button>
-                      <button className="btn btn-secondary btn-sm" onClick={() => setFeedbackTask(null)}>Cancel</button>
+                      <button className="btn btn-secondary btn-sm" onClick={() => setFeedbackTask(null)}>Skip for now</button>
                     </div>
                   </div>
                 )}
 
                 {isCompleted && feedbackTask !== t._id && (
-                  <button className="btn btn-secondary btn-sm" onClick={() => setFeedbackTask(t._id)} style={{ marginTop: '1rem' }}>
-                    Add / Edit Feedback
-                  </button>
+                  <div className="challenge-feedback-action">
+                    {savedFeedback && <span className="badge badge-mint">Reflection saved</span>}
+                    <button className="btn btn-secondary btn-sm" onClick={openFeedback}>
+                      {savedFeedback ? 'Edit reflection' : 'Add reflection'}
+                    </button>
+                  </div>
                 )}
               </div>
             );

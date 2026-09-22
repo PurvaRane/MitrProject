@@ -74,14 +74,16 @@ export const getChallengeById = async (req, res) => {
   // If student, get their participation and completions
   let participation = null;
   let completions = [];
+  let feedback = [];
   if (req.user?.role !== 'admin') {
     participation = await ChallengeParticipation.findOne({ challengeId: req.params.id, studentId: req.user._id });
     if (participation) {
       completions = await ChallengeCompletion.find({ challengeId: req.params.id, studentId: req.user._id });
+      feedback = await ChallengeFeedback.find({ challengeId: req.params.id, studentId: req.user._id });
     }
   }
 
-  res.status(200).json({ success: true, challenge, tasks, participation, completions });
+  res.status(200).json({ success: true, challenge, tasks, participation, completions, feedback });
 };
 
 // ── STUDENT: Actions ─────────────────────────────────────────────────────────
@@ -104,6 +106,18 @@ export const joinChallenge = async (req, res) => {
 
 export const completeTask = async (req, res) => {
   const { id, taskId } = req.params;
+  const [participation, task] = await Promise.all([
+    ChallengeParticipation.exists({ challengeId: id, studentId: req.user._id }),
+    ChallengeTask.exists({ _id: taskId, challengeId: id }),
+  ]);
+
+  if (!participation) {
+    return res.status(403).json({ success: false, message: 'Join this challenge before completing tasks.' });
+  }
+  if (!task) {
+    return res.status(404).json({ success: false, message: 'Challenge task not found.' });
+  }
+
   const existing = await ChallengeCompletion.findOne({ challengeId: id, taskId, studentId: req.user._id });
   if (existing) {
     return res.status(400).json({ success: false, message: 'Task already completed' });
@@ -130,6 +144,15 @@ export const submitFeedback = async (req, res) => {
 
   if (!mood) return res.status(400).json({ success: false, message: 'Mood is required' });
 
+  const completion = await ChallengeCompletion.exists({
+    challengeId: id,
+    taskId,
+    studentId: req.user._id,
+  });
+  if (!completion) {
+    return res.status(403).json({ success: false, message: 'Complete this task before submitting feedback.' });
+  }
+
   // Upsert feedback
   const feedback = await ChallengeFeedback.findOneAndUpdate(
     { challengeId: id, taskId, studentId: req.user._id },
@@ -138,4 +161,19 @@ export const submitFeedback = async (req, res) => {
   );
 
   res.status(200).json({ success: true, feedback });
+};
+
+// ── ADMIN: completed-task reflections and feedback ──────────────────────────
+export const getChallengeFeedback = async (req, res) => {
+  const filter = {};
+  if (req.query.challengeId) filter.challengeId = req.query.challengeId;
+  if (req.query.mood) filter.mood = req.query.mood;
+
+  const feedback = await ChallengeFeedback.find(filter)
+    .populate('studentId', 'name misId branch year')
+    .populate('challengeId', 'title')
+    .populate('taskId', 'title dayNumber')
+    .sort({ updatedAt: -1 });
+
+  res.status(200).json({ success: true, feedback, count: feedback.length });
 };

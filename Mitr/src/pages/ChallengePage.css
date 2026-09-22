@@ -129,6 +129,7 @@
 }
 .day-card__img-preview { border-radius: var(--radius-md); max-height: 200px; object-fit: cover; }
 .day-card__refl-actions { display: flex; gap: var(--space-sm); }
+.challenge-feedback-action { display: flex; align-items: center; gap: var(--space-md); margin-top: var(--space-md); flex-wrap: wrap; }
 
 .day-card__refl-preview {
   padding: var(--space-md);
@@ -160,3 +161,11 @@
 
 .challenge-locked-notice strong { display: block; color: var(--text-primary); margin-bottom: 4px; }
 .challenge-locked-notice p { font-size: 0.875rem; color: var(--text-secondary); }
+
+@media (max-width: 600px) {
+  .challenge-header { padding-block: var(--space-xl); }
+  .challenge-progress { padding: var(--space-md); }
+  .day-card__head, .challenge-feedback-action { align-items: stretch; flex-direction: column; }
+  .day-card__refl-actions { flex-direction: column; }
+  .day-card__title { font-size: 1.25rem; }
+}

@@ -12,6 +12,7 @@ import {
   completeTask,
   submitFeedback,
   getParticipants,
+  getChallengeFeedback,
 } from '../controllers/challengeController.js';
 import { protect, adminOnly } from '../middleware/auth.js';
 
@@ -19,6 +20,8 @@ const router = express.Router();
 
 // Shared/Student routes
 router.get('/', protect, getAllChallenges);
+// Keep this before '/:id', otherwise "admin" is treated as a challenge id.
+router.get('/admin/feedback', protect, adminOnly, getChallengeFeedback);
 router.get('/:id', protect, getChallengeById);
 router.post('/:id/join', protect, joinChallenge);
 router.post('/:id/tasks/:taskId/complete', protect, completeTask);

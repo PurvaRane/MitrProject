@@ -1,8 +1,10 @@
-import React from 'react';
+import { useContext } from 'react';
 import { Link } from 'react-router-dom';
+import { AuthContext } from '../App';
 import './Footer.css';
 
 export default function Footer() {
+  const { user } = useContext(AuthContext);
   return (
     <footer className="footer">
       <div className="footer__wave">
@@ -29,11 +31,13 @@ export default function Footer() {
           <Link to="/support">Support Information</Link>
         </div>
 
-        <div className="footer__links-group">
-          <h4>Account</h4>
-          <Link to="/login">Login</Link>
-          <Link to="/register">Register</Link>
-        </div>
+        {!user && (
+          <div className="footer__links-group">
+            <h4>Account</h4>
+            <Link to="/login">Login</Link>
+            <Link to="/register">Register</Link>
+          </div>
+        )}
       </div>
 
       <div className="footer__bottom container">

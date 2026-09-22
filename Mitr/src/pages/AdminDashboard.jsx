@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../App';
 import { useApp } from '../context/AppContext';
-import { adminAPI, submissionsAPI, appointmentAPI, journalAPI, pastEventsAPI, teamAPI, platformContentAPI } from '../api';
+import { adminAPI, submissionsAPI, appointmentAPI, journalAPI, pastEventsAPI, teamAPI, platformContentAPI, challengeAPI } from '../api';
 import './AdminDashboard.css';
 import './BookAppointment.css';
 const TABS = ['Overview', 'Events', 'Past Events', 'Team', 'Platform Content', 'Appointments', 'Reports', 'Journeys', 'Wellness Centre', 'Submissions', 'Analytics'];
@@ -538,7 +538,7 @@ function WellnessTab() {
 
 // ── Submissions Tab ───────────────────────────────────────────────────────────
 function SubmissionsTab() {
-  const [subTab, setSubTab] = useState('challenges'); // 'challenges' | 'journals'
+  const [subTab, setSubTab] = useState('task-feedback'); // task feedback is the current challenge flow
   
   // Challenge Submissions State
   const [subs, setSubs] = useState([]);
@@ -548,6 +548,9 @@ function SubmissionsTab() {
   // Journals State
   const [journals, setJournals] = useState([]);
   const [journalsLoading, setJournalsLoading] = useState(true);
+
+  const [taskFeedback, setTaskFeedback] = useState([]);
+  const [feedbackLoading, setFeedbackLoading] = useState(true);
 
   // Fetch Challenge Submissions
   const fetchSubs = async () => {
@@ -573,9 +576,21 @@ function SubmissionsTab() {
     finally { setJournalsLoading(false); }
   };
 
+  const fetchTaskFeedback = async () => {
+    setFeedbackLoading(true);
+    try {
+      const data = await challengeAPI.getFeedback();
+      setTaskFeedback(data.feedback || []);
+    } catch (err) {
+      console.error(err);
+      setTaskFeedback([]);
+    } finally { setFeedbackLoading(false); }
+  };
+
   useEffect(() => {
     if (subTab === 'challenges') fetchSubs();
     if (subTab === 'journals') fetchJournals();
+    if (subTab === 'task-feedback') fetchTaskFeedback();
   }, [subTab, filters]);
 
   return (
@@ -585,7 +600,11 @@ function SubmissionsTab() {
       </div>
       
       {/* Sub-tab switcher */}
-      <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.5rem' }}>
+      <div className="admin-submission-switcher">
+        <button
+          className={`btn btn-sm ${subTab === 'task-feedback' ? 'btn-primary' : 'btn-secondary'}`}
+          onClick={() => setSubTab('task-feedback')}
+        >Challenge task feedback</button>
         <button
           className={`btn btn-sm ${subTab === 'challenges' ? 'btn-primary' : 'btn-secondary'}`}
           onClick={() => setSubTab('challenges')}
@@ -595,6 +614,35 @@ function SubmissionsTab() {
           onClick={() => setSubTab('journals')}
         >Personal Journals (Reflections)</button>
       </div>
+
+      {subTab === 'task-feedback' && (
+        <>
+          <p className="admin-feedback-note">Reflections are collected after a student marks a task complete. Only authorised administrators can view them.</p>
+          {feedbackLoading ? <div className="admin-loading">Loading task feedback…</div> : taskFeedback.length === 0 ? (
+            <div className="card admin-empty"><p>No completed-task feedback has been submitted yet.</p></div>
+          ) : (
+            <div className="admin-feedback-grid">
+              {taskFeedback.map(item => (
+                <article className="card admin-feedback-card" key={item._id}>
+                  <div className="admin-feedback-card__top">
+                    <div>
+                      <strong>{item.studentId?.name || 'Student'}</strong>
+                      <span>{item.studentId?.misId || 'MIS unavailable'} · {item.studentId?.branch || 'Branch unavailable'}</span>
+                    </div>
+                    <span className="badge badge-lavender">{item.mood}</span>
+                  </div>
+                  <div className="admin-feedback-card__task">
+                    <span>{item.challengeId?.title || 'Challenge'}</span>
+                    <strong>Day {item.taskId?.dayNumber || '—'}: {item.taskId?.title || 'Task'}</strong>
+                  </div>
+                  <p>{item.text || 'No written reflection was added.'}</p>
+                  <time>{formatDateTime(item.updatedAt || item.createdAt)}</time>
+                </article>
+              ))}
+            </div>
+          )}
+        </>
+      )}
 
       {subTab === 'challenges' && (
         <>

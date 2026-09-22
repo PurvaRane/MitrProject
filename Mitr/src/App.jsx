@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import './index.css';
 import './App.css';
 
@@ -29,6 +29,18 @@ function ScrollToTop() {
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [pathname]);
+  return null;
+}
+
+// Makes links shared before the hash-routing migration continue to work whenever
+// the host serves index.html for them (for example, through the Vercel rewrite).
+function LegacyPathRedirect() {
+  useEffect(() => {
+    const { pathname, search, hash } = window.location;
+    if (!hash && pathname !== '/') {
+      window.location.replace(`${window.location.origin}/#${pathname}${search}`);
+    }
+  }, []);
   return null;
 }
 
@@ -88,8 +100,11 @@ function App() {
   return (
     <AuthContext.Provider value={{ user, login, logout, updateUser }}>
       <AppProvider>
+        {/* Hash routing keeps every client route refresh-safe on static hosts too.
+            Existing Vercel SPA rewrites remain in place for legacy direct links. */}
         <Router>
           <ScrollToTop />
+          <LegacyPathRedirect />
           <div className="app-wrapper">
             <Navbar />
             <main className="main-content">

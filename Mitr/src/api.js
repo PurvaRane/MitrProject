@@ -112,6 +112,11 @@ export const challengeAPI = {
   join: (id) => request(`/challenge/${id}/join`, { method: 'POST' }),
   completeTask: (id, taskId) => request(`/challenge/${id}/tasks/${taskId}/complete`, { method: 'POST' }),
   submitFeedback: (id, taskId, data) => request(`/challenge/${id}/tasks/${taskId}/feedback`, { method: 'POST', body: JSON.stringify(data) }),
+  getFeedback: (filters = {}) => {
+    const params = new URLSearchParams(filters);
+    const query = params.toString();
+    return request(`/challenge/admin/feedback${query ? `?${query}` : ''}`);
+  },
 };
 
 // ── Submissions ───────────────────────────────────────────────────────────────
