@@ -4,6 +4,7 @@ import { AuthContext } from '../App';
 import { useApp } from '../context/AppContext';
 import { authAPI, userAPI, appointmentAPI, pastEventsAPI } from '../api';
 import OnboardingModal from '../components/OnboardingModal';
+import PlatformFeedbackSection from '../components/PlatformFeedbackSection';
 import './UserDashboard.css';
 import './FacultyDashboard.css';
 
@@ -219,12 +220,16 @@ export default function FacultyDashboard() {
           <div>
             <span className="section-tag faculty-badge">Faculty Dashboard</span>
             <h1 className="user-dash__title">Welcome, {facultyPrefix}{user?.name || 'Faculty Member'}</h1>
+            <div className="divider" style={{ marginBottom: '0.75rem' }} />
             <p className="user-dash__sub">
               {user?.department ? `${user.department} · ` : ''}COEP "मित्र" Mental Health & Wellbeing
             </p>
           </div>
           <div className="user-dash__actions">
-            <Link to="/challenge" className="btn btn-mint btn-sm cta-discover-challenges" style={{ marginRight: '1rem' }}>
+            <Link to="/personal-growth" className="btn btn-sm cta-personal-growth" style={{ marginRight: '0.75rem' }}>
+              Personal Growth
+            </Link>
+            <Link to="/challenge" className="btn btn-mint btn-sm cta-discover-challenges" style={{ marginRight: '0.75rem' }}>
               Discover Challenges
             </Link>
             <Link to="/book-appointment" className="btn btn-primary btn-sm cta-book-session">
@@ -253,10 +258,11 @@ export default function FacultyDashboard() {
                 </div>
               </div>
             </div>
-            <div className="faculty-profile-actions">
+            <div className="faculty-profile-actions" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+              <Link to="/personal-growth" className="btn btn-sm cta-personal-growth">Personal Growth</Link>
               <button
                 type="button"
-                className="btn btn-secondary btn-sm"
+                className="btn btn-sm cta-edit-dept"
                 onClick={() => setIsEditingDept(true)}
               >
                 {user?.department ? 'Edit Department' : '+ Add Department'}
@@ -568,6 +574,12 @@ export default function FacultyDashboard() {
             </div>
           )}
         </section>
+
+        {/* ── Faculty Feedback & Suggestions ── */}
+        <PlatformFeedbackSection
+          title="Faculty Feedback & Institutional Suggestions"
+          subtitle="Share your suggestions for academic wellbeing, institutional events, staff-student support initiatives, or platform enhancements."
+        />
 
       </div>
     </div>

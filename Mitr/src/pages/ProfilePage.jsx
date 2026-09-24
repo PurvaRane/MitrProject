@@ -2,6 +2,7 @@ import React, { useContext, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { AuthContext } from '../App';
 import { userAPI } from '../api';
+import PersonalGrowthDashboard from './PersonalGrowthDashboard';
 import './ProfilePage.css';
 
 const DEPARTMENTS = [
@@ -20,6 +21,11 @@ const DEPARTMENTS = [
 
 export default function ProfilePage() {
   const { user, updateUser, logout } = useContext(AuthContext);
+
+  // For students and faculty, provide the dedicated Personal Growth Dashboard
+  if (user && user.role !== 'admin') {
+    return <PersonalGrowthDashboard />;
+  }
 
   const [isEditingDept, setIsEditingDept] = useState(false);
   const [deptInput, setDeptInput] = useState(user?.department || '');

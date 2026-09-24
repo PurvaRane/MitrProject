@@ -145,8 +145,28 @@ export const userAPI = {
 export const journalAPI = {
   create: (data) => request('/journal', { method: 'POST', body: JSON.stringify(data) }),
   getMy: () => request('/journal'),
+  getVault: () => request('/journal/vault'),
+  update: (id, data) => request(`/journal/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
   delete: (id) => request(`/journal/${id}`, { method: 'DELETE' }),
   adminGetAll: () => request('/journal/all'),
+};
+
+// ── Mood & Energy Tracking ───────────────────────────────────────────────────
+export const moodAPI = {
+  checkIn: (data) => request('/mood', { method: 'POST', body: JSON.stringify(data) }),
+  getToday: () => request('/mood/today'),
+  getHistory: (days = 7) => request(`/mood/history?days=${days}`),
+};
+
+// ── General Platform Feedback (Student & Faculty) ───────────────────────────
+export const feedbackAPI = {
+  submit: (data) => request('/feedback', { method: 'POST', body: JSON.stringify(data) }),
+  getMy: () => request('/feedback/my'),
+  adminGetAll: (params = {}) => {
+    const query = new URLSearchParams(params);
+    return request(`/feedback/admin/all?${query}`);
+  },
+  adminUpdateStatus: (id, status) => request(`/feedback/admin/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status }) }),
 };
 
 // ── Admin Analytics ───────────────────────────────────────────────────────────

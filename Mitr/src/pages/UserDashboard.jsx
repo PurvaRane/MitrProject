@@ -4,6 +4,7 @@ import { AuthContext } from '../App';
 import { useApp } from '../context/AppContext';
 import { authAPI, appointmentAPI, pastEventsAPI } from '../api';
 import OnboardingModal from '../components/OnboardingModal';
+import PlatformFeedbackSection from '../components/PlatformFeedbackSection';
 import './UserDashboard.css';
 
 function formatDate(d) {
@@ -179,12 +180,14 @@ export default function UserDashboard() {
           <div>
             <span className="section-tag">Student Dashboard</span>
             <h1 className="user-dash__title">Hello, {user?.name?.split(' ')[0] || 'Student'}</h1>
+            <div className="divider" style={{ marginBottom: '0.75rem' }} />
             <p className="user-dash__sub">
               {user?.year && user?.branch ? `${user.year} · ${user.branch}` : 'COEP मित्र Wellness Platform'}
             </p>
           </div>
           <div className="user-dash__actions">
-            <Link to="/challenge" className="btn btn-mint btn-sm cta-discover-challenges" style={{ marginRight: '1rem' }}>Discover Challenges</Link>
+            <Link to="/personal-growth" className="btn btn-sm cta-personal-growth" style={{ marginRight: '0.75rem' }}>Personal Growth</Link>
+            <Link to="/challenge" className="btn btn-mint btn-sm cta-discover-challenges" style={{ marginRight: '0.75rem' }}>Discover Challenges</Link>
             <Link to="/book-appointment" className="btn btn-primary btn-sm cta-book-session">Book Session</Link>
           </div>
         </div>
@@ -427,6 +430,12 @@ export default function UserDashboard() {
             <Link to="/reflect" id="go-to-reflect-btn" className="btn btn-primary btn-sm">Open Journal</Link>
           </div>
         </section>
+
+        {/* ── Platform Feedback ── */}
+        <PlatformFeedbackSection
+          title="Student Feedback & Suggestions"
+          subtitle="Have suggestions for workshops, peer activities, or wellbeing resources? Share your voice directly with the COEP मित्र team."
+        />
 
       </div>
     </div>

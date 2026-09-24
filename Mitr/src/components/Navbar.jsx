@@ -8,15 +8,17 @@ const publicLinks = [
 ];
 
 const studentLinks = [
-  { to: '/user-dashboard', label: 'Dashboard'  },
-  { to: '/events',         label: 'Events'     },
-  { to: '/challenge',      label: 'Challenges' },
-  { to: '/reflect',        label: 'Journal'    },
-  { to: '/support',        label: 'Support'    },
+  { to: '/user-dashboard',  label: 'Dashboard'  },
+  { to: '/personal-growth', label: 'Growth'     },
+  { to: '/events',          label: 'Events'     },
+  { to: '/challenge',       label: 'Challenges' },
+  { to: '/reflect',         label: 'Journal'    },
+  { to: '/support',         label: 'Support'    },
 ];
 
 const facultyLinks = [
   { to: '/faculty-dashboard', label: 'Dashboard'  },
+  { to: '/personal-growth',   label: 'Growth'     },
   { to: '/events',            label: 'Events'     },
   { to: '/challenge',         label: 'Challenges' },
   { to: '/reflect',           label: 'Journal'    },
@@ -131,9 +133,18 @@ export default function Navbar() {
           <div className="navbar__actions">
             {user ? (
               <div className="navbar__user">
-                <span className="navbar__user-greeting">
-                  {getGreeting()}
-                </span>
+                <Link
+                  to={user.role === 'admin' ? '/profile' : '/personal-growth'}
+                  className="navbar__user-profile-link"
+                  title={user.role === 'admin' ? 'Admin Profile' : 'Personal Growth Dashboard'}
+                >
+                  <span className="navbar__user-greeting">
+                    {getGreeting()}
+                  </span>
+                  {user.role !== 'admin' && (
+                    <span className="navbar__growth-badge">Growth</span>
+                  )}
+                </Link>
                 <button className="btn btn-secondary btn-sm" id="navbar-logout-btn" onClick={handleLogout}>
                   Sign out
                 </button>

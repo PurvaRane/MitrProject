@@ -19,6 +19,7 @@ import AdminDashboard from './pages/AdminDashboard';
 import UserDashboard  from './pages/UserDashboard';
 import FacultyDashboard from './pages/FacultyDashboard';
 import ProfilePage    from './pages/ProfilePage';
+import PersonalGrowthDashboard from './pages/PersonalGrowthDashboard';
 import BottomNav      from './components/BottomNav';
 
 // ── Auth Context ──────────────────────────────────────────────────────────────
@@ -150,6 +151,7 @@ function App() {
                 {/* User routes */}
                 <Route path="/user-dashboard" element={<ProtectedRoute requireStudent><UserDashboard /></ProtectedRoute>} />
                 <Route path="/faculty-dashboard" element={<ProtectedRoute requireFaculty><FacultyDashboard /></ProtectedRoute>} />
+                <Route path="/personal-growth" element={<ProtectedRoute><PersonalGrowthDashboard /></ProtectedRoute>} />
                 <Route path="/profile"        element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
                 <Route path="/events"         element={<ProtectedRoute><EventsPage /></ProtectedRoute>} />
                 <Route path="/challenge"      element={<ProtectedRoute><ChallengePage /></ProtectedRoute>} />

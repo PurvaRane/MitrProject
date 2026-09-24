@@ -147,21 +147,25 @@ export default function EventsPage() {
                       <p className="event-card__desc">{ev.description}</p>
                     )}
 
-                    <div className="event-card__meta">
-                      <span>{formatDate(ev.date)}</span>
-                    </div>
+                    <div className="event-card__footer">
+                      <div className="event-card__meta">
+                        <span>📅 {formatDate(ev.date)}</span>
+                      </div>
 
-                    {ev.registrationRequired ? (
-                      <button
-                        className={`btn btn-sm ${isReg ? 'btn-peach' : 'btn-primary'}`}
-                        onClick={() => handleRegister(ev._id || ev.id, isReg)}
-                        disabled={registeringId === (ev._id || ev.id)}
-                      >
-                        {registeringId === (ev._id || ev.id) ? '...' : isReg ? 'Cancel Registration' : 'Register Interest'}
-                      </button>
-                    ) : (
-                      <span className="badge badge-lavender">No Registration Required</span>
-                    )}
+                      {ev.registrationRequired ? (
+                        <button
+                          className={`btn btn-sm ${isReg ? 'btn-peach' : 'btn-primary'} event-card__btn`}
+                          onClick={() => handleRegister(ev._id || ev.id, isReg)}
+                          disabled={registeringId === (ev._id || ev.id)}
+                        >
+                          {registeringId === (ev._id || ev.id) ? '...' : isReg ? 'Cancel Registration' : 'Register Interest'}
+                        </button>
+                      ) : (
+                        <span className="badge badge-lavender" style={{ alignSelf: 'flex-start', padding: '0.35rem 0.85rem' }}>
+                          No Registration Required
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
               );

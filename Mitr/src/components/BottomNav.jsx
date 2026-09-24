@@ -25,7 +25,7 @@ export default function BottomNav() {
   const isChallengesActive = currentPath === '/challenge';
   const isEventsActive = currentPath === '/events';
   const isSupportActive = currentPath === '/support';
-  const isProfileActive = currentPath === '/profile';
+  const isProfileActive = currentPath === '/profile' || currentPath === '/personal-growth';
 
   const navItems = [
     {
@@ -53,8 +53,8 @@ export default function BottomNav() {
       isActive: isSupportActive,
     },
     {
-      to: user ? '/profile' : '/login',
-      label: user ? 'Profile' : 'Login',
+      to: user ? (user.role === 'admin' ? '/profile' : '/personal-growth') : '/login',
+      label: user ? (user.role === 'admin' ? 'Profile' : 'Growth') : 'Login',
       icon: User,
       isActive: isProfileActive || (!user && currentPath === '/login'),
     },

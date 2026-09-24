@@ -285,13 +285,14 @@
 .success-sub { color: var(--text-secondary); margin-bottom: var(--space-xl); }
 
 .ticket {
-  padding: var(--space-xl);
+  padding: var(--space-lg) var(--space-xl);
   border-radius: var(--radius-lg);
   text-align: left;
   margin: 0 auto;
-  max-width: 320px;
+  max-width: 440px;
+  width: 100%;
+  box-sizing: border-box;
 }
-.ticket-id { font-family: var(--font-heading); font-size: 1.2rem; color: var(--mint-deep); margin-bottom: var(--space-md); text-align: center; border-bottom: 1px dashed rgba(0,0,0,0.1); padding-bottom: var(--space-sm); }
 .ticket-detail { font-size: 0.9375rem; color: var(--text-primary); margin-bottom: var(--space-sm); }
 
 @media (max-width: 900px) {
@@ -458,12 +459,15 @@
 }
 .ticket-id {
   font-family: var(--font-heading);
-  font-size: 1.75rem;
+  font-size: clamp(1.25rem, 5vw, 1.75rem);
   font-weight: 700;
   color: var(--mint-deep);
   margin-bottom: var(--space-md);
   text-align: center;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  word-break: keep-all;
+  overflow-wrap: normal;
 }
 .ticket-divider {
   height: 1px;
@@ -480,7 +484,9 @@
   padding: var(--space-lg);
   border-radius: var(--radius-md);
   margin: var(--space-xl) auto 0;
-  max-width: 420px;
+  max-width: 440px;
+  width: 100%;
+  box-sizing: border-box;
   text-align: left;
 }
 .appt-instructions-icon {
@@ -505,6 +511,17 @@
   color: var(--blue-text);
   font-family: monospace;
   font-size: 1.05em;
+  white-space: nowrap;
+}
+
+@media (max-width: 600px) {
+  .ticket {
+    padding: var(--space-md) var(--space-md);
+  }
+  .ticket-id {
+    font-size: 1.35rem;
+    letter-spacing: 0.02em;
+  }
 }
 
 .mt-2xl { margin-top: var(--space-2xl); }

@@ -122,28 +122,43 @@ export default function ChallengePage() {
               <p>No challenges available right now. Check back soon!</p>
             </div>
           ) : (
-            <div className="events-grid grid-responsive">
+            <div className="challenge-cards-grid grid-responsive">
               {challenges.map(c => {
                 const statusInfo = getStatusBadge(c);
                 return (
-                  <div key={c._id} className="card event-card">
-                    <div className="event-card__placeholder event-card__placeholder--challenge" />
-                    <div className="event-card__body">
-                      <div className="event-card__top" style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
-                        <span className="badge badge-lavender">{c.category}</span>
-                        <span className={`badge ${statusInfo.cls}`}>{statusInfo.label}</span>
-                        <span className="countdown-days"><strong>{c.duration}</strong> {c.duration === 1 ? 'day' : 'days'}</span>
-                      </div>
-                      <h3 className="event-card__title">{c.title}</h3>
-                      <p className="event-card__desc">{c.description}</p>
-                      {c.startDate && (
-                        <div className="event-card__meta" style={{ marginTop: '0.5rem', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-                          <span>{formatDate(c.startDate)} {c.endDate ? `– ${formatDate(c.endDate)}` : ''}</span>
+                  <div key={c._id} className="card challenge-item-card">
+                    <div className="challenge-item-card__banner" />
+                    <div className="challenge-item-card__body">
+                      <div className="challenge-item-card__header">
+                        <div className="challenge-item-card__header-top">
+                          <span className="badge badge-lavender">{c.category || 'Mindfulness'}</span>
+                          <span className={`badge ${statusInfo.cls}`}>{statusInfo.label}</span>
                         </div>
-                      )}
-                      <button className="btn btn-primary" onClick={() => handleSelectChallenge(c._id)} style={{ marginTop: '1rem' }}>
-                        View Details
-                      </button>
+                        <div className="challenge-item-card__header-sub">
+                          <span className="challenge-item-card__duration-pill">
+                            ⏱ <strong>{c.duration}</strong> {c.duration === 1 ? 'day' : 'days'} challenge
+                          </span>
+                        </div>
+                      </div>
+
+                      <h3 className="challenge-item-card__title">{c.title}</h3>
+                      <p className="challenge-item-card__desc" title={c.description}>{c.description}</p>
+
+                      <div className="challenge-item-card__footer">
+                        <div className="challenge-item-card__date">
+                          {c.startDate ? (
+                            <span>📅 {formatDate(c.startDate)} {c.endDate ? `– ${formatDate(c.endDate)}` : ''}</span>
+                          ) : (
+                            <span>📅 Flexible Schedule</span>
+                          )}
+                        </div>
+                        <button
+                          className="btn btn-primary challenge-item-card__btn"
+                          onClick={() => handleSelectChallenge(c._id)}
+                        >
+                          View Details
+                        </button>
+                      </div>
                     </div>
                   </div>
                 );

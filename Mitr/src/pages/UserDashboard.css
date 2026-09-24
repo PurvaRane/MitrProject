@@ -4,9 +4,10 @@
 
 /* Header */
 .user-dash__header {
-  background: linear-gradient(135deg, #D6EAF8 0%, #D5F5E3 100%);
+  background: linear-gradient(135deg, #D6EAF8 0%, #E8DAEF 100%);
   padding: var(--space-2xl) 0;
-  border-bottom: 1px solid rgba(174, 214, 241, 0.3);
+  border-bottom: 1px solid rgba(174, 214, 241, 0.4);
+  box-shadow: 0 2px 12px rgba(15, 23, 42, 0.02);
 }
 
 .user-dash__header-inner {
@@ -173,7 +174,7 @@
 /* Events grid */
 .user-dash__events-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
   gap: var(--space-lg);
 }
 
@@ -189,10 +190,13 @@
 .ud-event-card__placeholder {
   height: 80px;
   border-radius: 0;
+  background: linear-gradient(135deg, #E0F2FE 0%, #EDE9FE 100%);
 }
-.placeholder--blue    { background: var(--gradient-blue); }
-.placeholder--lavender{ background: var(--gradient-lavender); }
-.placeholder--mint    { background: var(--gradient-mint); }
+.placeholder--blue,
+.placeholder--lavender,
+.placeholder--mint {
+  background: linear-gradient(135deg, #E0F2FE 0%, #EDE9FE 100%);
+}
 
 .ud-event-card__body { padding: var(--space-lg); }
 .ud-event-card__title {
@@ -303,6 +307,7 @@
   color: var(--blue-text);
   font-family: monospace;
   letter-spacing: 0.03em;
+  white-space: nowrap;
 }
 
 /* ── Past Events Section ───────────────────────────────────────────────────── */
