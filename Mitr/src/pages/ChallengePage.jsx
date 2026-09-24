@@ -3,6 +3,29 @@ import { useApp } from '../context/AppContext';
 import { challengeAPI } from '../api';
 import './ChallengePage.css';
 
+function formatDate(dateStr) {
+  if (!dateStr) return '';
+  const normalized = typeof dateStr === 'string' && dateStr.length === 10 ? `${dateStr}T12:00:00` : dateStr;
+  return new Date(normalized).toLocaleDateString('en-GB', {
+    day: 'numeric', month: 'short', year: 'numeric',
+  });
+}
+
+function getStatusBadge(c) {
+  const now = new Date();
+  let status = c.status || 'Active';
+  if (c.startDate && new Date(c.startDate) > now) {
+    status = 'Upcoming';
+  } else if (c.endDate && new Date(c.endDate) < now) {
+    status = 'Expired';
+  }
+  if (status === 'Active') return { label: 'Active', cls: 'badge-mint' };
+  if (status === 'Upcoming') return { label: 'Upcoming', cls: 'badge-blue' };
+  if (status === 'Completed') return { label: 'Completed', cls: 'badge-lavender' };
+  if (status === 'Expired') return { label: 'Ended', cls: 'badge-peach' };
+  return { label: status, cls: 'badge-lavender' };
+}
+
 export default function ChallengePage() {
   const { challenges, challengeLoading, joinChallenge, completeTask, submitTaskFeedback } = useApp();
   
@@ -82,11 +105,11 @@ export default function ChallengePage() {
       <div className="challenge-page">
         <div className="challenge-header">
           <div className="container">
-            <span className="section-tag">Well-being Journeys</span>
+            <span className="section-tag">Wellbeing Challenges</span>
             <h1 className="section-title">Discover Challenges</h1>
             <div className="divider" />
             <p className="section-subtitle">
-              Commit to small, daily actions. Build habits that support your mental and emotional well-being.
+              Commit to small, daily actions. Build habits that support your mental and emotional wellbeing.
             </p>
           </div>
         </div>
@@ -100,22 +123,31 @@ export default function ChallengePage() {
             </div>
           ) : (
             <div className="events-grid grid-responsive">
-              {challenges.map(c => (
-                <div key={c._id} className="card event-card">
-                  <div className={`event-card__placeholder event-card__placeholder--challenge`} />
-                  <div className="event-card__body">
-                    <div className="event-card__top">
-                      <span className="badge badge-lavender">{c.category}</span>
-                      <span className="countdown-days"><strong>{c.duration}</strong> days</span>
+              {challenges.map(c => {
+                const statusInfo = getStatusBadge(c);
+                return (
+                  <div key={c._id} className="card event-card">
+                    <div className="event-card__placeholder event-card__placeholder--challenge" />
+                    <div className="event-card__body">
+                      <div className="event-card__top" style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
+                        <span className="badge badge-lavender">{c.category}</span>
+                        <span className={`badge ${statusInfo.cls}`}>{statusInfo.label}</span>
+                        <span className="countdown-days"><strong>{c.duration}</strong> {c.duration === 1 ? 'day' : 'days'}</span>
+                      </div>
+                      <h3 className="event-card__title">{c.title}</h3>
+                      <p className="event-card__desc">{c.description}</p>
+                      {c.startDate && (
+                        <div className="event-card__meta" style={{ marginTop: '0.5rem', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                          <span>{formatDate(c.startDate)} {c.endDate ? `– ${formatDate(c.endDate)}` : ''}</span>
+                        </div>
+                      )}
+                      <button className="btn btn-primary" onClick={() => handleSelectChallenge(c._id)} style={{ marginTop: '1rem' }}>
+                        View Details
+                      </button>
                     </div>
-                    <h3 className="event-card__title">{c.title}</h3>
-                    <p className="event-card__desc">{c.description}</p>
-                    <button className="btn btn-primary" onClick={() => handleSelectChallenge(c._id)} style={{ marginTop: '1rem' }}>
-                      View Details
-                    </button>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </section>
@@ -157,7 +189,7 @@ export default function ChallengePage() {
                   <div className="challenge-progress__label">Your Progress</div>
                   <div className="challenge-progress__stat">
                     <span className="challenge-progress__num">{participation.progress}</span>
-                    <span className="challenge-progress__den"> / {challenge.duration} tasks</span>
+                    <span className="challenge-progress__den"> / {challenge.duration} {challenge.duration === 1 ? 'task' : 'tasks'}</span>
                   </div>
                 </div>
               </div>

@@ -4,7 +4,7 @@ import { useApp } from '../context/AppContext';
 import { adminAPI, submissionsAPI, appointmentAPI, journalAPI, pastEventsAPI, teamAPI, platformContentAPI, challengeAPI } from '../api';
 import './AdminDashboard.css';
 import './BookAppointment.css';
-const TABS = ['Overview', 'Events', 'Past Events', 'Team', 'Platform Content', 'Appointments', 'Reports', 'Journeys', 'Wellness Centre', 'Submissions', 'Analytics'];
+const TABS = ['Overview', 'Events', 'Past Events', 'Team', 'Platform Content', 'Appointments', 'Reports', 'Challenges', 'Wellness Centre', 'Submissions', 'Analytics'];
 const CATEGORIES = ['Workshop', 'Awareness', 'Challenge', 'Seminar', 'Other'];
 
 function formatDate(d) {
@@ -60,7 +60,7 @@ function OverviewTab({ setTab }) {
           { icon: '📝', title: 'Platform Content', desc: 'Edit homepage text', tab: 'Platform Content', color: 'peach' },
           { icon: '📆', title: 'Appointments', desc: 'Manage slots & bookings', tab: 'Appointments', color: 'peach' },
           { icon: '📝', title: 'User Submissions', desc: 'View reflections & images', tab: 'Submissions', color: 'mint' },
-          { icon: '🌱', title: 'Well-being Journeys', desc: 'Manage challenges & tasks', tab: 'Journeys', color: 'lavender' },
+          { icon: '🌱', title: 'Wellbeing Challenges', desc: 'Manage challenges & tasks', tab: 'Challenges', color: 'lavender' },
           { icon: '📊', title: 'View Analytics', desc: 'Monitor trends & engagement', tab: 'Analytics', color: 'peach' },
         ].map(q => (
           <div key={q.title} className="card admin-quick-card" onClick={() => setTab(q.tab)}>
@@ -266,7 +266,7 @@ function ChallengeTab() {
   const [view, setView] = useState('list'); // 'list', 'edit-challenge', 'tasks'
   const [selectedChallenge, setSelectedChallenge] = useState(null);
   
-  const [challengeForm, setChallengeForm] = useState({ title: '', description: '', category: 'Mental Well-being', duration: 7, startDate: '', endDate: '', status: 'Draft' });
+  const [challengeForm, setChallengeForm] = useState({ title: '', description: '', category: 'Mental Wellbeing', duration: 7, startDate: '', endDate: '', status: 'Draft' });
   const [tasks, setTasks] = useState([]);
   const [taskForm, setTaskForm] = useState({ dayNumber: '', title: '', description: '', instructions: '' });
   
@@ -360,7 +360,7 @@ function ChallengeTab() {
             <div className="form-group" style={{ flex: 1 }}>
               <label className="form-label">Status</label>
               <select className="form-input" value={challengeForm.status} onChange={e => setChallengeForm(f => ({ ...f, status: e.target.value }))}>
-                <option>Draft</option><option>Published</option><option>Active</option><option>Completed</option><option>Archived</option>
+                <option>Draft</option><option>Upcoming</option><option>Active</option><option>Completed</option><option>Expired</option><option>Archived</option>
               </select>
             </div>
           </div>
@@ -433,7 +433,7 @@ function ChallengeTab() {
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
         <h2 className="admin-section-title">Manage Challenges</h2>
-        <button className="btn btn-mint" onClick={() => { setSelectedChallenge(null); setChallengeForm({ title: '', description: '', category: 'Mental Well-being', duration: 7, startDate: '', endDate: '', status: 'Draft' }); setView('edit-challenge'); }}>+ New Challenge</button>
+        <button className="btn btn-mint" onClick={() => { setSelectedChallenge(null); setChallengeForm({ title: '', description: '', category: 'Mental Wellbeing', duration: 7, startDate: '', endDate: '', status: 'Draft' }); setView('edit-challenge'); }}>+ New Challenge</button>
       </div>
       <div className="admin-event-list">
         {challenges.map(c => (
@@ -442,7 +442,7 @@ function ChallengeTab() {
               <div className="admin-event-item__title">{c.title}</div>
               <div className="admin-event-item__meta">
                 <span className={`badge ${c.status === 'Active' ? 'badge-mint' : 'badge-lavender'}`}>{c.status}</span>
-                <span>{c.duration} Days</span>
+                <span>{c.duration} {c.duration === 1 ? 'Day' : 'Days'}</span>
               </div>
               <div className="admin-event-item__desc">{c.description.slice(0, 80)}...</div>
             </div>
@@ -1594,7 +1594,7 @@ export default function AdminDashboard() {
         {tab === 'Platform Content' && <PlatformContentTab />}
         {tab === 'Appointments'     && <AppointmentsTab />}
         {tab === 'Reports'          && <ReportsTab />}
-        {tab === 'Journeys'         && <ChallengeTab />}
+        {tab === 'Challenges'       && <ChallengeTab />}
         {tab === 'Wellness Centre'  && <WellnessTab />}
         {tab === 'Submissions'      && <SubmissionsTab />}
         {tab === 'Analytics'        && <AnalyticsTab />}

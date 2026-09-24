@@ -5,13 +5,21 @@ import './EventsPage.css';
 const FILTERS = ['All', 'Workshop', 'Awareness', 'Challenge', 'Seminar', 'Other'];
 
 function formatDate(dateStr) {
-  return new Date(dateStr).toLocaleDateString('en-IN', {
-    day: 'numeric', month: 'long', year: 'numeric',
+  if (!dateStr) return '';
+  const normalized = typeof dateStr === 'string' && dateStr.length === 10 ? `${dateStr}T12:00:00` : dateStr;
+  return new Date(normalized).toLocaleDateString('en-GB', {
+    day: 'numeric', month: 'short', year: 'numeric',
   });
 }
 
 function getDaysUntil(dateStr) {
-  const diff = new Date(dateStr) - new Date();
+  if (!dateStr) return 0;
+  const normalized = typeof dateStr === 'string' && dateStr.length === 10 ? `${dateStr}T12:00:00` : dateStr;
+  const target = new Date(normalized);
+  const now = new Date();
+  const dTarget = new Date(target.getFullYear(), target.getMonth(), target.getDate());
+  const dNow = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const diff = dTarget - dNow;
   return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
 }
 
@@ -130,7 +138,7 @@ export default function EventsPage() {
                       <span className={`badge ${badge}`}>{ev.category}</span>
                       {days === 0
                         ? <span className="countdown-today">Today</span>
-                        : <span className="countdown-days"><strong>{days}</strong> days away</span>
+                        : <span className="countdown-days"><strong>{days}</strong> {days === 1 ? 'day' : 'days'} away</span>
                       }
                     </div>
 

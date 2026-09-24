@@ -17,8 +17,8 @@ export default function OnboardingModal({ onComplete }) {
       icon: '📅',
     },
     {
-      title: 'Join Well-being Challenges',
-      text: 'Engage in small, meaningful daily acts of self-care. Write reflections and track your journey.',
+      title: 'Join Wellbeing Challenges',
+      text: 'Engage in small, meaningful daily acts of self-care. Write reflections and track your progress.',
       icon: '✨',
     },
   ];

@@ -1,0 +1,98 @@
+/* ── BottomNav.css ─────────────────────────────────────────────────────────── */
+
+.mobile-bottom-nav {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .mobile-bottom-nav {
+    display: block;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 900;
+    background: rgba(255, 255, 255, 0.94);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-top: 1px solid rgba(174, 214, 241, 0.5);
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.06);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  .mobile-bottom-nav__inner {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    height: 60px;
+    padding-inline: 0.5rem;
+    max-width: 500px;
+    margin: 0 auto;
+  }
+
+  .mobile-bottom-nav__item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    min-width: 0;
+    height: 100%;
+    color: var(--text-secondary);
+    text-decoration: none;
+    transition: all var(--transition-fast);
+    padding: 4px 2px;
+    position: relative;
+    border-radius: var(--radius-sm);
+  }
+
+  .mobile-bottom-nav__icon-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 28px;
+    border-radius: var(--radius-full);
+    transition: all var(--transition-fast);
+  }
+
+  .mobile-bottom-nav__label {
+    font-size: 0.6875rem;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.2;
+    margin-top: 2px;
+  }
+
+  /* Active State */
+  .mobile-bottom-nav__item.active {
+    color: var(--blue-text);
+  }
+
+  .mobile-bottom-nav__item.active .mobile-bottom-nav__icon-wrap {
+    background: rgba(41, 128, 185, 0.12);
+    color: var(--blue-text);
+  }
+
+  .mobile-bottom-nav__item.active .mobile-bottom-nav__label {
+    font-weight: 700;
+    color: var(--blue-text);
+  }
+
+  .mobile-bottom-nav__active-indicator {
+    position: absolute;
+    bottom: -3px;
+    width: 14px;
+    height: 3px;
+    background: var(--blue-text);
+    border-radius: var(--radius-full);
+  }
+
+  .mobile-bottom-nav__item:active {
+    transform: scale(0.94);
+  }
+}

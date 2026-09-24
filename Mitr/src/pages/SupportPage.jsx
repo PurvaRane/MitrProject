@@ -5,18 +5,37 @@ import { AuthContext } from '../App';
 import { appointmentAPI, teamAPI } from '../api';
 import './SupportPage.css';
 
+const DEFAULT_COUNSELOR = {
+  counselorId: 'dr-kshipra-moghe',
+  name: 'Dr. Kshipra V. Moghe',
+  role: 'Nodal Officer & Incharge – Mental Health & Wellbeing Initiative: COEP "मित्र"',
+  designation: 'Asst. Professor – Psychology & Consulting Psychologist',
+  department: 'Department of Applied Sciences & Humanities',
+  institution: 'COEP Tech, Pune',
+  email: 'kam.appsci@coeptech.ac.in',
+};
+
+const DEFAULT_TEAM = [
+  { _id: '1', name: 'Yash', phone: '8999893770', email: 'yashmore2428@gmail.com' },
+  { _id: '2', name: 'Sakshi', phone: '9403371329', email: 'sakshib.200512@gmail.com' },
+  { _id: '3', name: 'Purva', phone: '8530062608', email: 'purvarane.2623@gmail.com' },
+  { _id: '4', name: 'Om', phone: '7350909448', email: 'omitrawellness@gmail.com' },
+  { _id: '5', name: 'Ritu', phone: '9011939795', email: 'ritu.kars23@gmail.com' },
+  { _id: '6', name: 'Ishwari', phone: '9809095666', email: 'ishwari0720@gmail.com' },
+];
+
 export default function SupportPage() {
   const { wellnessInfo, wellnessLoading } = useApp();
   const { user } = useContext(AuthContext);
-  const [counselor, setCounselor] = useState(null);
-  const [team, setTeam] = useState([]);
-  const [teamLoading, setTeamLoading] = useState(true);
+  const [counselor, setCounselor] = useState(DEFAULT_COUNSELOR);
+  const [team, setTeam] = useState(DEFAULT_TEAM);
+  const [teamLoading, setTeamLoading] = useState(false);
 
   useEffect(() => {
     const fetchCounselor = async () => {
       try {
         const res = await appointmentAPI.getCounselor();
-        if (res.success) setCounselor(res.counselor);
+        if (res.success && res.counselor) setCounselor(res.counselor);
       } catch (err) {
         console.error('Failed to fetch counselor', err);
       }
@@ -25,7 +44,7 @@ export default function SupportPage() {
     const fetchTeam = async () => {
       try {
         const res = await teamAPI.getPublic();
-        if (res.success) setTeam(res.members || []);
+        if (res.success && res.members?.length > 0) setTeam(res.members);
       } catch (err) {
         console.error('Failed to fetch team', err);
       } finally {

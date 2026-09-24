@@ -11,32 +11,77 @@ const userSchema = new mongoose.Schema(
     },
     misId: {
       type: String,
-      required: [true, 'MIS ID is required'],
+      sparse: true,
       unique: true,
-      match: [/^\d{9}$/, 'MIS ID must be exactly 9 digits'],
+      required: [
+        function () {
+          return this.role === 'student';
+        },
+        'MIS ID is required for students',
+      ],
+      validate: {
+        validator: function (v) {
+          if (this.role === 'student') {
+            return /^\d{9}$/.test(v);
+          }
+          return true;
+        },
+        message: 'MIS ID must be exactly 9 digits',
+      },
       index: true,
+    },
+    email: {
+      type: String,
+      sparse: true,
+      unique: true,
+      trim: true,
+      lowercase: true,
+      required: [
+        function () {
+          return this.role === 'faculty';
+        },
+        'Email is required for faculty',
+      ],
+      match: [/^\S+@\S+\.\S+$/, 'Please enter a valid email address'],
+      index: true,
+    },
+    department: {
+      type: String,
+      trim: true,
+      default: '',
     },
     year: {
       type: String,
-      enum: ['FY BTech', 'SY BTech', 'TY BTech','FinalY BTech','M.Tech 1st year','M.Tech 2nd year','PhD'],
-      default: 'FY BTech',
+      enum: ['FY BTech', 'SY BTech', 'TY BTech', 'FinalY BTech', 'M.Tech 1st year', 'M.Tech 2nd year', 'PhD', 'N/A'],
+      default: function () {
+        return this.role === 'student' ? 'FY BTech' : 'N/A';
+      },
     },
-   branch: {
-  type: String,
-  enum: [
-    'Computer Science and Engineering',
-    'Electronics and Telecommunication Engineering',
-    'Mechanical Engineering',
-    'Civil Engineering',
-    'Electrical Engineering',
-    'Instrumentation and Control Engineering',
-    'Metallurgy and Materials Technology',
-    'Manufacturing Science and Engineering',
-    'AI/ML',
-    'AI/DS'
-  ],
-  required: [true, 'Branch is required'],
-},
+    branch: {
+      type: String,
+      enum: [
+        'Computer Science and Engineering',
+        'Electronics and Telecommunication Engineering',
+        'Mechanical Engineering',
+        'Civil Engineering',
+        'Electrical Engineering',
+        'Instrumentation and Control Engineering',
+        'Metallurgy and Materials Technology',
+        'Manufacturing Science and Engineering',
+        'AI/ML',
+        'AI/DS',
+        'N/A',
+      ],
+      required: [
+        function () {
+          return this.role === 'student';
+        },
+        'Branch is required for students',
+      ],
+      default: function () {
+        return this.role === 'student' ? undefined : 'N/A';
+      },
+    },
     password: {
       type: String,
       required: [true, 'Password is required'],
@@ -45,7 +90,7 @@ const userSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ['student'],
+      enum: ['student', 'faculty', 'admin'],
       default: 'student',
     },
     hasSeenOnboarding: {

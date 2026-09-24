@@ -8,7 +8,7 @@ export default function LoginPage() {
   const { login }  = useContext(AuthContext);
   const navigate   = useNavigate();
 
-  const [tab,      setTab]      = useState('student'); // 'student' | 'admin'
+  const [tab,      setTab]      = useState('student'); // 'student' | 'faculty' | 'admin'
   const [form,     setForm]     = useState({ identifier: '', password: '' });
   const [error,    setError]    = useState('');
   const [loading,  setLoading]  = useState(false);
@@ -33,8 +33,12 @@ export default function LoginPage() {
       setError('Please fill in all fields.');
       return;
     }
-    if (tab === 'student' && !/^\d{9}$/.test(form.identifier)) {
+    if (tab === 'student' && !/^\d{9}$/.test(form.identifier.trim())) {
       setError('MIS ID must be exactly 9 digits.');
+      return;
+    }
+    if (tab === 'faculty' && !/^\S+@\S+\.\S+$/.test(form.identifier.trim())) {
+      setError('Please enter a valid email address.');
       return;
     }
     if (form.password.length < 4) {
@@ -47,11 +51,20 @@ export default function LoginPage() {
       let data;
       if (tab === 'admin') {
         data = await authAPI.loginAdmin(form.identifier.trim(), form.password);
+      } else if (tab === 'faculty') {
+        data = await authAPI.loginFaculty(form.identifier.trim(), form.password);
       } else {
         data = await authAPI.loginStudent(form.identifier.trim(), form.password);
       }
       login(data.user, data.token);
-      navigate(data.user.role === 'admin' ? '/admin-dashboard' : '/user-dashboard');
+
+      if (data.user.role === 'admin') {
+        navigate('/admin-dashboard');
+      } else if (data.user.role === 'faculty') {
+        navigate('/faculty-dashboard');
+      } else {
+        navigate('/user-dashboard');
+      }
     } catch (err) {
       // Network error → no fallback, show clear message
       if (err instanceof TypeError) {
@@ -92,7 +105,14 @@ export default function LoginPage() {
             className={`login-role-tab ${tab === 'student' ? 'active' : ''}`}
             onClick={() => switchTab('student')}
           >
-            Student / Faculty
+            Student
+          </button>
+          <button
+            id="login-tab-faculty"
+            className={`login-role-tab ${tab === 'faculty' ? 'active' : ''}`}
+            onClick={() => switchTab('faculty')}
+          >
+            Faculty
           </button>
           <button
             id="login-tab-admin"
@@ -106,19 +126,29 @@ export default function LoginPage() {
         <form className="login-form" onSubmit={handleSubmit} noValidate>
           <div className="form-group">
             <label className="form-label" htmlFor="identifier-input">
-              {tab === 'admin' ? 'Admin Username' : 'MIS Number'}
+              {tab === 'admin'
+                ? 'Admin Username'
+                : tab === 'faculty'
+                ? 'Faculty Email Address'
+                : 'MIS Number'}
             </label>
             <input
               id="identifier-input"
               className="form-input"
-              type="text"
+              type={tab === 'faculty' ? 'email' : 'text'}
               name="identifier"
-              placeholder={tab === 'admin' ? 'Enter username' : '9-digit MIS number'}
+              placeholder={
+                tab === 'admin'
+                  ? 'Enter admin username'
+                  : tab === 'faculty'
+                  ? 'e.g. prof.name@coeptech.ac.in'
+                  : '9-digit MIS number'
+              }
               value={form.identifier}
               onChange={handleChange}
-              maxLength={tab === 'admin' ? 20 : 9}
-              inputMode={tab === 'admin' ? 'text' : 'numeric'}
-              autoComplete="username"
+              maxLength={tab === 'student' ? 9 : 80}
+              inputMode={tab === 'student' ? 'numeric' : tab === 'faculty' ? 'email' : 'text'}
+              autoComplete={tab === 'faculty' ? 'email' : 'username'}
               required
             />
           </div>
@@ -165,13 +195,20 @@ export default function LoginPage() {
             className="btn btn-primary login-form__submit"
             disabled={loading}
           >
-            {loading ? <><span className="login-spinner" /> Signing in…</> : (tab === 'admin' ? 'Login as Admin' : 'Login to Portal')}
+            {loading ? <><span className="login-spinner" /> Signing in…</> : (tab === 'admin' ? 'Login as Admin' : tab === 'faculty' ? 'Login as Faculty' : 'Login to Portal')}
           </button>
 
           {tab === 'student' && (
             <p className="login-help">
-              New here?{' '}
-              <Link to="/register" className="login-help__link">Create an account</Link>
+              New student?{' '}
+              <Link to="/register" className="login-help__link">Create student account</Link>
+            </p>
+          )}
+
+          {tab === 'faculty' && (
+            <p className="login-help">
+              New faculty member?{' '}
+              <Link to="/register?role=faculty" className="login-help__link">Register as faculty</Link>
             </p>
           )}
         </form>
@@ -179,6 +216,8 @@ export default function LoginPage() {
         <div className="login-card__footer">
           {tab === 'admin'
             ? <p>Admin credentials are set by the system administrator.</p>
+            : tab === 'faculty'
+            ? <p>Use your registered COEP faculty email address to log in.</p>
             : <p>Use your 9-digit COEP MIS number to log in.</p>
           }
         </div>

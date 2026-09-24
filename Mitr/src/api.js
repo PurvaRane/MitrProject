@@ -60,8 +60,12 @@ async function request(endpoint, options = {}) {
 export const authAPI = {
   register: (data) =>
     request('/auth/register', { method: 'POST', body: JSON.stringify(data) }),
+  registerFaculty: (data) =>
+    request('/auth/register-faculty', { method: 'POST', body: JSON.stringify(data) }),
   loginStudent: (misId, password) =>
     request('/auth/login', { method: 'POST', body: JSON.stringify({ misId, password }) }),
+  loginFaculty: (email, password) =>
+    request('/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) }),
   loginAdmin: (username, password) =>
     request('/auth/login', { method: 'POST', body: JSON.stringify({ username, password }) }),
   getMe: () => request('/auth/me'),
@@ -130,9 +134,11 @@ export const submissionsAPI = {
   },
 };
 
-// ── User Progress ─────────────────────────────────────────────────────────────
+// ── User Progress & Profile ───────────────────────────────────────────────────
 export const userAPI = {
   getProgress: () => request('/user/progress'),
+  updateProfile: (data) => request('/user/profile', { method: 'PATCH', body: JSON.stringify(data) }),
+  getFacultySummary: () => request('/user/faculty-summary'),
 };
 
 // ── Journal ───────────────────────────────────────────────────────────────────

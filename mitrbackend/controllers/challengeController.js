@@ -58,24 +58,49 @@ export const getParticipants = async (req, res) => {
   res.status(200).json({ success: true, participations });
 };
 
-// ── SHARED/STUDENT: Challenges & Participation ────────────────────────────────
+// ── Helper: calculate accurate challenge status from database dates ─────────
+const syncChallengeStatus = (challenge) => {
+  const doc = challenge.toObject ? challenge.toObject() : { ...challenge };
+  if (doc.status === 'Draft' || doc.status === 'Archived') return doc;
+
+  if (doc.startDate && doc.endDate) {
+    const now = new Date();
+    const start = new Date(doc.startDate);
+    const end = new Date(doc.endDate);
+    // End date covers the entire end day (until 23:59:59.999)
+    end.setHours(23, 59, 59, 999);
+
+    if (now < start) {
+      doc.status = 'Upcoming';
+    } else if (now > end) {
+      doc.status = doc.status === 'Completed' ? 'Completed' : 'Expired';
+    } else {
+      doc.status = 'Active';
+    }
+  }
+  return doc;
+};
+
+// ── SHARED: Challenges & Participation ───────────────────────────────────────
 export const getAllChallenges = async (req, res) => {
   let filter = {};
-  // Students only see published, active, or completed challenges
+  // Non-admins see published, upcoming, active, or completed challenges
   if (req.user?.role !== 'admin') {
-    filter.status = { $in: ['Published', 'Active', 'Completed'] };
+    filter.status = { $in: ['Published', 'Upcoming', 'Active', 'Completed', 'Expired'] };
   }
   const challenges = await Challenge.find(filter).sort({ createdAt: -1 });
-  res.status(200).json({ success: true, challenges });
+  const synchronized = challenges.map(syncChallengeStatus);
+  res.status(200).json({ success: true, challenges: synchronized });
 };
 
 export const getChallengeById = async (req, res) => {
-  const challenge = await Challenge.findById(req.params.id);
-  if (!challenge) return res.status(404).json({ success: false, message: 'Challenge not found' });
-  
+  const rawChallenge = await Challenge.findById(req.params.id);
+  if (!rawChallenge) return res.status(404).json({ success: false, message: 'Challenge not found' });
+
+  const challenge = syncChallengeStatus(rawChallenge);
   const tasks = await ChallengeTask.find({ challengeId: req.params.id }).sort({ dayNumber: 1, order: 1 });
   
-  // If student, get their participation and completions
+  // If not admin, get their participation and completions
   let participation = null;
   let completions = [];
   let feedback = [];

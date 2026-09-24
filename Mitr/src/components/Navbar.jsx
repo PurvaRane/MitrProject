@@ -2,30 +2,37 @@ import React, { useState, useContext, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../App';
 import './Navbar.css';
-import mitrlogo from '/public/assets/mitrlogo.png';
 const publicLinks = [
   { to: '/',        label: 'Home'    },
   { to: '/support', label: 'Support' },
 ];
 
 const studentLinks = [
-  { to: '/user-dashboard', label: 'Dashboard' },
-  { to: '/events',         label: 'Events'    },
-  { to: '/challenge',      label: 'Challenge' },
-  { to: '/reflect',        label: 'Journal'   },
-  { to: '/support',        label: 'Support'   },
+  { to: '/user-dashboard', label: 'Dashboard'  },
+  { to: '/events',         label: 'Events'     },
+  { to: '/challenge',      label: 'Challenges' },
+  { to: '/reflect',        label: 'Journal'    },
+  { to: '/support',        label: 'Support'    },
+];
+
+const facultyLinks = [
+  { to: '/faculty-dashboard', label: 'Dashboard'  },
+  { to: '/events',            label: 'Events'     },
+  { to: '/challenge',         label: 'Challenges' },
+  { to: '/reflect',           label: 'Journal'    },
+  { to: '/support',           label: 'Support'    },
 ];
 
 const adminLinks = [
-  { to: '/admin-dashboard?tab=Overview',    label: 'Overview'    },
-  { to: '/admin-dashboard?tab=Events',      label: 'Events'      },
-  { to: '/admin-dashboard?tab=Past Events', label: 'Past Events' },
-  { to: '/admin-dashboard?tab=Appointments',label: 'Appointments'},
-  { to: '/admin-dashboard?tab=Reports',     label: 'Reports'     },
-  { to: '/admin-dashboard?tab=Journeys',    label: 'Challenge'   },
+  { to: '/admin-dashboard?tab=Overview',        label: 'Overview'    },
+  { to: '/admin-dashboard?tab=Events',          label: 'Events'      },
+  { to: '/admin-dashboard?tab=Past Events',     label: 'Past Events' },
+  { to: '/admin-dashboard?tab=Appointments',    label: 'Appointments'},
+  { to: '/admin-dashboard?tab=Reports',         label: 'Reports'     },
+  { to: '/admin-dashboard?tab=Challenges',      label: 'Challenges'  },
   { to: '/admin-dashboard?tab=Wellness Centre', label: 'Wellness'    },
-  { to: '/admin-dashboard?tab=Submissions', label: 'Submissions' },
-  { to: '/admin-dashboard?tab=Analytics',   label: 'Analytics'   },
+  { to: '/admin-dashboard?tab=Submissions',     label: 'Submissions' },
+  { to: '/admin-dashboard?tab=Analytics',       label: 'Analytics'   },
 ];
 
 export default function Navbar() {
@@ -43,74 +50,94 @@ export default function Navbar() {
 
   useEffect(() => { setMenuOpen(false); }, [location.pathname]);
 
-  const links = user?.role === 'admin' ? adminLinks : user ? studentLinks : publicLinks;
+  const links = user?.role === 'admin'
+    ? adminLinks
+    : user?.role === 'faculty'
+    ? facultyLinks
+    : user
+    ? studentLinks
+    : publicLinks;
 
   const handleLogout = () => { logout(); navigate('/login'); };
 
-return (
-  <header className={`navbar ${scrolled ? 'navbar--scrolled' : ''}`}>
-    <div className="navbar__inner container">
+  const getGreeting = () => {
+    if (!user) return '';
+    if (user.role === 'admin') return 'Admin';
+    if (user.role === 'faculty') {
+      return user.name?.match(/^(Dr\.|Prof\.)/i) ? user.name : `Prof. ${user.name || 'Faculty'}`;
+    }
+    return user.name || 'Student';
+  };
 
-      <Link
-        to={
-          user?.role === 'admin'
-            ? '/admin-dashboard'
-            : user
+  return (
+    <header className={`navbar ${scrolled ? 'navbar--scrolled' : ''}`}>
+      <div className="navbar__inner container">
+
+        <Link
+          to={
+            user?.role === 'admin'
+              ? '/admin-dashboard'
+              : user?.role === 'faculty'
+              ? '/faculty-dashboard'
+              : user
               ? '/user-dashboard'
               : '/'
-        }
-        className="navbar__logo"
-      >
+          }
+          className="navbar__logo"
+        >
 
-        <div className="navbar__logo-mark">
-          <img
-            src={mitrlogo}
-            alt="COEP मित्र logo"
-          />
-        </div>
+          <div className="navbar__logo-mark">
+            <img
+              src="/assets/mitrlogo.png"
+              alt="COEP मित्र logo"
+              onError={e => { e.currentTarget.style.display = 'none'; }}
+            />
+          </div>
 
-        <div className="navbar__logo-text">
-          <span className="navbar__logo-name">
-            COEP मित्र
-          </span>
+          <div className="navbar__logo-text">
+            <span className="navbar__logo-name">
+              COEP मित्र
+            </span>
 
-          <span className="navbar__logo-sub">
-            {user?.role === 'admin'
-              ? 'Admin Panel'
-              : 'Wellness Centre'}
-          </span>
-        </div>
+            <span className="navbar__logo-sub">
+              {user?.role === 'admin'
+                ? 'Admin Panel'
+                : user?.role === 'faculty'
+                ? 'Faculty Portal'
+                : 'Wellness Centre'}
+            </span>
+          </div>
 
-      </Link>
-        {/* Desktop nav */}
-        <nav className="navbar__links" aria-label="Main navigation">
-            {links.map(({ to, label }) => {
-              const isActive = to.includes('?') 
-                ? location.pathname + location.search === to
-                : location.pathname === to;
-              return (
-                <Link
-                  key={to}
-                  to={to}
-                  className={`navbar__link ${isActive ? 'navbar__link--active' : ''}`}
-                >
-                  {label}
-                </Link>
-              );
-            })}
-        </nav>
+        </Link>
+          {/* Desktop nav */}
+          <nav className="navbar__links" aria-label="Main navigation">
+              {links.map(({ to, label }) => {
+                const isActive = to.includes('?') 
+                  ? location.pathname + location.search === to
+                  : location.pathname === to;
+                return (
+                  <Link
+                    key={to}
+                    to={to}
+                    className={`navbar__link ${isActive ? 'navbar__link--active' : ''}`}
+                  >
+                    {label}
+                  </Link>
+                );
+              })}
+          </nav>
 
-        {/* Actions */}
-        <div className="navbar__actions">
-          {user ? (
-            <div className="navbar__user">
-              <span className="navbar__user-greeting">
-                {user.role === 'admin' ? 'Admin' : `${user.name || 'Student'}`}
-              </span>
-              <button className="btn btn-secondary btn-sm" id="navbar-logout-btn" onClick={handleLogout}>
-                Sign out
-              </button>
-            </div>
+          {/* Actions */}
+          <div className="navbar__actions">
+            {user ? (
+              <div className="navbar__user">
+                <span className="navbar__user-greeting">
+                  {getGreeting()}
+                </span>
+                <button className="btn btn-secondary btn-sm" id="navbar-logout-btn" onClick={handleLogout}>
+                  Sign out
+                </button>
+              </div>
           ) : (
             <div style={{ display: 'flex', gap: 'var(--space-sm)', alignItems: 'center' }}>
               <Link to="/register" className="btn btn-secondary btn-sm">Register</Link>

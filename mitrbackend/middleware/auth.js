@@ -56,3 +56,25 @@ export const adminOnly = (req, res, next) => {
   }
   next();
 };
+
+// ── Faculty-only guard ───────────────────────────────────────────────────────
+export const facultyOnly = (req, res, next) => {
+  if (req.user?.role !== 'faculty') {
+    return res.status(403).json({
+      success: false,
+      message: 'Access denied. Faculty only.',
+    });
+  }
+  next();
+};
+
+// ── Student-only guard ───────────────────────────────────────────────────────
+export const studentOnly = (req, res, next) => {
+  if (req.user?.role !== 'student') {
+    return res.status(403).json({
+      success: false,
+      message: 'Access denied. Student only.',
+    });
+  }
+  next();
+};

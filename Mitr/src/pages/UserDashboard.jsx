@@ -184,8 +184,8 @@ export default function UserDashboard() {
             </p>
           </div>
           <div className="user-dash__actions">
-            <Link to="/challenge" className="btn btn-mint btn-sm" style={{ marginRight: '1rem' }}>Discover Journeys</Link>
-            <Link to="/book-appointment" className="btn btn-primary btn-sm">Book Session</Link>
+            <Link to="/challenge" className="btn btn-mint btn-sm cta-discover-challenges" style={{ marginRight: '1rem' }}>Discover Challenges</Link>
+            <Link to="/book-appointment" className="btn btn-primary btn-sm cta-book-session">Book Session</Link>
           </div>
         </div>
       </div>
@@ -224,7 +224,7 @@ export default function UserDashboard() {
           </section>
         )}
 
-        {/* ── Well-being Journeys CTA ── */}
+        {/* ── Wellbeing Challenges CTA ── */}
         <section className="user-dash__section">
           <div className="user-dash__refl-banner card glass" style={{ borderColor: 'var(--border)' }}>
             <div className="user-dash__refl-banner-content">
@@ -232,7 +232,7 @@ export default function UserDashboard() {
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
               </div>
               <div>
-                <h3 className="user-dash__refl-title">Well-being Journeys</h3>
+                <h3 className="user-dash__refl-title">Wellbeing Challenges</h3>
                 <p className="user-dash__refl-sub">Join guided challenges, complete tasks at your own pace, and build healthy habits.</p>
               </div>
             </div>
@@ -312,7 +312,7 @@ export default function UserDashboard() {
                       <div className="ud-event-card__meta">
                         <span>{formatDate(ev.date)}</span>
                         {days === 0 ? <span className="ud-event-card__today">Today</span>
-                          : <span className="ud-event-card__days"><strong>{days}</strong> days away</span>}
+                          : <span className="ud-event-card__days"><strong>{days}</strong> {days === 1 ? 'day away' : 'days away'}</span>}
                       </div>
                     </div>
                   </div>

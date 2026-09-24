@@ -27,7 +27,10 @@ const app = express();
 // ── CORS ──────────────────────────────────────────────────────────────────────
 const allowedOrigins = [
   'http://localhost:5173',
+  'http://localhost:5174',
   'http://localhost:3000',
+  'http://127.0.0.1:5173',
+  'http://127.0.0.1:5174',
   'http://coepmitr.coeptech.ac.in',
   'https://coepmitr.coeptech.ac.in',
   process.env.CLIENT_URL,
@@ -37,7 +40,11 @@ const corsOptions = {
   origin: (origin, callback) => {
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
-    if (allowedOrigins.indexOf(origin) !== -1 || origin.includes('vercel.app')) {
+    if (
+      allowedOrigins.indexOf(origin) !== -1 ||
+      origin.includes('vercel.app') ||
+      /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)
+    ) {
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));

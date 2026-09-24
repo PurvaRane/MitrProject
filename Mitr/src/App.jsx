@@ -17,6 +17,9 @@ import SupportPage    from './pages/SupportPage';
 import BookAppointment from './pages/BookAppointment';
 import AdminDashboard from './pages/AdminDashboard';
 import UserDashboard  from './pages/UserDashboard';
+import FacultyDashboard from './pages/FacultyDashboard';
+import ProfilePage    from './pages/ProfilePage';
+import BottomNav      from './components/BottomNav';
 
 // ── Auth Context ──────────────────────────────────────────────────────────────
 export const AuthContext = React.createContext(null);
@@ -44,7 +47,7 @@ function LegacyPathRedirect() {
   return null;
 }
 
-function ProtectedRoute({ children, requireAdmin = false }) {
+function ProtectedRoute({ children, requireAdmin = false, requireFaculty = false, requireStudent = false }) {
   const ctx = React.useContext(AuthContext);
   
   // If no user is found in context, redirect to login
@@ -52,17 +55,15 @@ function ProtectedRoute({ children, requireAdmin = false }) {
   
   // Role-based access control
   if (requireAdmin && ctx.user.role !== 'admin') {
+    return <Navigate to={ctx.user.role === 'faculty' ? '/faculty-dashboard' : '/user-dashboard'} replace />;
+  }
+
+  if (requireFaculty && ctx.user.role !== 'faculty' && ctx.user.role !== 'admin') {
     return <Navigate to="/user-dashboard" replace />;
   }
-  
-  // Note: We allow admins to view student pages if needed, 
-  // but usually we redirect them to their own dashboard.
-  // The user requested NO redirect to dashboard on refresh.
-  // So we only redirect if they are trying to access a page they CLEARLY shouldn't.
-  if (!requireAdmin && ctx.user.role === 'admin' && !children.type.name?.includes('Dashboard')) {
-    // Admins can stay on student pages for viewing purposes, 
-    // or we can keep the redirect if it's strictly enforced.
-    // For now, let's keep it but ensure it doesn't trigger unexpectedly.
+
+  if (requireStudent && ctx.user.role === 'faculty') {
+    return <Navigate to="/faculty-dashboard" replace />;
   }
 
   return children;
@@ -97,6 +98,13 @@ function App() {
     });
   };
 
+  const getDashboardPath = () => {
+    if (!user) return '/login';
+    if (user.role === 'admin') return '/admin-dashboard';
+    if (user.role === 'faculty') return '/faculty-dashboard';
+    return '/user-dashboard';
+  };
+
   return (
     <AuthContext.Provider value={{ user, login, logout, updateUser }}>
       <AppProvider>
@@ -118,7 +126,7 @@ function App() {
                   path="/login"
                   element={
                     user
-                      ? <Navigate to={user.role === 'admin' ? '/admin-dashboard' : '/user-dashboard'} replace />
+                      ? <Navigate to={getDashboardPath()} replace />
                       : <LoginPage />
                   }
                 />
@@ -126,13 +134,23 @@ function App() {
                   path="/register"
                   element={
                     user
-                      ? <Navigate to="/user-dashboard" replace />
+                      ? <Navigate to={getDashboardPath()} replace />
+                      : <RegisterPage />
+                  }
+                />
+                <Route
+                  path="/register-faculty"
+                  element={
+                    user
+                      ? <Navigate to={getDashboardPath()} replace />
                       : <RegisterPage />
                   }
                 />
 
                 {/* User routes */}
-                <Route path="/user-dashboard" element={<ProtectedRoute><UserDashboard /></ProtectedRoute>} />
+                <Route path="/user-dashboard" element={<ProtectedRoute requireStudent><UserDashboard /></ProtectedRoute>} />
+                <Route path="/faculty-dashboard" element={<ProtectedRoute requireFaculty><FacultyDashboard /></ProtectedRoute>} />
+                <Route path="/profile"        element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
                 <Route path="/events"         element={<ProtectedRoute><EventsPage /></ProtectedRoute>} />
                 <Route path="/challenge"      element={<ProtectedRoute><ChallengePage /></ProtectedRoute>} />
                 <Route path="/reflect"        element={<ProtectedRoute><ReflectionPage /></ProtectedRoute>} />
@@ -145,6 +163,7 @@ function App() {
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
             </main>
+            <BottomNav />
             <Footer />
           </div>
         </Router>

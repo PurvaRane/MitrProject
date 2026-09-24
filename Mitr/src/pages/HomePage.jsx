@@ -33,17 +33,13 @@ export default function HomePage() {
         <div className="hero__blob hero__blob--2" />
         <div className="hero__blob hero__blob--3" />
 
-        {/* Add the supplied files at public/assets/coeplogo.png and
-            public/assets/mitrlogo.png. Text fallbacks keep the hero polished
-            until those approved assets are present. */}
-        <div className="hero__brand-logos" aria-label="COEP and COEP Mitr logos">
-          <div className="hero__brand-logo">
-            <img src="/assets/coeplogo.png" alt="COEP Tech logo" onError={e => { e.currentTarget.style.display = 'none'; e.currentTarget.parentElement.classList.add('hero__brand-logo--fallback'); }} />
-            <span aria-hidden="true">COEP</span>
+        {/* ── Brand Header Row: Left = COEP, Right = Mitr (No overlapping) ── */}
+        <div className="hero__brand-header container">
+          <div className="hero__brand-card hero__brand-card--coep" aria-label="COEP Tech logo">
+            <img src="/assets/coeplogo.png" alt="COEP Technological University" />
           </div>
-          <div className="hero__brand-logo">
-            <img src="/assets/mitrlogo.png" alt="COEP Mitr logo" onError={e => { e.currentTarget.style.display = 'none'; e.currentTarget.parentElement.classList.add('hero__brand-logo--fallback'); }} />
-            <span aria-hidden="true">मित्र</span>
+          <div className="hero__brand-card hero__brand-card--mitr" aria-label="COEP Mitr logo">
+            <img src="/assets/mitrlogo.png" alt="COEP मित्र" />
           </div>
         </div>
 
@@ -57,7 +53,7 @@ export default function HomePage() {
               <em>worth saving</em>
             </h1>
             <p className="hero__sub animate-fade-in-up delay-200">
-              A safe, confidential, and supportive space — exclusively for COEP Technological University students.
+              A safe, confidential, and supportive space — exclusively for COEP Technological University students and faculty.
             </p>
             <div className="hero__cta animate-fade-in-up delay-300">
               <Link to="/register" className="btn btn-primary">Join the Platform</Link>
@@ -151,10 +147,10 @@ export default function HomePage() {
           <div className="container">
             <div className="challenge-banner__inner glass">
               <div className="challenge-banner__content">
-                <span className="badge badge-mint">Well-being Challenges</span>
+                <span className="badge badge-mint">Wellbeing Challenges</span>
                 <h2 className="challenge-banner__title">Join a Challenge</h2>
                 <p className="challenge-banner__sub">
-                  Participate in well-being challenges to build long-term healthy habits.
+                  Participate in wellbeing challenges to build long-term healthy habits.
                   Login to track your personal progress.
                 </p>
                 <div className="challenge-banner__cta">

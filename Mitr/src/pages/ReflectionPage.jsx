@@ -13,12 +13,14 @@ const PROMPTS = [
 ];
 
 function formatDateFull(iso) {
-  return new Date(iso).toLocaleDateString('en-IN', {
-    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
+  if (!iso) return '';
+  return new Date(iso).toLocaleDateString('en-GB', {
+    day: 'numeric', month: 'short', year: 'numeric',
   });
 }
 
 function formatTime(iso) {
+  if (!iso) return '';
   return new Date(iso).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
 }
 
@@ -73,12 +75,17 @@ export default function ReflectionPage() {
   );
 
   const MOODS = [
-    { v: 'happy',   e: '😊', label: 'Happy'   },
-    { v: 'calm',    e: '😌', label: 'Calm'    },
-    { v: 'anxious', e: '😰', label: 'Anxious' },
-    { v: 'sad',     e: '😔', label: 'Sad'     },
-    { v: 'tired',   e: '😴', label: 'Tired'   },
-    { v: 'excited', e: '🤩', label: 'Excited' },
+    { v: 'happy',       e: '😊', label: 'Happy'       },
+    { v: 'calm',        e: '😌', label: 'Calm'        },
+    { v: 'excited',     e: '🤩', label: 'Excited'     },
+    { v: 'anxious',     e: '😰', label: 'Anxious'     },
+    { v: 'stressed',    e: '😣', label: 'Stressed'    },
+    { v: 'overwhelmed', e: '🌊', label: 'Overwhelmed' },
+    { v: 'frustrated',  e: '😤', label: 'Frustrated'  },
+    { v: 'angry',       e: '😠', label: 'Angry'       },
+    { v: 'sad',         e: '😔', label: 'Sad'         },
+    { v: 'lonely',      e: '🫂', label: 'Lonely'      },
+    { v: 'tired',       e: '😴', label: 'Tired'       },
   ];
 
   return (

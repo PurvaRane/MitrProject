@@ -61,11 +61,59 @@ export const register = async (req, res) => {
   });
 };
 
+// ── POST /api/auth/register-faculty — Faculty self-registration ──────────────
+export const registerFaculty = async (req, res) => {
+  const { name, email, password, department } = req.body;
+
+  console.log('[POST /api/auth/register-faculty] email:', email);
+
+  if (!name || !email || !password) {
+    return res.status(400).json({
+      success: false,
+      message: 'Name, email, and password are required for faculty registration.',
+    });
+  }
+
+  const normalizedEmail = email.trim().toLowerCase();
+  const existing = await User.findOne({ email: normalizedEmail });
+  if (existing) {
+    return res.status(409).json({
+      success: false,
+      message: 'A faculty member with this email is already registered.',
+    });
+  }
+
+  const user = await User.create({
+    name: name.trim(),
+    email: normalizedEmail,
+    department: department ? department.trim() : '',
+    password,
+    role: 'faculty',
+    hasSeenOnboarding: false,
+  });
+
+  const token = signToken({ id: user._id, role: 'faculty' });
+  console.log('[POST /api/auth/register-faculty] ✅ Registered faculty:', normalizedEmail);
+
+  res.status(201).json({
+    success: true,
+    token,
+    user: {
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      department: user.department,
+      role: user.role,
+      hasSeenOnboarding: user.hasSeenOnboarding,
+    },
+  });
+};
+
 // ── POST /api/auth/login ──────────────────────────────────────────────────────
 export const login = async (req, res) => {
-  const { username, misId, password } = req.body;
+  const { username, misId, email, password } = req.body;
 
-  console.log('[POST /api/auth/login] username:', username, '| misId:', misId);
+  console.log('[POST /api/auth/login] username:', username, '| misId:', misId, '| email:', email);
 
   // ── Admin path: static check ───────────────────────────────────────────────
   if (username !== undefined) {
@@ -81,6 +129,42 @@ export const login = async (req, res) => {
     return res.status(401).json({
       success: false,
       message: 'Invalid admin credentials.',
+    });
+  }
+
+  // ── Faculty path: DB lookup by email ───────────────────────────────────────
+  if (email !== undefined) {
+    if (!email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email and password are required.',
+      });
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+    const user = await User.findOne({ email: normalizedEmail }).select('+password');
+
+    if (!user || !(await user.comparePassword(password))) {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid email or password.',
+      });
+    }
+
+    const token = signToken({ id: user._id, role: user.role || 'faculty' });
+    console.log('[POST /api/auth/login] ✅ Faculty login:', normalizedEmail);
+
+    return res.status(200).json({
+      success: true,
+      token,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        department: user.department,
+        role: user.role,
+        hasSeenOnboarding: user.hasSeenOnboarding,
+      },
     });
   }
 
@@ -150,6 +234,8 @@ export const completeOnboarding = async (req, res) => {
       id: user._id,
       name: user.name,
       misId: user.misId,
+      email: user.email,
+      department: user.department,
       year: user.year,
       branch: user.branch,
       role: user.role,

@@ -73,6 +73,34 @@
   font-size: 0.9375rem;
 }
 
+/* Role tabs */
+.register-role-tabs {
+  display: flex;
+  background: var(--baby-blue);
+  border-radius: var(--radius-full);
+  padding: 4px;
+  margin-bottom: var(--space-xl);
+  gap: 4px;
+}
+
+.register-role-tab {
+  flex: 1;
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-full);
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  background: transparent;
+  transition: all var(--transition-mid);
+}
+
+.register-role-tab.active {
+  background: var(--white);
+  color: var(--blue-text);
+  box-shadow: var(--shadow-sm);
+  font-weight: 600;
+}
+
 .register-form { display: flex; flex-direction: column; }
 
 .register-form__row {

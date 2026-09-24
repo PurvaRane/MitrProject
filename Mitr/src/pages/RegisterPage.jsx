@@ -1,10 +1,10 @@
-import React, { useState, useContext } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import React, { useState, useContext, useEffect } from 'react';
+import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { AuthContext } from '../App';
 import { authAPI } from '../api';
 import './RegisterPage.css';
 
-const YEARS    = ['FY BTech', 'SY BTech', 'TY BTech', 'FinalY BTech', 'M.Tech 1st year', 'M.Tech 2nd year', 'PhD'];
+const YEARS = ['FY BTech', 'SY BTech', 'TY BTech', 'FinalY BTech', 'M.Tech 1st year', 'M.Tech 2nd year', 'PhD'];
 const BRANCHES = [
   'Computer Science and Engineering',
   'Electronics and Telecommunication Engineering',
@@ -18,29 +18,79 @@ const BRANCHES = [
   'AI/DS'
 ];
 
+const DEPARTMENTS = [
+  'Computer Science and Engineering',
+  'Electronics and Telecommunication Engineering',
+  'Mechanical Engineering',
+  'Civil Engineering',
+  'Electrical Engineering',
+  'Instrumentation and Control Engineering',
+  'Metallurgy and Materials Technology',
+  'Manufacturing Science and Engineering',
+  'AI / Data Science',
+  'Applied Sciences & Humanities',
+  'Department of Management',
+];
+
 export default function RegisterPage() {
-  const { login }  = useContext(AuthContext);
-  const navigate   = useNavigate();
+  const { login } = useContext(AuthContext);
+  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const [role, setRole] = useState(
+    searchParams.get('role') === 'faculty' ? 'faculty' : 'student'
+  );
 
   const [form, setForm] = useState({
-    name: '', misId: '', year: 'FY BTech', branch: '', password: '', confirmPassword: '',
+    name: '',
+    misId: '',
+    year: 'FY BTech',
+    branch: '',
+    email: '',
+    department: '',
+    password: '',
+    confirmPassword: '',
   });
-  const [error,    setError]    = useState('');
-  const [loading,  setLoading]  = useState(false);
+
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const [showPass, setShowPass] = useState(false);
+
+  useEffect(() => {
+    const urlRole = searchParams.get('role');
+    if (urlRole === 'faculty' && role !== 'faculty') {
+      setRole('faculty');
+    } else if (urlRole === 'student' && role !== 'student') {
+      setRole('student');
+    }
+  }, [searchParams]);
+
+  const switchRole = (newRole) => {
+    setRole(newRole);
+    setSearchParams(newRole === 'faculty' ? { role: 'faculty' } : {});
+    setError('');
+  };
 
   const handleChange = (e) => {
     setForm(f => ({ ...f, [e.target.name]: e.target.value }));
     setError('');
   };
 
-  const isFormValid = 
-    form.name.trim() && 
-    /^\d{9}$/.test(form.misId) && 
-    form.year && 
-    form.branch && 
-    form.password.length >= 4 && 
+  const isStudentValid =
+    form.name.trim() &&
+    /^\d{9}$/.test(form.misId.trim()) &&
+    form.year &&
+    form.branch &&
+    form.password.length >= 4 &&
     form.password === form.confirmPassword;
+
+  const isFacultyValid =
+    form.name.trim() &&
+    /^\S+@\S+\.\S+$/.test(form.email.trim()) &&
+    form.password.length >= 4 &&
+    form.password === form.confirmPassword;
+
+  const isFormValid = role === 'faculty' ? isFacultyValid : isStudentValid;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -49,15 +99,26 @@ export default function RegisterPage() {
 
     setLoading(true);
     try {
-      const data = await authAPI.register({
-        name:     form.name.trim(),
-        misId:    form.misId,
-        year:     form.year,
-        branch:   form.branch,
-        password: form.password,
-      });
-      login(data.user, data.token);
-      navigate('/user-dashboard');
+      if (role === 'faculty') {
+        const data = await authAPI.registerFaculty({
+          name: form.name.trim(),
+          email: form.email.trim(),
+          password: form.password,
+          department: form.department.trim(),
+        });
+        login(data.user, data.token);
+        navigate('/faculty-dashboard');
+      } else {
+        const data = await authAPI.register({
+          name: form.name.trim(),
+          misId: form.misId.trim(),
+          year: form.year,
+          branch: form.branch,
+          password: form.password,
+        });
+        login(data.user, data.token);
+        navigate('/user-dashboard');
+      }
     } catch (err) {
       if (err instanceof TypeError) {
         setError('Cannot reach server. Please make sure the backend is running.');
@@ -80,7 +141,31 @@ export default function RegisterPage() {
         <div className="register-card__header">
           <Link to="/" className="register-card__logo">COEP मित्र</Link>
           <h1 className="register-card__title">Create your account</h1>
-          <p className="register-card__subtitle">Join the Wellness community at COEP Technological University.</p>
+          <p className="register-card__subtitle">
+            {role === 'faculty'
+              ? 'Join as a faculty member to support your wellbeing at COEP Technological University.'
+              : 'Join the Wellness community at COEP Technological University.'}
+          </p>
+        </div>
+
+        {/* Role switcher */}
+        <div className="register-role-tabs">
+          <button
+            type="button"
+            id="reg-tab-student"
+            className={`register-role-tab ${role === 'student' ? 'active' : ''}`}
+            onClick={() => switchRole('student')}
+          >
+            Student
+          </button>
+          <button
+            type="button"
+            id="reg-tab-faculty"
+            className={`register-role-tab ${role === 'faculty' ? 'active' : ''}`}
+            onClick={() => switchRole('faculty')}
+          >
+            Faculty
+          </button>
         </div>
 
         <form className="register-form" onSubmit={handleSubmit} noValidate>
@@ -92,7 +177,7 @@ export default function RegisterPage() {
               className="form-input"
               type="text"
               name="name"
-              placeholder="e.g. ABC"
+              placeholder={role === 'faculty' ? 'e.g. Dr. Jane Doe' : 'e.g. ABC'}
               value={form.name}
               onChange={handleChange}
               autoComplete="name"
@@ -100,52 +185,92 @@ export default function RegisterPage() {
             />
           </div>
 
-          <div className="form-group">
-            <label className="form-label" htmlFor="reg-mis">MIS Number (9 digits)</label>
-            <input
-              id="reg-mis"
-              className="form-input"
-              type="text"
-              name="misId"
-              placeholder="e.g. 212212345"
-              value={form.misId}
-              onChange={handleChange}
-              maxLength={9}
-              inputMode="numeric"
-              autoComplete="username"
-              required
-            />
-          </div>
+          {role === 'faculty' ? (
+            <>
+              <div className="form-group">
+                <label className="form-label" htmlFor="reg-email">Faculty Email Address</label>
+                <input
+                  id="reg-email"
+                  className="form-input"
+                  type="email"
+                  name="email"
+                  placeholder="e.g. name@coeptech.ac.in"
+                  value={form.email}
+                  onChange={handleChange}
+                  autoComplete="email"
+                  required
+                />
+              </div>
 
-          <div className="register-form__row">
-            <div className="form-group">
-              <label className="form-label" htmlFor="reg-year">Year</label>
-              <select
-                id="reg-year"
-                className="form-input"
-                name="year"
-                value={form.year}
-                onChange={handleChange}
-              >
-                {YEARS.map(y => <option key={y} value={y}>{y}</option>)}
-              </select>
-            </div>
+              <div className="form-group">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-xs)' }}>
+                  <label className="form-label" htmlFor="reg-dept" style={{ marginBottom: 0 }}>Department</label>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>(Optional)</span>
+                </div>
+                <select
+                  id="reg-dept"
+                  className="form-input"
+                  name="department"
+                  value={form.department}
+                  onChange={handleChange}
+                >
+                  <option value="">Select department</option>
+                  {DEPARTMENTS.map(d => (
+                    <option key={d} value={d}>{d}</option>
+                  ))}
+                </select>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="form-group">
+                <label className="form-label" htmlFor="reg-mis">MIS Number (9 digits)</label>
+                <input
+                  id="reg-mis"
+                  className="form-input"
+                  type="text"
+                  name="misId"
+                  placeholder="e.g. 212212345"
+                  value={form.misId}
+                  onChange={handleChange}
+                  maxLength={9}
+                  inputMode="numeric"
+                  autoComplete="username"
+                  required
+                />
+              </div>
 
-            <div className="form-group">
-              <label className="form-label" htmlFor="reg-branch">Branch</label>
-              <select
-                id="reg-branch"
-                className="form-input"
-                name="branch"
-                value={form.branch}
-                onChange={handleChange}
-                required
-              >
-                <option value="">Select branch</option>
-                {BRANCHES.map(b => <option key={b} value={b}>{b}</option>)}
-              </select>
-            </div>
-          </div>
+              <div className="register-form__row">
+                <div className="form-group">
+                  <label className="form-label" htmlFor="reg-year">Year</label>
+                  <select
+                    id="reg-year"
+                    className="form-input"
+                    name="year"
+                    value={form.year}
+                    onChange={handleChange}
+                  >
+                    {YEARS.map(y => <option key={y} value={y}>{y}</option>)}
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label" htmlFor="reg-branch">Branch</label>
+                  <select
+                    id="reg-branch"
+                    className="form-input"
+                    name="branch"
+                    value={form.branch}
+                    onChange={handleChange}
+                    required
+                  >
+                    <option value="">Select branch</option>
+                    {BRANCHES.map(b => <option key={b} value={b}>{b}</option>)}
+                  </select>
+                </div>
+              </div>
+            </>
+          )}
 
           <div className="form-group">
             <label className="form-label" htmlFor="reg-password">Password</label>
@@ -204,7 +329,13 @@ export default function RegisterPage() {
             className="btn btn-primary register-form__submit"
             disabled={loading || !isFormValid}
           >
-            {loading ? <><span className="register-spinner" /> Creating account…</> : 'Create Account'}
+            {loading ? (
+              <><span className="register-spinner" /> Creating account…</>
+            ) : role === 'faculty' ? (
+              'Register as Faculty'
+            ) : (
+              'Create Account'
+            )}
           </button>
 
           <p className="register-help">
@@ -214,7 +345,9 @@ export default function RegisterPage() {
         </form>
 
         <div className="register-card__footer">
-          Your data is kept private and secure. MIS ID is your unique identifier.
+          {role === 'faculty'
+            ? 'Your data is kept private and secure. COEP Email is your faculty identifier.'
+            : 'Your data is kept private and secure. MIS ID is your unique identifier.'}
         </div>
       </div>
 
@@ -223,10 +356,10 @@ export default function RegisterPage() {
           <h2 className="register-side__title">Join the community</h2>
           <ul className="register-side__list">
             {[
-              'Access well-being challenges',
-              'Track your personal wellbeing journey',
-              'Register for wellness events',
-              'Write private daily reflections',
+              'Access Wellbeing challenges',
+              'Build healthy habits with structured challenges',
+              'Register for campus wellness events',
+              'Write private reflections in your journal',
             ].map((item, i) => (
               <li key={i} className="register-side__item">
                 <span className="register-side__dot" />

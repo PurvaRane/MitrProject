@@ -30,9 +30,9 @@ const DEFAULT_WELLNESS_INFO = {
   vision: 'To create a campus where every student has access to meaningful mental health support — and where wellbeing is treated as integral to academic excellence, not separate from it.',
   services: [
     { title: 'Individual Counselling', description: 'Confidential one-on-one sessions with trained counsellors, available by appointment.' },
-    { title: 'Well-being Challenges', description: 'Participate in various well-being challenges to build long-term healthy habits.' },
+    { title: 'Wellbeing Challenges', description: 'Participate in various wellbeing challenges to build long-term healthy habits.' },
     { title: 'Wellness Events', description: 'Workshops, awareness sessions, and peer-led activities organised throughout the academic year.' },
-    { title: 'Reflection Journal', description: 'A private digital journaling space for students to document thoughts, emotions, and growth.' },
+    { title: 'Reflection Journal', description: 'A private digital journaling space for students and faculty to document thoughts, emotions, and growth.' },
   ],
 };
 
@@ -101,11 +101,11 @@ const seed = async () => {
   if (!existingContent) {
     const intro = {
       introTitle: 'COEP "मित्र" Mental Health & Wellbeing',
-      introSubtitle: 'A safe, confidential space for COEP Tech students',
+      introSubtitle: 'A safe, confidential space for COEP Tech students and faculty',
       introDescription: DEFAULT_WELLNESS_INFO.description,
       welcomeMessage: 'Reaching out is an act of courage. COEP "मित्र" is here to support you.',
       supportDescription: 'Need someone to talk to? Book a confidential appointment with Dr. Kshipra V. Moghe, or connect with the I-Care We-Care Team.',
-      challengesIntro: 'Join guided well-being journeys and build healthy habits at your own pace.',
+      challengesIntro: 'Join guided wellbeing challenges and build healthy habits at your own pace.',
       featuredChallengeMessage: '',
       eventsIntro: 'Workshops, awareness sessions, and activities organised throughout the academic year.',
       aboutText: DEFAULT_WELLNESS_INFO.vision,
