@@ -18,6 +18,8 @@ import appointmentRoutes  from './routes/appointmentRoutes.js';
 import teamRoutes         from './routes/teamRoutes.js';
 import pastEventRoutes    from './routes/pastEventRoutes.js';
 import platformContentRoutes from './routes/platformContentRoutes.js';
+import moodRoutes         from './routes/moodRoutes.js';
+import feedbackRoutes     from './routes/feedbackRoutes.js';
 
 dotenv.config();
 connectDB();
@@ -85,6 +87,8 @@ app.use('/api/appointments',  appointmentRoutes);
 app.use('/api/team',          teamRoutes);
 app.use('/api/past-events',   pastEventRoutes);
 app.use('/api/platform-content', platformContentRoutes);
+app.use('/api/mood',          moodRoutes);
+app.use('/api/feedback',      feedbackRoutes);
 
 // ── 404 ───────────────────────────────────────────────────────────────────────
 app.use((req, res) => {
