@@ -38,11 +38,19 @@ const userSchema = new mongoose.Schema(
       lowercase: true,
       required: [
         function () {
-          return this.role === 'faculty';
+          return this.role === 'faculty' || this.role === 'master_admin';
         },
-        'Email is required for faculty',
+        'Email is required for faculty and master admin',
       ],
       match: [/^\S+@\S+\.\S+$/, 'Please enter a valid email address'],
+      index: true,
+    },
+    username: {
+      type: String,
+      sparse: true,
+      unique: true,
+      trim: true,
+      lowercase: true,
       index: true,
     },
     department: {
@@ -90,7 +98,7 @@ const userSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ['student', 'faculty', 'admin'],
+      enum: ['student', 'faculty', 'admin', 'master_admin', 'sub_admin'],
       default: 'student',
     },
     hasSeenOnboarding: {
@@ -117,6 +125,20 @@ userSchema.methods.toJSON = function () {
   const obj = this.toObject();
   delete obj.password;
   return obj;
+};
+
+/**
+ * Helper: check if the user has any admin-level role.
+ */
+userSchema.methods.isAdmin = function () {
+  return ['admin', 'master_admin', 'sub_admin'].includes(this.role);
+};
+
+/**
+ * Helper: check if the user is specifically a master admin.
+ */
+userSchema.methods.isMasterAdmin = function () {
+  return this.role === 'master_admin';
 };
 
 const User = mongoose.model('User', userSchema);

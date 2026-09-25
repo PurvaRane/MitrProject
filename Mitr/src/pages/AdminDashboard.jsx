@@ -4,7 +4,7 @@ import { useApp } from '../context/AppContext';
 import { adminAPI, submissionsAPI, appointmentAPI, journalAPI, pastEventsAPI, teamAPI, platformContentAPI, challengeAPI } from '../api';
 import './AdminDashboard.css';
 import './BookAppointment.css';
-const TABS = ['Overview', 'Events', 'Past Events', 'Team', 'Platform Content', 'Appointments', 'Reports', 'Challenges', 'Wellness Centre', 'Submissions', 'Analytics'];
+const TABS = ['Overview', 'Events', 'Past Events', 'Team', 'Platform Content', 'Appointments', 'Reports', 'Challenges', 'Wellness Centre', 'Submissions', 'Analytics', 'Users'];
 const CATEGORIES = ['Workshop', 'Awareness', 'Challenge', 'Seminar', 'Other'];
 
 function formatDate(d) {
@@ -1560,6 +1560,60 @@ function PlatformContentTab() {
 
 // ── Main AdminDashboard ───────────────────────────────────────────────────────
 
+function UsersTab() {
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    adminAPI.getUsers()
+      .then(d => {
+        if (d.success) setUsers(d.users || []);
+      })
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, []);
+
+  return (
+    <div>
+      <div className="admin-submissions-header">
+        <h2 className="admin-section-title">Registered Users ({users.length})</h2>
+      </div>
+      {loading ? <div className="admin-loading">Loading users...</div> : users.length === 0 ? (
+        <div className="card admin-empty"><p>No users registered yet.</p></div>
+      ) : (
+        <div className="admin-subs-table-wrap card">
+          <table className="admin-subs-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Email / MIS ID</th>
+                <th>Role</th>
+                <th>Department / Branch</th>
+                <th>Year</th>
+                <th>Joined</th>
+              </tr>
+            </thead>
+            <tbody>
+              {users.map(u => (
+                <tr key={u._id}>
+                  <td><strong>{u.name}</strong></td>
+                  <td>{u.role === 'faculty' ? u.email : u.misId}</td>
+                  <td><span className={`badge ${u.role === 'faculty' ? 'badge-peach' : 'badge-lavender'}`}>{u.role}</span></td>
+                  <td>{u.role === 'faculty' ? (u.department || '—') : (u.branch || '—')}</td>
+                  <td>{u.role === 'faculty' ? '—' : (u.year || '—')}</td>
+                  <td>{formatDate(u.createdAt)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Component End ─────────────────────────────────────────────────────────────
+
 import { useSearchParams } from 'react-router-dom';
 
 export default function AdminDashboard() {
@@ -1598,6 +1652,7 @@ export default function AdminDashboard() {
         {tab === 'Wellness Centre'  && <WellnessTab />}
         {tab === 'Submissions'      && <SubmissionsTab />}
         {tab === 'Analytics'        && <AnalyticsTab />}
+        {tab === 'Users'            && <UsersTab />}
       </div>
     </div>
   );

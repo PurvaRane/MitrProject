@@ -207,3 +207,15 @@ export const getChallengeStats = async (req, res) => {
 
   res.status(200).json({ success: true, rows, totalUsers });
 };
+
+// ── GET /api/admin/users — List registered users ──────────────────────────────
+export const getUsers = async (req, res) => {
+  try {
+    const users = await User.find({ role: { $in: ['student', 'faculty'] } })
+      .select('name email misId role department branch year createdAt')
+      .sort({ createdAt: -1 });
+    res.status(200).json({ success: true, users });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Failed to fetch users', error: error.message });
+  }
+};

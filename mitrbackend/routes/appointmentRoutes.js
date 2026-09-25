@@ -16,7 +16,7 @@ import {
   updateAppointmentStatus,
   adminCancelAppointment,
 } from '../controllers/appointmentController.js';
-import { protect, adminOnly } from '../middleware/auth.js';
+import { protect, adminOnly, masterAdminOnly } from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -28,15 +28,15 @@ router.post('/book', protect, bookAppointment);
 router.get('/my', protect, getMyAppointments);
 router.patch('/cancel/:id', protect, cancelMyAppointment);
 
-// ── Admin Routes ──────────────────────────────────────────────────────────────
-router.patch('/admin/counselor', protect, adminOnly, updateCounselor);
-router.get('/admin/stats', protect, adminOnly, getAdminAppointmentStats);
-router.get('/admin/today', protect, adminOnly, getAdminTodaySchedule);
-router.get('/admin/all', protect, adminOnly, getAdminAllAppointments);
-router.post('/admin/availability', protect, adminOnly, setAvailability);
-router.delete('/admin/availability', protect, adminOnly, removeSlot);
-router.patch('/admin/toggle-day', protect, adminOnly, toggleDay);
-router.patch('/admin/:id/status', protect, adminOnly, updateAppointmentStatus);
-router.patch('/admin/:id/cancel', protect, adminOnly, adminCancelAppointment);
+// ── Admin Routes — master_admin only ──────────────────────────────────────────
+router.patch('/admin/counselor', protect, masterAdminOnly, updateCounselor);
+router.get('/admin/stats', protect, masterAdminOnly, getAdminAppointmentStats);
+router.get('/admin/today', protect, masterAdminOnly, getAdminTodaySchedule);
+router.get('/admin/all', protect, masterAdminOnly, getAdminAllAppointments);
+router.post('/admin/availability', protect, masterAdminOnly, setAvailability);
+router.delete('/admin/availability', protect, masterAdminOnly, removeSlot);
+router.patch('/admin/toggle-day', protect, masterAdminOnly, toggleDay);
+router.patch('/admin/:id/status', protect, masterAdminOnly, updateAppointmentStatus);
+router.patch('/admin/:id/cancel', protect, masterAdminOnly, adminCancelAppointment);
 
 export default router;

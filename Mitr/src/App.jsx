@@ -50,16 +50,18 @@ function LegacyPathRedirect() {
 
 function ProtectedRoute({ children, requireAdmin = false, requireFaculty = false, requireStudent = false }) {
   const ctx = React.useContext(AuthContext);
+  const ADMIN_ROLES = ['admin', 'master_admin', 'sub_admin'];
+  const isAdmin = ADMIN_ROLES.includes(ctx.user?.role);
   
   // If no user is found in context, redirect to login
   if (!ctx.user) return <Navigate to="/login" replace />;
   
   // Role-based access control
-  if (requireAdmin && ctx.user.role !== 'admin') {
+  if (requireAdmin && !isAdmin) {
     return <Navigate to={ctx.user.role === 'faculty' ? '/faculty-dashboard' : '/user-dashboard'} replace />;
   }
 
-  if (requireFaculty && ctx.user.role !== 'faculty' && ctx.user.role !== 'admin') {
+  if (requireFaculty && ctx.user.role !== 'faculty' && !isAdmin) {
     return <Navigate to="/user-dashboard" replace />;
   }
 

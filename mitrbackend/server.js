@@ -107,5 +107,5 @@ app.listen(PORT, () => {
   console.log(`   CORS allow: ${allowedOrigins.join(', ')}`);
   console.log(`   Mongo URI:  ${process.env.MONGO_URI ? '✅ Set' : '❌ MISSING'}`);
   console.log(`   JWT Secret: ${process.env.JWT_SECRET ? '✅ Set' : '❌ MISSING'}`);
-  console.log(`   Admin:      username=admin  password=mitr2026\n`);
+  console.log(`   Admin:      Run "npm run seed:admins" to create admin accounts\n`);
 });

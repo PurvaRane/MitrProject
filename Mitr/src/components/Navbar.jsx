@@ -25,17 +25,31 @@ const facultyLinks = [
   { to: '/support',           label: 'Support'    },
 ];
 
-const adminLinks = [
-  { to: '/admin-dashboard?tab=Overview',        label: 'Overview'    },
-  { to: '/admin-dashboard?tab=Events',          label: 'Events'      },
-  { to: '/admin-dashboard?tab=Past Events',     label: 'Past Events' },
-  { to: '/admin-dashboard?tab=Appointments',    label: 'Appointments'},
-  { to: '/admin-dashboard?tab=Reports',         label: 'Reports'     },
-  { to: '/admin-dashboard?tab=Challenges',      label: 'Challenges'  },
-  { to: '/admin-dashboard?tab=Wellness Centre', label: 'Wellness'    },
-  { to: '/admin-dashboard?tab=Submissions',     label: 'Submissions' },
-  { to: '/admin-dashboard?tab=Analytics',       label: 'Analytics'   },
-];
+// ── Admin navigation (dynamic based on role) ──────────────────────────────────
+const ADMIN_ROLES = ['admin', 'master_admin', 'sub_admin'];
+
+function getAdminLinks(role) {
+  const links = [
+    { to: '/admin-dashboard?tab=Overview',        label: 'Overview'    },
+    { to: '/admin-dashboard?tab=Events',          label: 'Events'      },
+    { to: '/admin-dashboard?tab=Past Events',     label: 'Past Events' },
+  ];
+
+  // Only master_admin gets Appointments
+  if (role === 'master_admin') {
+    links.push({ to: '/admin-dashboard?tab=Appointments', label: 'Appointments' });
+  }
+
+  links.push(
+    { to: '/admin-dashboard?tab=Reports',         label: 'Reports'     },
+    { to: '/admin-dashboard?tab=Challenges',      label: 'Challenges'  },
+    { to: '/admin-dashboard?tab=Wellness Centre', label: 'Wellness'    },
+    { to: '/admin-dashboard?tab=Submissions',     label: 'Submissions' },
+    { to: '/admin-dashboard?tab=Analytics',       label: 'Analytics'   },
+  );
+
+  return links;
+}
 
 export default function Navbar() {
   const { user, logout } = useContext(AuthContext);
@@ -52,8 +66,10 @@ export default function Navbar() {
 
   useEffect(() => { setMenuOpen(false); }, [location.pathname]);
 
-  const links = user?.role === 'admin'
-    ? adminLinks
+  const isAdmin = ADMIN_ROLES.includes(user?.role);
+
+  const links = isAdmin
+    ? getAdminLinks(user.role)
     : user?.role === 'faculty'
     ? facultyLinks
     : user
@@ -64,7 +80,11 @@ export default function Navbar() {
 
   const getGreeting = () => {
     if (!user) return '';
-    if (user.role === 'admin') return 'Admin';
+    if (isAdmin) {
+      if (user.role === 'master_admin') return 'Master Admin';
+      if (user.role === 'sub_admin') return 'Sub Admin';
+      return 'Admin';
+    }
     if (user.role === 'faculty') {
       return user.name?.match(/^(Dr\.|Prof\.)/i) ? user.name : `Prof. ${user.name || 'Faculty'}`;
     }
@@ -77,7 +97,7 @@ export default function Navbar() {
 
         <Link
           to={
-            user?.role === 'admin'
+            isAdmin
               ? '/admin-dashboard'
               : user?.role === 'faculty'
               ? '/faculty-dashboard'
@@ -102,7 +122,7 @@ export default function Navbar() {
             </span>
 
             <span className="navbar__logo-sub">
-              {user?.role === 'admin'
+              {isAdmin
                 ? 'Admin Panel'
                 : user?.role === 'faculty'
                 ? 'Faculty Portal'
@@ -134,14 +154,14 @@ export default function Navbar() {
             {user ? (
               <div className="navbar__user">
                 <Link
-                  to={user.role === 'admin' ? '/profile' : '/personal-growth'}
+                  to={isAdmin ? '/profile' : '/personal-growth'}
                   className="navbar__user-profile-link"
-                  title={user.role === 'admin' ? 'Admin Profile' : 'Personal Growth Dashboard'}
+                  title={isAdmin ? 'Admin Profile' : 'Personal Growth Dashboard'}
                 >
                   <span className="navbar__user-greeting">
                     {getGreeting()}
                   </span>
-                  {user.role !== 'admin' && (
+                  {!isAdmin && (
                     <span className="navbar__growth-badge">Growth</span>
                   )}
                 </Link>

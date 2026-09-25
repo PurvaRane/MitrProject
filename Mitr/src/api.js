@@ -173,6 +173,7 @@ export const feedbackAPI = {
 export const adminAPI = {
   getStats: () => request('/admin/stats'),
   getChallengeStats: () => request('/admin/challenge-stats'),
+  getUsers: () => request('/admin/users'),
 };
 
 // ── Appointments ──────────────────────────────────────────────────────────────

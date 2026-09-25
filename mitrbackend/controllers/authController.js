@@ -1,10 +1,8 @@
 import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
 
-// ── Static admin credentials (no DB storage) ─────────────────────────────────
-const ADMIN_USERNAME = 'admin';
-const ADMIN_PASSWORD = 'mitr2026';
-const ADMIN_JWT_PAYLOAD = { id: 'admin', role: 'admin', name: 'COEP मित्र Admin' };
+// ── Admin-level roles ─────────────────────────────────────────────────────────
+const ADMIN_ROLES = ['admin', 'master_admin', 'sub_admin'];
 
 // ── Helper: sign JWT ──────────────────────────────────────────────────────────
 const signToken = (payload) =>
@@ -115,20 +113,52 @@ export const login = async (req, res) => {
 
   console.log('[POST /api/auth/login] username:', username, '| misId:', misId, '| email:', email);
 
-  // ── Admin path: static check ───────────────────────────────────────────────
+  // ── Admin path: DB-backed check by username OR email ───────────────────────
   if (username !== undefined) {
-    if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
-      const token = signToken(ADMIN_JWT_PAYLOAD);
-      console.log('[POST /api/auth/login] ✅ Admin login');
-      return res.status(200).json({
-        success: true,
-        token,
-        user: { id: 'admin', name: 'COEP मित्र Admin', role: 'admin', hasSeenOnboarding: true },
+    if (!username || !password) {
+      return res.status(400).json({
+        success: false,
+        message: 'Username and password are required.',
       });
     }
-    return res.status(401).json({
-      success: false,
-      message: 'Invalid admin credentials.',
+
+    const trimmedUsername = username.trim().toLowerCase();
+
+    // Look up by username field first, then fallback to email for master admins
+    let user = await User.findOne({ username: trimmedUsername }).select('+password');
+    if (!user) {
+      // Also try email match (master admins have email, not necessarily username)
+      user = await User.findOne({ email: trimmedUsername }).select('+password');
+    }
+
+    if (!user || !ADMIN_ROLES.includes(user.role)) {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid admin credentials.',
+      });
+    }
+
+    if (!(await user.comparePassword(password))) {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid admin credentials.',
+      });
+    }
+
+    const token = signToken({ id: user._id, role: user.role });
+    console.log(`[POST /api/auth/login] ✅ Admin login (${user.role}): ${user.email || user.username}`);
+
+    return res.status(200).json({
+      success: true,
+      token,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        username: user.username,
+        role: user.role,
+        hasSeenOnboarding: true,
+      },
     });
   }
 
@@ -205,13 +235,23 @@ export const login = async (req, res) => {
 
 // ── GET /api/auth/me — Return current user info ───────────────────────────────
 export const getMe = async (req, res) => {
-  // Admin token has no DB record
-  if (req.user?.role === 'admin') {
+  const u = req.user;
+  const isAdmin = ADMIN_ROLES.includes(u?.role);
+
+  if (isAdmin) {
     return res.status(200).json({
       success: true,
-      user: { id: 'admin', name: 'COEP मित्र Admin', role: 'admin', hasSeenOnboarding: true },
+      user: {
+        id: u._id,
+        name: u.name,
+        email: u.email,
+        username: u.username,
+        role: u.role,
+        hasSeenOnboarding: true,
+      },
     });
   }
+
   res.status(200).json({
     success: true,
     user: req.user,
@@ -220,7 +260,8 @@ export const getMe = async (req, res) => {
 
 // ── PATCH /api/auth/onboarding — Mark onboarding as seen ──────────────────────
 export const completeOnboarding = async (req, res) => {
-  if (req.user?.role === 'admin') return res.status(200).json({ success: true });
+  const isAdmin = ADMIN_ROLES.includes(req.user?.role);
+  if (isAdmin) return res.status(200).json({ success: true });
 
   const user = await User.findByIdAndUpdate(
     req.user._id,

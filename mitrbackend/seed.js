@@ -5,8 +5,7 @@
  *   - 30 challenge tasks (Day 1 set active)
  *   - Initial wellness info (if none exists)
  *
- * Admin login is STATIC — no DB record:
- *   username: admin  |  password: mitr2026
+ * Admin accounts are seeded separately via: npm run seed:admins
  *
  * Usage:  node seed.js
  */
@@ -127,9 +126,7 @@ const seed = async () => {
     console.log('⚠️  Platform content already exists — skipping.');
   }
 
-  console.log('\n📌 Admin login (static — no DB record):');
-  console.log('   username: admin');
-  console.log('   password: mitr2026\n');
+  console.log('\n📌 Admin accounts: run `npm run seed:admins` to create/update them.\n');
 
   console.log('🎉 Seed complete!\n');
   await mongoose.connection.close();
