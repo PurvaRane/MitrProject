@@ -177,23 +177,49 @@ export default function UserDashboard() {
       {/* Header */}
       <div className="user-dash__header">
         <div className="container user-dash__header-inner">
-          <div>
-            <span className="section-tag">Student Dashboard</span>
-            <h1 className="user-dash__title">Hello, {user?.name?.split(' ')[0] || 'Student'}</h1>
-            <div className="divider" style={{ marginBottom: '0.75rem' }} />
-            <p className="user-dash__sub">
-              {user?.year && user?.branch ? `${user.year} · ${user.branch}` : 'COEP मित्र Wellness Platform'}
+          <div className="ud-greeting">
+            <h1 className="ud-greeting__title">Hello {user?.name?.split(' ')[0] || 'Student'} 👋</h1>
+            <p className="ud-greeting__sub">
+              {user?.year && user?.branch ? `${user.year} · ${user.branch}` : 'Student Dashboard'}
             </p>
-          </div>
-          <div className="user-dash__actions">
-            <Link to="/personal-growth" className="btn btn-sm cta-personal-growth" style={{ marginRight: '0.75rem' }}>Personal Growth</Link>
-            <Link to="/challenge" className="btn btn-mint btn-sm cta-discover-challenges" style={{ marginRight: '0.75rem' }}>Discover Challenges</Link>
-            <Link to="/book-appointment" className="btn btn-primary btn-sm cta-book-session">Book Session</Link>
+            <p className="ud-greeting__quote">A healthier you, a brighter tomorrow.</p>
           </div>
         </div>
       </div>
 
       <div className="container user-dash__body">
+        
+        {/* ── Main CTA Cards ── */}
+        <div className="ud-main-ctas">
+          <Link to="/challenge" className="ud-cta-card ud-cta-challenge">
+            <div className="ud-cta-icon">🎯</div>
+            <h3>Discover Challenges</h3>
+          </Link>
+          <Link to="/book-appointment" className="ud-cta-card ud-cta-session">
+            <div className="ud-cta-icon">📅</div>
+            <h3>Book Session</h3>
+          </Link>
+        </div>
+
+        {/* ── Quick Actions ── */}
+        <div className="ud-quick-actions">
+          <Link to="/events" className="ud-qa-item">
+            <div className="ud-qa-icon">🌟</div>
+            <span>Events</span>
+          </Link>
+          <Link to="/support" className="ud-qa-item">
+            <div className="ud-qa-icon">❤️</div>
+            <span>Support</span>
+          </Link>
+          <Link to="/personal-growth" className="ud-qa-item">
+            <div className="ud-qa-icon">📈</div>
+            <span>Growth</span>
+          </Link>
+          <Link to="/reflect" className="ud-qa-item">
+            <div className="ud-qa-icon">📓</div>
+            <span>Journal</span>
+          </Link>
+        </div>
 
         {/* ── Wellness Info ── */}
         {!wellnessLoading && wellnessInfo && (
@@ -247,7 +273,10 @@ export default function UserDashboard() {
         <section className="user-dash__section">
           <div className="user-dash__section-header">
             <span className="section-tag">My Appointments</span>
-            <Link to="/book-appointment" className="btn btn-mint btn-sm">Book New</Link>
+            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+              <Link to="/my-appointments" className="btn btn-secondary btn-sm">View All</Link>
+              <Link to="/book-appointment" className="btn btn-mint btn-sm">Book New</Link>
+            </div>
           </div>
           {appointmentsLoading ? (
             <div className="ud-loading">Loading appointments…</div>
@@ -261,15 +290,27 @@ export default function UserDashboard() {
                 <div className="ud-appointments-group">
                   <h3 className="ud-appointments-group-title">Upcoming</h3>
                   {appointments.upcoming.map(a => (
-                    <div key={a._id} className="ud-appt-card upcoming card">
+                    <div key={a._id} className={`ud-appt-card upcoming card ${a.status === 'rejected' ? 'ud-appt-card--rejected' : ''}`}>
                       <div className="ud-appt-card__left">
-                        <span className="badge badge-mint">{a.status}</span>
+                        <span className={`badge badge-${a.status === 'confirmed' ? 'mint' : 'peach'}`}>
+                          {a.status.charAt(0).toUpperCase() + a.status.slice(1)}
+                        </span>
                         <h4 className="ud-appt-card__date">{formatDate(a.date)} at {a.startTime}</h4>
                         <p className="ud-appt-card__counselor">Counselor Session</p>
                         {a.appointmentId && (
                           <p className="ud-appt-card__id">ID: <strong>{a.appointmentId}</strong></p>
                         )}
                       </div>
+                      {a.status === 'rejected' && (
+                        <div className="ud-appt-card__actions">
+                          <p style={{ color: 'var(--peach-deep)', fontSize: '0.875rem', marginBottom: '0.5rem' }}>
+                            This appointment was not approved. You can reschedule for another date/time.
+                          </p>
+                          <Link to={`/book-appointment?reschedule=${a._id}`} className="btn btn-primary btn-sm">
+                            Reschedule
+                          </Link>
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -280,7 +321,7 @@ export default function UserDashboard() {
                   {appointments.past.slice(0, 3).map(a => (
                     <div key={a._id} className="ud-appt-card past">
                       <div className="ud-appt-card__left">
-                        <span className={`badge badge-${a.status === 'completed' ? 'blue' : 'peach'}`}>{a.status}</span>
+                        <span className={`badge badge-${a.status === 'completed' ? 'blue' : a.status === 'rescheduled' ? 'lavender' : 'peach'}`}>{a.status}</span>
                         <span className="ud-appt-card__date">{formatDate(a.date)}</span>
                       </div>
                     </div>

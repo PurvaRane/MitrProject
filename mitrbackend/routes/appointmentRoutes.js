@@ -15,6 +15,9 @@ import {
   toggleDay,
   updateAppointmentStatus,
   adminCancelAppointment,
+  rescheduleAppointment,
+  adminRejectAppointment,
+  adminRescheduleAppointment,
 } from '../controllers/appointmentController.js';
 import { protect, adminOnly, masterAdminOnly } from '../middleware/auth.js';
 
@@ -27,6 +30,7 @@ router.get('/availability/date', protect, getDateSlots);
 router.post('/book', protect, bookAppointment);
 router.get('/my', protect, getMyAppointments);
 router.patch('/cancel/:id', protect, cancelMyAppointment);
+router.post('/reschedule/:id', protect, rescheduleAppointment);
 
 // ── Admin Routes — master_admin only ──────────────────────────────────────────
 router.patch('/admin/counselor', protect, masterAdminOnly, updateCounselor);
@@ -38,5 +42,7 @@ router.delete('/admin/availability', protect, masterAdminOnly, removeSlot);
 router.patch('/admin/toggle-day', protect, masterAdminOnly, toggleDay);
 router.patch('/admin/:id/status', protect, masterAdminOnly, updateAppointmentStatus);
 router.patch('/admin/:id/cancel', protect, masterAdminOnly, adminCancelAppointment);
+router.patch('/admin/:id/reject', protect, masterAdminOnly, adminRejectAppointment);
+router.post('/admin/:id/reschedule', protect, masterAdminOnly, adminRescheduleAppointment);
 
 export default router;

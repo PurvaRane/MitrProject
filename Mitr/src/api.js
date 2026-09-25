@@ -1,5 +1,5 @@
 /**
- * COEP मित्र — Centralised API Client
+ * COEP मित्र - Centralised API Client
  * All backend calls route through here. Token is auto-attached.
  */
 
@@ -34,7 +34,7 @@ async function request(endpoint, options = {}) {
   try {
     res = await fetch(fullUrl, { ...options, headers });
   } catch (networkErr) {
-    console.error('[API] Network error — is the backend running?', networkErr.message);
+    console.error('[API] Network error - is the backend running?', networkErr.message);
     throw networkErr;
   }
 
@@ -184,6 +184,8 @@ export const appointmentAPI = {
   book: (data) => request('/appointments/book', { method: 'POST', body: JSON.stringify(data) }),
   getMyAppointments: () => request('/appointments/my'),
   cancelAppointment: (id) => request(`/appointments/cancel/${id}`, { method: 'PATCH' }),
+  cancel: (id) => request(`/appointments/cancel/${id}`, { method: 'PATCH' }),
+  reschedule: (id, data) => request(`/appointments/reschedule/${id}`, { method: 'POST', body: JSON.stringify(data) }),
   // Admin
   adminUpdateCounselor: (data) => request('/appointments/admin/counselor', { method: 'PATCH', body: JSON.stringify(data) }),
   adminGetAll: (params = {}) => {
@@ -197,6 +199,8 @@ export const appointmentAPI = {
   adminToggleDay: (data) => request('/appointments/admin/toggle-day', { method: 'PATCH', body: JSON.stringify(data) }),
   adminUpdateStatus: (id, status) => request(`/appointments/admin/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status }) }),
   adminCancelAppointment: (id, reason) => request(`/appointments/admin/${id}/cancel`, { method: 'PATCH', body: JSON.stringify({ reason }) }),
+  adminRejectAppointment: (id, reason) => request(`/appointments/admin/${id}/reject`, { method: 'PATCH', body: JSON.stringify({ reason }) }),
+  adminRescheduleAppointment: (id, data) => request(`/appointments/admin/${id}/reschedule`, { method: 'POST', body: JSON.stringify(data) }),
 };
 
 export const teamAPI = {

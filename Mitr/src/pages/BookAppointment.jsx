@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { AuthContext } from '../App';
 import { appointmentAPI } from '../api';
 import './BookAppointment.css';
@@ -7,6 +7,9 @@ import './BookAppointment.css';
 export default function BookAppointment() {
   const { user } = useContext(AuthContext);
   const navigate = useNavigate();
+
+  const location = useLocation();
+  const rescheduleId = new URLSearchParams(location.search).get('reschedule');
 
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -101,15 +104,23 @@ export default function BookAppointment() {
     setLoading(true);
     setError(null);
     try {
-      const res = await appointmentAPI.book({
-        date: selectedDate,
-        startTime: selectedSlot.startTime,
-        reason,
-        studentMIS,
-        studentFirstName,
-        studentLastName,
-        studentBranch,
-      });
+      let res;
+      if (rescheduleId) {
+        res = await appointmentAPI.reschedule(rescheduleId, {
+          newDate: selectedDate,
+          newStartTime: selectedSlot.startTime,
+        });
+      } else {
+        res = await appointmentAPI.book({
+          date: selectedDate,
+          startTime: selectedSlot.startTime,
+          reason,
+          studentMIS,
+          studentFirstName,
+          studentLastName,
+          studentBranch,
+        });
+      }
       if (res.success) {
         setAppointmentId(res.appointment.appointmentId);
         setStep(4);
@@ -209,7 +220,9 @@ export default function BookAppointment() {
         {/* Header */}
         <div className="book-header">
           <button className="btn-back" onClick={() => navigate(-1)}>← Back</button>
-          <h1 className="book-title">Book an Appointment</h1>
+          <h1 className="book-title">
+            {rescheduleId ? 'Reschedule Appointment' : 'Book an Appointment'}
+          </h1>
           {counselor && (
             <div className="counselor-mini">
               <strong>{counselor.name}</strong>
@@ -416,7 +429,9 @@ export default function BookAppointment() {
               <div className="step-content text-center animate-fade-in">
                 <div className="success-icon">✓</div>
                 <h2 className="success-title">Appointment Confirmed!</h2>
-                <p className="success-sub">Your appointment has been successfully booked with Dr. {counselor?.name?.split(' ').slice(1).join(' ') || 'Kshipra V. Moghe'}.</p>
+                <p className="success-sub">
+                  Your appointment has been successfully {rescheduleId ? 'rescheduled' : 'booked'} with Dr. {counselor?.name?.split(' ').slice(1).join(' ') || 'Kshipra V. Moghe'}.
+                </p>
                 
                 <div className="ticket glass-mint">
                   <div className="ticket-label">Your Appointment ID</div>
@@ -435,7 +450,7 @@ export default function BookAppointment() {
                       Simply tell <strong>Dr. {counselor?.name?.split(' ').slice(1).join(' ') || 'Kshipra V. Moghe'}</strong> your Appointment ID: <strong className="appt-id-inline">{appointmentId}</strong>
                     </p>
                     <p style={{ marginTop: '0.5rem', fontSize: '0.875rem', color: 'var(--text-muted)' }}>
-                      Your full name is not displayed in the public schedule — only your initials and appointment ID are used.
+                      Your full name is not displayed in the public schedule - only your initials and appointment ID are used.
                     </p>
                   </div>
                 </div>

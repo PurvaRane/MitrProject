@@ -533,17 +533,17 @@ export default function PersonalGrowthDashboard() {
               <div className="profile-fields" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 'var(--space-md)' }}>
                 <div className="profile-field">
                   <span className="profile-field__label">Full Name</span>
-                  <span className="profile-field__value">{user?.name || '—'}</span>
+                  <span className="profile-field__value">{user?.name || '-'}</span>
                 </div>
                 {isFaculty ? (
                   <div className="profile-field">
                     <span className="profile-field__label">Faculty Email</span>
-                    <span className="profile-field__value">{user?.email || '—'}</span>
+                    <span className="profile-field__value">{user?.email || '-'}</span>
                   </div>
                 ) : (
                   <div className="profile-field">
                     <span className="profile-field__label">MIS ID</span>
-                    <span className="profile-field__value">{user?.misId || '—'}</span>
+                    <span className="profile-field__value">{user?.misId || '-'}</span>
                   </div>
                 )}
                 <div className="profile-field">
@@ -1189,7 +1189,7 @@ export default function PersonalGrowthDashboard() {
                         <div>
                           <h4 className="pg-care-item__counselor">Dr. Kshipra V. Moghe</h4>
                           <span className="text-muted" style={{ fontSize: '0.8rem' }}>
-                            Consulting Psychologist &amp; Incharge — COEP मित्र
+                            Consulting Psychologist &amp; Incharge - COEP मित्र
                           </span>
                         </div>
                         <span className={`badge badge-${appt.status === 'Confirmed' ? 'mint' : appt.status === 'Cancelled' ? 'peach' : 'lavender'}`}>
@@ -1205,7 +1205,7 @@ export default function PersonalGrowthDashboard() {
                         {appt.startTime && (
                           <div className="pg-care-detail">
                             <Clock size={14} />
-                            <span>Slot: <strong>{appt.startTime} — {appt.endTime || ''}</strong></span>
+                            <span>Slot: <strong>{appt.startTime} - {appt.endTime || ''}</strong></span>
                           </div>
                         )}
                         {appt.appointmentId && (

@@ -74,8 +74,13 @@ const appointmentSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ['confirmed', 'completed', 'cancelled'],
+      enum: ['confirmed', 'completed', 'cancelled', 'rejected', 'rescheduled'],
       default: 'confirmed',
+    },
+    rescheduledTo: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Appointment',
+      default: null,
     },
     cancelledBy: {
       type: String,

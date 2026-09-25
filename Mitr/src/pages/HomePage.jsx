@@ -53,7 +53,7 @@ export default function HomePage() {
               <em>worth saving</em>
             </h1>
             <p className="hero__sub animate-fade-in-up delay-200">
-              A safe, confidential, and supportive space — exclusively for COEP Technological University students and faculty.
+              A safe, confidential, and supportive space - exclusively for COEP Technological University students and faculty.
             </p>
             <div className="hero__cta animate-fade-in-up delay-300">
               <Link to="/register" className="btn btn-primary">Join the Platform</Link>
@@ -173,7 +173,7 @@ export default function HomePage() {
                 It is okay not to be okay. What matters is that you reach out, take one breath at a time,
                 and know that support is always here.
               </blockquote>
-              <cite className="quote-author">— COEP मित्र Wellness Team</cite>
+              <cite className="quote-author">- COEP मित्र Wellness Team</cite>
             </div>
           </div>
         </section>

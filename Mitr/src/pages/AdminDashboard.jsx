@@ -39,12 +39,12 @@ function OverviewTab({ setTab }) {
     <div>
       <div className="admin-stats-grid grid-responsive">
         {[
-          { label: 'Total Registered Students', val: stats?.totalUsers ?? '—', color: 'blue' },
-          { label: 'New Today', val: stats?.registrationsToday ?? '—', color: 'mint' },
-          { label: 'New This Week', val: stats?.registrationsThisWeek ?? '—', color: 'lavender' },
-          { label: 'Active Participants', val: stats?.activeUsersCount ?? '—', color: 'blue' },
-          { label: "Today's Completions", val: stats?.todayCompletions ?? '—', color: 'mint' },
-          { label: 'Total Reflections', val: stats?.totalReflections ?? '—', color: 'peach' },
+          { label: 'Total Registered Students', val: stats?.totalUsers ?? '-', color: 'blue' },
+          { label: 'New Today', val: stats?.registrationsToday ?? '-', color: 'mint' },
+          { label: 'New This Week', val: stats?.registrationsThisWeek ?? '-', color: 'lavender' },
+          { label: 'Active Participants', val: stats?.activeUsersCount ?? '-', color: 'blue' },
+          { label: "Today's Completions", val: stats?.todayCompletions ?? '-', color: 'mint' },
+          { label: 'Total Reflections', val: stats?.totalReflections ?? '-', color: 'peach' },
         ].map(s => (
           <div key={s.label} className={`card admin-stat admin-stat--${s.color}`}>
             <div className="admin-stat__val">{s.val}</div>
@@ -504,7 +504,7 @@ function WellnessTab() {
         <form className="admin-form" onSubmit={handleSave}>
           <div className="form-group">
             <label className="form-label">Centre Title *</label>
-            <input className="form-input" value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} placeholder="e.g. COEP मित्र — Wellness Centre" required />
+            <input className="form-input" value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} placeholder="e.g. COEP मित्र - Wellness Centre" required />
           </div>
           <div className="form-group">
             <label className="form-label">About / Description *</label>
@@ -518,7 +518,7 @@ function WellnessTab() {
             <label className="form-label">Services Offered</label>
             {form.services.map((s, i) => (
               <div key={i} className="admin-service-row">
-                <div><strong>{s.title}</strong> — {s.description}</div>
+                <div><strong>{s.title}</strong> - {s.description}</div>
                 <button type="button" className="admin-delete-btn" onClick={() => removeService(i)}>✕</button>
               </div>
             ))}
@@ -633,7 +633,7 @@ function SubmissionsTab() {
                   </div>
                   <div className="admin-feedback-card__task">
                     <span>{item.challengeId?.title || 'Challenge'}</span>
-                    <strong>Day {item.taskId?.dayNumber || '—'}: {item.taskId?.title || 'Task'}</strong>
+                    <strong>Day {item.taskId?.dayNumber || '-'}: {item.taskId?.title || 'Task'}</strong>
                   </div>
                   <p>{item.text || 'No written reflection was added.'}</p>
                   <time>{formatDateTime(item.updatedAt || item.createdAt)}</time>
@@ -686,7 +686,7 @@ function SubmissionsTab() {
                           <span>{s.userId?.branch} ({s.userId?.year})</span>
                         </div>
                       </td>
-                      <td>{s.userId?.misId || '—'}</td>
+                      <td>{s.userId?.misId || '-'}</td>
                       <td>
                         {s.challengeId ? (
                           <>
@@ -709,7 +709,7 @@ function SubmissionsTab() {
                           <a href={s.imageUrl} target="_blank" rel="noreferrer" className="admin-sub-img-link">
                             View Image
                           </a>
-                        ) : <span className="admin-none">—</span>}
+                        ) : <span className="admin-none">-</span>}
                       </td>
                       <td>{formatDateTime(s.submittedAt || s.createdAt)}</td>
                     </tr>
@@ -754,7 +754,7 @@ function SubmissionsTab() {
                             </div>
                           )}
                         </td>
-                        <td>{isAnon ? '—' : (j.userId?.misId || '—')}</td>
+                        <td>{isAnon ? '-' : (j.userId?.misId || '-')}</td>
                         <td>
                           {j.mood && j.mood !== 'none' ? (
                             <span className="admin-mood-badge">
@@ -765,7 +765,7 @@ function SubmissionsTab() {
                               {j.mood === 'motivated' && '🔥'}
                               {j.mood === 'calm' && '😌'}
                             </span>
-                          ) : '—'}
+                          ) : '-'}
                         </td>
                         <td><strong>{j.title}</strong></td>
                         <td>
@@ -1186,6 +1186,33 @@ function AppointmentsTab() {
     }
   };
 
+  const handleReject = async (id) => {
+    const reason = prompt('Enter rejection reason (optional):');
+    if (reason === null) return;
+    try {
+      await appointmentAPI.adminRejectAppointment(id, reason);
+      showToast('Appointment rejected.');
+      fetchAppts();
+    } catch (err) {
+      showToast(err.message, 'error');
+    }
+  };
+
+  const handleReschedule = async (id) => {
+    const newDate = prompt('Enter new date (YYYY-MM-DD):');
+    if (!newDate) return;
+    const newStartTime = prompt('Enter new start time (e.g., 10:00 AM, 02:30 PM):');
+    if (!newStartTime) return;
+    
+    try {
+      await appointmentAPI.adminRescheduleAppointment(id, { newDate, newStartTime });
+      showToast('Appointment rescheduled.');
+      fetchAppts();
+    } catch (err) {
+      showToast(err.message, 'error');
+    }
+  };
+
   return (
     <div>
       {/* Sub-tab switcher */}
@@ -1250,7 +1277,7 @@ function AppointmentsTab() {
                       </td>
                       <td>
                         <div style={{ display: 'flex', flexDirection: 'column' }}>
-                          <span>{a.studentMIS || '—'}</span>
+                          <span>{a.studentMIS || '-'}</span>
                           {a.appointmentId && (
                             <span style={{ fontSize: '0.8rem', color: 'var(--blue-deep)', fontFamily: 'monospace' }}>
                               {a.appointmentId}
@@ -1259,21 +1286,23 @@ function AppointmentsTab() {
                         </div>
                       </td>
                       <td>
-                        <span className={`badge badge-${a.status === 'completed' ? 'mint' : a.status === 'cancelled' ? 'peach' : 'blue'}`}>
-                          {a.status}
+                        <span className={`badge badge-${a.status === 'completed' ? 'mint' : a.status === 'cancelled' ? 'peach' : a.status === 'rejected' ? 'peach' : a.status === 'rescheduled' ? 'lavender' : 'blue'}`}>
+                          {a.status.charAt(0).toUpperCase() + a.status.slice(1)}
                         </span>
                       </td>
                       <td>
                         <div title={a.reason} style={{ maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          {a.reason || '—'}
+                          {a.reason || '-'}
                         </div>
                       </td>
                       <td>
-                        <div style={{ display: 'flex', gap: '4px' }}>
-                          {a.status !== 'cancelled' && a.status !== 'completed' && (
+                        <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+                          {(a.status === 'confirmed' || a.status === 'pending' || a.status === 'rejected') && (
                             <>
-                              <button className="btn btn-mint btn-sm" onClick={() => handleStatusChange(a._id, 'completed')}>Done</button>
-                              <button className="btn btn-peach btn-sm" onClick={() => handleCancel(a._id)}>Cancel</button>
+                              {a.status !== 'rejected' && <button className="btn btn-mint btn-sm" onClick={() => handleStatusChange(a._id, 'completed')}>Done</button>}
+                              <button className="btn btn-secondary btn-sm" onClick={() => handleReschedule(a._id)}>Reschedule</button>
+                              {a.status !== 'rejected' && <button className="btn btn-peach btn-sm" onClick={() => handleReject(a._id)}>Reject</button>}
+                              <button className="btn btn-secondary btn-sm" onClick={() => handleCancel(a._id)}>Cancel</button>
                             </>
                           )}
                         </div>
@@ -1599,8 +1628,8 @@ function UsersTab() {
                   <td><strong>{u.name}</strong></td>
                   <td>{u.role === 'faculty' ? u.email : u.misId}</td>
                   <td><span className={`badge ${u.role === 'faculty' ? 'badge-peach' : 'badge-lavender'}`}>{u.role}</span></td>
-                  <td>{u.role === 'faculty' ? (u.department || '—') : (u.branch || '—')}</td>
-                  <td>{u.role === 'faculty' ? '—' : (u.year || '—')}</td>
+                  <td>{u.role === 'faculty' ? (u.department || '-') : (u.branch || '-')}</td>
+                  <td>{u.role === 'faculty' ? '-' : (u.year || '-')}</td>
                   <td>{formatDate(u.createdAt)}</td>
                 </tr>
               ))}
@@ -1630,7 +1659,7 @@ export default function AdminDashboard() {
         <div className="container admin-dash__header-inner">
           <div className="admin-dash__header-text">
             <span className="section-tag">Admin Panel</span>
-            <h1 className="admin-dash__title">COEP मित्र — Control Centre</h1>
+            <h1 className="admin-dash__title">COEP मित्र - Control Centre</h1>
             <p className="admin-dash__sub">Manage all platform content, challenge, and monitor student engagement.</p>
           </div>
           <div className="admin-dash__header-actions desktop-only">

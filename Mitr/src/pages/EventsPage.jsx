@@ -69,7 +69,7 @@ export default function EventsPage() {
           <h1 className="section-title">Calendar of Care</h1>
           <div className="divider" />
           <p className="section-subtitle">
-            Workshops, awareness sessions, and challenges — designed to nurture your wellbeing.
+            Workshops, awareness sessions, and challenges - designed to nurture your wellbeing.
           </p>
 
           {/* Filters */}
@@ -110,7 +110,7 @@ export default function EventsPage() {
               <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
             </div>
             <p>No events have been published yet.</p>
-            <p className="events-empty__note">The admin will post upcoming events here — check back soon.</p>
+            <p className="events-empty__note">The admin will post upcoming events here - check back soon.</p>
           </div>
         ) : filtered.length === 0 ? (
           <div className="events-empty">

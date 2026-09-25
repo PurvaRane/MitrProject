@@ -54,7 +54,7 @@ export default function BottomNav() {
     },
     {
       to: user ? (user.role === 'admin' ? '/profile' : '/personal-growth') : '/login',
-      label: user ? (user.role === 'admin' ? 'Profile' : 'Growth') : 'Login',
+      label: user ? (user.role === 'admin' ? 'Profile' : 'Profile') : 'Login',
       icon: User,
       isActive: isProfileActive || (!user && currentPath === '/login'),
     },

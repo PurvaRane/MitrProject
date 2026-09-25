@@ -3,27 +3,27 @@
    ============================================= */
 
 :root {
-  /* Luminous, Visually Pleasing Wellbeing Color Palette */
-  --baby-blue: #E0F2FE;        /* Soft airy sky blue */
+  /* Luminous, Visually Pleasing Wellbeing Color Palette (Refined) */
+  --baby-blue: #DBEAFE;        /* Deeper airy sky blue */
   --lavender: #F3E8FF;         /* Gentle relaxing lavender */
-  --mint: #ECFDF5;             /* Fresh, soothing natural mint */
+  --mint: #D1FAE5;             /* Richer natural mint */
   --peach: #FFE4E6;            /* Warm delicate blush peach */
-  --off-white: #F8FAFC;        /* Modern clean slate canvas */
+  --off-white: #F1F5F9;        /* Slightly darker modern clean slate */
   --soft-gold: #FEF3C7;        /* Warm sunlit amber */
 
   /* Deeper refined accent shades with high contrast & aesthetic harmony */
-  --blue-mid: #7DD3FC;
-  --blue-deep: #1E40AF;
-  --blue-text: #0F2942;
-  --lavender-mid: #C084FC;
-  --lavender-deep: #7C3AED;
-  --mint-mid: #34D399;
-  --mint-deep: #059669;
-  --peach-mid: #FB7185;
-  --peach-deep: #E11D48;
+  --blue-mid: #3B82F6;
+  --blue-deep: #1D4ED8;
+  --blue-text: #0F172A;
+  --lavender-mid: #9333EA;
+  --lavender-deep: #6B21A8;
+  --mint-mid: #10B981;
+  --mint-deep: #047857;
+  --peach-mid: #F43F5E;
+  --peach-deep: #BE123C;
   --text-primary: #0F172A;
   --text-secondary: #334155;
-  --text-muted: #64748B;
+  --text-muted: #475569;
   --white: #FFFFFF;
 
   /* Luminous, Visually Pleasing Gradients */
@@ -221,16 +221,16 @@ button, a, p, h1, h2, h3, h4, td, th, span { overflow-wrap: anywhere; }
 .card {
   background: var(--white);
   border-radius: var(--radius-lg);
-  border: 1px solid rgba(226, 232, 240, 0.85);
-  box-shadow: 0 2px 10px rgba(15, 23, 42, 0.04), 0 1px 3px rgba(15, 23, 42, 0.02);
+  border: 1px solid rgba(203, 213, 225, 0.7);
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.05), 0 1px 3px rgba(15, 23, 42, 0.02);
   padding: var(--space-xl);
   transition: transform var(--transition-mid), box-shadow var(--transition-mid), border-color var(--transition-mid);
 }
 
 .card:hover {
   transform: translateY(-3px);
-  box-shadow: 0 12px 30px -4px rgba(15, 23, 42, 0.08), 0 4px 12px -2px rgba(15, 23, 42, 0.03);
-  border-color: rgba(147, 197, 253, 0.7);
+  box-shadow: 0 16px 36px -4px rgba(15, 23, 42, 0.08), 0 4px 12px -2px rgba(15, 23, 42, 0.03);
+  border-color: rgba(59, 130, 246, 0.4);
 }
 
 /* ─── Buttons ────────────────────────────────── */
@@ -264,107 +264,111 @@ button, a, p, h1, h2, h3, h4, td, th, span { overflow-wrap: anywhere; }
 
 .btn:hover::after { opacity: 1; }
 
+.btn:active {
+  transform: scale(0.97) translateY(0);
+}
+
 .btn-primary {
-  background: linear-gradient(135deg, #7FB3D3 0%, #9B59B6 100%);
+  background: linear-gradient(135deg, #3B82F6 0%, #8B5CF6 100%);
   color: var(--white);
-  box-shadow: 0 4px 14px rgba(127, 179, 211, 0.25);
+  box-shadow: 0 4px 14px rgba(59, 130, 246, 0.35);
 }
 
 .btn-primary:hover {
   transform: translateY(-2px);
-  background: linear-gradient(135deg, #6FA4C4 0%, #8B4EA6 100%);
-  box-shadow: 0 6px 18px rgba(127, 179, 211, 0.35);
+  background: linear-gradient(135deg, #2563EB 0%, #7C3AED 100%);
+  box-shadow: 0 6px 18px rgba(59, 130, 246, 0.45);
 }
 
 .btn-secondary {
   background: var(--white);
   color: var(--blue-text);
-  border: 1.5px solid rgba(203, 213, 225, 0.9);
+  border: 1.5px solid rgba(148, 163, 184, 0.6);
   box-shadow: var(--shadow-sm);
 }
 
 .btn-secondary:hover {
-  background: #F8FAFC;
-  border-color: #7FB3D3;
+  background: #F1F5F9;
+  border-color: #3B82F6;
   color: var(--blue-deep);
   transform: translateY(-2px);
 }
 
 .btn-mint {
-  background: linear-gradient(135deg, #52BE80 0%, #A9DFBF 100%);
+  background: linear-gradient(135deg, #10B981 0%, #059669 100%);
   color: var(--white);
-  box-shadow: 0 4px 14px rgba(82, 190, 128, 0.25);
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
 }
 
 .btn-mint:hover {
   transform: translateY(-2px);
-  background: linear-gradient(135deg, #44B072 0%, #98D2AF 100%);
-  box-shadow: 0 6px 18px rgba(82, 190, 128, 0.35);
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  box-shadow: 0 6px 18px rgba(16, 185, 129, 0.45);
 }
 
 .btn-peach {
-  background: linear-gradient(135deg, #F1948A 0%, #F8B195 100%);
+  background: linear-gradient(135deg, #F43F5E 0%, #E11D48 100%);
   color: var(--white);
-  box-shadow: 0 4px 14px rgba(241, 148, 138, 0.25);
+  box-shadow: 0 4px 14px rgba(244, 63, 94, 0.35);
 }
 
 .btn-peach:hover {
   transform: translateY(-2px);
-  background: linear-gradient(135deg, #E67E72 0%, #EE9E82 100%);
-  box-shadow: 0 6px 18px rgba(241, 148, 138, 0.35);
+  background: linear-gradient(135deg, #E11D48 0%, #BE123C 100%);
+  box-shadow: 0 6px 18px rgba(244, 63, 94, 0.45);
 }
 
 /* Standout High-Intent CTAs – All Subtle, Cohesive, and Visually Pleasing */
 .cta-personal-growth {
-  background: linear-gradient(135deg, #7FB3D3 0%, #9B59B6 100%) !important;
+  background: linear-gradient(135deg, #3B82F6 0%, #8B5CF6 100%) !important;
   color: #FFFFFF !important;
   font-weight: 600 !important;
-  box-shadow: 0 4px 14px rgba(127, 179, 211, 0.25) !important;
+  box-shadow: 0 4px 14px rgba(59, 130, 246, 0.35) !important;
   border: none !important;
 }
 .cta-personal-growth:hover {
   transform: translateY(-2px) !important;
-  background: linear-gradient(135deg, #6FA4C4 0%, #8B4EA6 100%) !important;
-  box-shadow: 0 6px 18px rgba(127, 179, 211, 0.35) !important;
+  background: linear-gradient(135deg, #2563EB 0%, #7C3AED 100%) !important;
+  box-shadow: 0 6px 18px rgba(59, 130, 246, 0.45) !important;
 }
 
 .cta-discover-challenges {
-  background: linear-gradient(135deg, #52BE80 0%, #A9DFBF 100%) !important;
+  background: linear-gradient(135deg, #10B981 0%, #059669 100%) !important;
   color: #FFFFFF !important;
   font-weight: 600 !important;
-  box-shadow: 0 4px 14px rgba(82, 190, 128, 0.25) !important;
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35) !important;
   border: none !important;
 }
 .cta-discover-challenges:hover {
   transform: translateY(-2px) !important;
-  background: linear-gradient(135deg, #44B072 0%, #98D2AF 100%) !important;
-  box-shadow: 0 6px 18px rgba(82, 190, 128, 0.35) !important;
+  background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
+  box-shadow: 0 6px 18px rgba(16, 185, 129, 0.45) !important;
 }
 
 .cta-book-session {
-  background: linear-gradient(135deg, #7FB3D3 0%, #9B59B6 100%) !important;
+  background: linear-gradient(135deg, #3B82F6 0%, #8B5CF6 100%) !important;
   color: #FFFFFF !important;
   font-weight: 600 !important;
-  box-shadow: 0 4px 14px rgba(127, 179, 211, 0.25) !important;
+  box-shadow: 0 4px 14px rgba(59, 130, 246, 0.35) !important;
   border: none !important;
 }
 .cta-book-session:hover {
   transform: translateY(-2px) !important;
-  background: linear-gradient(135deg, #6FA4C4 0%, #8B4EA6 100%) !important;
-  box-shadow: 0 6px 18px rgba(127, 179, 211, 0.35) !important;
+  background: linear-gradient(135deg, #2563EB 0%, #7C3AED 100%) !important;
+  box-shadow: 0 6px 18px rgba(59, 130, 246, 0.45) !important;
 }
 
 .cta-edit-dept {
-  background: linear-gradient(135deg, #7FB3D3 0%, #9B59B6 100%) !important;
+  background: linear-gradient(135deg, #3B82F6 0%, #8B5CF6 100%) !important;
   color: #FFFFFF !important;
   font-weight: 600 !important;
-  box-shadow: 0 4px 14px rgba(127, 179, 211, 0.25) !important;
+  box-shadow: 0 4px 14px rgba(59, 130, 246, 0.35) !important;
   border: none !important;
 }
 .cta-edit-dept:hover {
   transform: translateY(-2px) !important;
-  background: linear-gradient(135deg, #6FA4C4 0%, #8B4EA6 100%) !important;
-  box-shadow: 0 6px 18px rgba(127, 179, 211, 0.35) !important;
+  background: linear-gradient(135deg, #2563EB 0%, #7C3AED 100%) !important;
+  box-shadow: 0 6px 18px rgba(59, 130, 246, 0.45) !important;
 }
 
 .btn-sm {

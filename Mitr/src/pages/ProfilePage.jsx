@@ -93,13 +93,13 @@ export default function ProfilePage() {
           <div className="profile-fields">
             <div className="profile-field">
               <span className="profile-field__label">Full Name</span>
-              <span className="profile-field__value">{user?.name || '—'}</span>
+              <span className="profile-field__value">{user?.name || '-'}</span>
             </div>
 
             {isFaculty && (
               <div className="profile-field">
                 <span className="profile-field__label">Email Address</span>
-                <span className="profile-field__value">{user?.email || '—'}</span>
+                <span className="profile-field__value">{user?.email || '-'}</span>
               </div>
             )}
 
@@ -107,7 +107,7 @@ export default function ProfilePage() {
               <>
                 <div className="profile-field">
                   <span className="profile-field__label">MIS Number</span>
-                  <span className="profile-field__value">{user?.misId || '—'}</span>
+                  <span className="profile-field__value">{user?.misId || '-'}</span>
                 </div>
 
                 <div className="profile-field">

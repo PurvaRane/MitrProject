@@ -20,6 +20,7 @@ import UserDashboard  from './pages/UserDashboard';
 import FacultyDashboard from './pages/FacultyDashboard';
 import ProfilePage    from './pages/ProfilePage';
 import PersonalGrowthDashboard from './pages/PersonalGrowthDashboard';
+import MyAppointments from './pages/MyAppointments';
 import BottomNav      from './components/BottomNav';
 
 // ── Auth Context ──────────────────────────────────────────────────────────────
@@ -124,7 +125,7 @@ function App() {
                 <Route path="/" element={<HomePage />} />
                 <Route path="/support" element={<SupportPage />} />
 
-                {/* Auth pages — redirect away ONLY if already logged in and visiting login/register */}
+                {/* Auth pages - redirect away ONLY if already logged in and visiting login/register */}
                 <Route
                   path="/login"
                   element={
@@ -159,6 +160,7 @@ function App() {
                 <Route path="/challenge"      element={<ProtectedRoute><ChallengePage /></ProtectedRoute>} />
                 <Route path="/reflect"        element={<ProtectedRoute><ReflectionPage /></ProtectedRoute>} />
                 <Route path="/book-appointment" element={<ProtectedRoute><BookAppointment /></ProtectedRoute>} />
+                <Route path="/my-appointments" element={<ProtectedRoute><MyAppointments /></ProtectedRoute>} />
 
                 {/* Admin routes */}
                 <Route path="/admin-dashboard" element={<ProtectedRoute requireAdmin><AdminDashboard /></ProtectedRoute>} />

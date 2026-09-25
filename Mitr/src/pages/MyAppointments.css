@@ -1,0 +1,140 @@
+.my-appointments-page {
+  padding-bottom: 100px;
+}
+
+.my-appts-header {
+  margin-top: var(--space-xl);
+  margin-bottom: var(--space-lg);
+}
+
+.my-appts-title {
+  font-family: var(--font-heading);
+  font-size: 2rem;
+  color: var(--blue-deep);
+  margin-top: var(--space-sm);
+  margin-bottom: var(--space-xs);
+}
+
+.my-appts-sub {
+  color: var(--text-secondary);
+  font-size: 1rem;
+}
+
+.btn-full-width {
+  width: 100%;
+  display: block;
+  text-align: center;
+  padding: 1rem;
+  border-radius: var(--radius-full);
+  font-size: 1.125rem;
+  margin-bottom: var(--space-xl);
+  background: linear-gradient(135deg, var(--mint-mid) 0%, var(--mint-deep) 100%);
+}
+
+.my-appts-tabs {
+  display: flex;
+  background: var(--off-white);
+  padding: 4px;
+  border-radius: var(--radius-full);
+  margin-bottom: var(--space-xl);
+}
+
+.tab-btn {
+  flex: 1;
+  padding: 0.75rem;
+  border-radius: var(--radius-full);
+  background: transparent;
+  color: var(--text-muted);
+  font-weight: 600;
+  transition: all var(--transition-fast);
+}
+
+.tab-btn.active {
+  background: var(--white);
+  color: var(--blue-deep);
+  box-shadow: var(--shadow-sm);
+}
+
+.my-appts-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.appt-card {
+  padding: var(--space-lg);
+  border-radius: var(--radius-xl);
+  border-left: 6px solid var(--mint-mid);
+}
+
+.appt-card-top {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-md);
+  margin-bottom: var(--space-md);
+}
+
+.appt-card-date-icon {
+  background: var(--lavender);
+  padding: 12px;
+  border-radius: var(--radius-md);
+  font-size: 1.5rem;
+  color: var(--lavender-deep);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.appt-card-info {
+  flex: 1;
+}
+
+.appt-datetime {
+  font-weight: 700;
+  color: var(--text-primary);
+  font-size: 1.125rem;
+}
+
+.appt-counselor {
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+}
+
+.appt-id {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+
+.appt-card-actions {
+  display: flex;
+  gap: var(--space-sm);
+  border-top: 1px solid var(--off-white);
+  padding-top: var(--space-md);
+  flex-wrap: wrap;
+}
+
+.btn-action {
+  flex: 1;
+  min-width: 100px;
+  background: var(--off-white);
+  color: var(--blue-deep);
+  font-weight: 600;
+  font-size: 0.875rem;
+  padding: 0.5rem;
+  border-radius: var(--radius-md);
+  transition: background 0.2s;
+}
+
+.btn-action:hover {
+  background: var(--baby-blue);
+}
+
+.btn-action.cancel {
+  color: var(--peach-deep);
+  background: var(--peach);
+}
+
+.btn-action.reschedule {
+  color: var(--lavender-deep);
+  background: var(--lavender);
+}

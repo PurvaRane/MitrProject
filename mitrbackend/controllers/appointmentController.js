@@ -39,16 +39,41 @@ function splitName(fullName = '') {
   return { firstName: parts[0], lastName: parts.slice(1).join(' ') };
 }
 
-async function uniqueAppointmentId(Appointment) {
-  for (let i = 0; i < 8; i++) {
-    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-    let suffix = '';
-    for (let j = 0; j < 4; j++) suffix += chars.charAt(Math.floor(Math.random() * chars.length));
-    const code = `MITR-APPT-${suffix}`;
+async function uniqueAppointmentId(Appointment, role, branch, year) {
+  let prefix = 'MITR2026-';
+  
+  if (role === 'faculty') {
+    prefix += 'F';
+  } else {
+    const isPG = ['M.Tech 1st year', 'M.Tech 2nd year', 'PhD'].includes(year);
+    if (isPG) {
+      prefix += 'PG';
+    } else {
+      let branchCode = 'XX';
+      switch (branch) {
+        case 'Computer Science and Engineering': branchCode = 'CS'; break;
+        case 'Electronics and Telecommunication Engineering': branchCode = 'ENTC'; break;
+        case 'Mechanical Engineering': branchCode = 'ME'; break;
+        case 'Civil Engineering': branchCode = 'CE'; break;
+        case 'Electrical Engineering': branchCode = 'EE'; break;
+        case 'Instrumentation and Control Engineering': branchCode = 'IE'; break;
+        case 'Metallurgy and Materials Technology': branchCode = 'MT'; break;
+        case 'Manufacturing Science and Engineering': branchCode = 'MSE'; break;
+        case 'AI/ML': branchCode = 'AIML'; break;
+        case 'AI/DS': branchCode = 'AIDS'; break;
+      }
+      prefix += 'UG' + branchCode;
+    }
+  }
+
+  const count = await Appointment.countDocuments({ appointmentId: { $regex: `^${prefix}` } });
+  
+  for (let i = count + 1; i < count + 100; i++) {
+    const code = `${prefix}${String(i).padStart(3, '0')}`;
     const exists = await Appointment.exists({ appointmentId: code });
     if (!exists) return code;
   }
-  return `MITR-APPT-${Date.now().toString(36).slice(-4).toUpperCase()}`;
+  return `${prefix}${Date.now().toString(36).slice(-4).toUpperCase()}`;
 }
 
 function scheduleAppointmentView(appt) {
@@ -262,7 +287,7 @@ export const bookAppointment = async (req, res) => {
   // Create the appointment
   try {
     const appointment = await Appointment.create({
-      appointmentId: await uniqueAppointmentId(Appointment),
+      appointmentId: await uniqueAppointmentId(Appointment, student.role, student.branch, student.year),
       studentId,
       counselorId: COUNSELOR_ID,
       date,
@@ -314,8 +339,8 @@ export const getMyAppointments = async (req, res) => {
 
   const today = getTodayIST();
 
-  const upcoming = appointments.filter(a => a.status === 'confirmed' && a.date >= today);
-  const past = appointments.filter(a => a.status !== 'confirmed' || a.date < today);
+  const upcoming = appointments.filter(a => ['confirmed', 'rejected'].includes(a.status) && a.date >= today);
+  const past = appointments.filter(a => !['confirmed', 'rejected'].includes(a.status) || a.date < today);
 
   // Get counselor info
   const counselor = await Counselor.findOne({ counselorId: COUNSELOR_ID });
@@ -644,4 +669,189 @@ export const adminCancelAppointment = async (req, res) => {
     message: 'Appointment cancelled. The slot is now available again.',
     appointment,
   });
+};
+
+// ── POST /api/appointments/reschedule/:id ──────────────────────────────────
+// Student reschedules an appointment
+export const rescheduleAppointment = async (req, res) => {
+  const { id } = req.params;
+  const { newDate, newStartTime } = req.body;
+  const studentId = req.user._id;
+
+  if (!newDate || !newStartTime) {
+    return res.status(400).json({ success: false, message: 'New date and time are required.' });
+  }
+
+  const oldAppointment = await Appointment.findOne({
+    _id: id,
+    studentId,
+    status: { $in: ['confirmed', 'rejected'] }, // can reschedule a confirmed or rejected appt
+  });
+
+  if (!oldAppointment) {
+    return res.status(404).json({ success: false, message: 'Appointment not found or not eligible for rescheduling.' });
+  }
+
+  // ATOMIC: Try to claim the new slot
+  const claimedSlot = await Availability.findOneAndUpdate(
+    {
+      counselorId: COUNSELOR_ID,
+      date: newDate,
+      startTime: newStartTime,
+      status: 'available',
+      isAvailable: true,
+    },
+    { $set: { status: 'booked' } },
+    { new: true }
+  );
+
+  if (!claimedSlot) {
+    return res.status(409).json({ success: false, message: 'The selected slot is no longer available.' });
+  }
+
+  try {
+    const student = await User.findById(studentId);
+    
+    // Create new appointment
+    const newAppointment = await Appointment.create({
+      appointmentId: await uniqueAppointmentId(Appointment, student.role, student.branch, student.year),
+      studentId,
+      counselorId: COUNSELOR_ID,
+      date: newDate,
+      startTime: newStartTime,
+      endTime: claimedSlot.endTime,
+      reason: oldAppointment.reason,
+      status: 'confirmed',
+      studentMIS: oldAppointment.studentMIS,
+      studentFirstName: oldAppointment.studentFirstName,
+      studentLastName: oldAppointment.studentLastName,
+      studentBranch: oldAppointment.studentBranch,
+      studentInitials: oldAppointment.studentInitials,
+    });
+
+    // Update old appointment
+    oldAppointment.status = 'rescheduled';
+    oldAppointment.rescheduledTo = newAppointment._id;
+    await oldAppointment.save();
+
+    // Free up old slot if it was confirmed (if it was rejected, it might already be freed, but we should make sure)
+    await Availability.findOneAndUpdate(
+      {
+        counselorId: COUNSELOR_ID,
+        date: oldAppointment.date,
+        startTime: oldAppointment.startTime,
+        status: 'booked'
+      },
+      { $set: { status: 'available' } }
+    );
+
+    res.status(201).json({ success: true, message: 'Appointment rescheduled successfully.', appointment: newAppointment });
+  } catch (err) {
+    // Revert new slot
+    await Availability.findByIdAndUpdate(claimedSlot._id, { status: 'available' });
+    throw err;
+  }
+};
+
+// ── PATCH /api/appointments/admin/:id/reject ───────────────────────────────
+export const adminRejectAppointment = async (req, res) => {
+  const { id } = req.params;
+  const { reason } = req.body;
+
+  const appointment = await Appointment.findOne({ _id: id, status: 'confirmed' });
+
+  if (!appointment) {
+    return res.status(404).json({ success: false, message: 'Appointment not found or not in confirmed state.' });
+  }
+
+  appointment.status = 'rejected';
+  appointment.cancelledBy = 'admin';
+  appointment.cancelReason = reason || 'Rejected by administration';
+  await appointment.save();
+
+  // Free the slot
+  await Availability.findOneAndUpdate(
+    {
+      counselorId: COUNSELOR_ID,
+      date: appointment.date,
+      startTime: appointment.startTime,
+    },
+    { $set: { status: 'available' } }
+  );
+
+  res.status(200).json({ success: true, message: 'Appointment rejected.', appointment });
+};
+
+// ── POST /api/appointments/admin/:id/reschedule ────────────────────────────
+export const adminRescheduleAppointment = async (req, res) => {
+  const { id } = req.params;
+  const { newDate, newStartTime } = req.body;
+
+  if (!newDate || !newStartTime) {
+    return res.status(400).json({ success: false, message: 'New date and time are required.' });
+  }
+
+  const oldAppointment = await Appointment.findOne({
+    _id: id,
+    status: { $in: ['confirmed', 'rejected'] }
+  });
+
+  if (!oldAppointment) {
+    return res.status(404).json({ success: false, message: 'Appointment not found or not eligible.' });
+  }
+
+  const claimedSlot = await Availability.findOneAndUpdate(
+    {
+      counselorId: COUNSELOR_ID,
+      date: newDate,
+      startTime: newStartTime,
+      status: 'available',
+      isAvailable: true,
+    },
+    { $set: { status: 'booked' } },
+    { new: true }
+  );
+
+  if (!claimedSlot) {
+    return res.status(409).json({ success: false, message: 'The selected slot is no longer available.' });
+  }
+
+  try {
+    const student = await User.findById(oldAppointment.studentId);
+    
+    const newAppointment = await Appointment.create({
+      appointmentId: await uniqueAppointmentId(Appointment, student.role, student.branch, student.year),
+      studentId: oldAppointment.studentId,
+      counselorId: COUNSELOR_ID,
+      date: newDate,
+      startTime: newStartTime,
+      endTime: claimedSlot.endTime,
+      reason: oldAppointment.reason,
+      status: 'confirmed',
+      studentMIS: oldAppointment.studentMIS,
+      studentFirstName: oldAppointment.studentFirstName,
+      studentLastName: oldAppointment.studentLastName,
+      studentBranch: oldAppointment.studentBranch,
+      studentInitials: oldAppointment.studentInitials,
+    });
+
+    oldAppointment.status = 'rescheduled';
+    oldAppointment.rescheduledTo = newAppointment._id;
+    await oldAppointment.save();
+
+    await Availability.findOneAndUpdate(
+      {
+        counselorId: COUNSELOR_ID,
+        date: oldAppointment.date,
+        startTime: oldAppointment.startTime,
+        status: 'booked'
+      },
+      { $set: { status: 'available' } }
+    );
+
+    res.status(201).json({ success: true, message: 'Appointment rescheduled by admin.', appointment: newAppointment });
+  } catch (err) {
+    await Availability.findByIdAndUpdate(claimedSlot._id, { status: 'available' });
+    throw err;
+  }
 };
