@@ -119,7 +119,7 @@ export default function SupportPage() {
           <div className="card support-info-card">
             <h2 className="support-info-card__title">About COEP मित्र</h2>
             <p className="support-info-card__desc">
-              COEP मित्र is the official mental health and wellbeing platform of COEP Technological University.
+              COEP मित्र is the official mental health and Wellbeing platform of COEP Technological University.
               Content is updated by the Wellness Centre administrator. Please check back soon.
             </p>
           </div>
@@ -268,7 +268,7 @@ export default function SupportPage() {
           <h2 className="section-title">Join the Platform</h2>
           <div className="divider" style={{ margin: '0 auto var(--space-xl)' }} />
           <p className="section-subtitle" style={{ marginBottom: 'var(--space-xl)' }}>
-            Register with your COEP MIS number to access wellbeing challenges, events, and your personal reflection journal.
+            Register with your COEP MIS number to access Wellbeing challenges, events, and your personal reflection journal.
           </p>
           <div style={{ display: 'flex', gap: 'var(--space-md)', justifyContent: 'center', flexWrap: 'wrap' }}>
             <Link to="/register" className="btn btn-primary">Create Account</Link>

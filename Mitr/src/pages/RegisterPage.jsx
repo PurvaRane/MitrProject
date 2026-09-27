@@ -143,7 +143,7 @@ export default function RegisterPage() {
           <h1 className="register-card__title">Create your account</h1>
           <p className="register-card__subtitle">
             {role === 'faculty'
-              ? 'Join as a faculty member to support your wellbeing at COEP Technological University.'
+              ? 'Join as a faculty member to support your Wellbeing at COEP Technological University.'
               : 'Join the Wellness community at COEP Technological University.'}
           </p>
         </div>

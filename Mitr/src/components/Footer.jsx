@@ -42,7 +42,7 @@ export default function Footer() {
 
       <div className="footer__bottom container">
         <p>© {new Date().getFullYear()} COEP मित्र · Wellness Centre</p>
-        <p>A formal initiative for student wellbeing.</p>
+        <p>A formal initiative for student Wellbeing.</p>
       </div>
     </footer>
   );

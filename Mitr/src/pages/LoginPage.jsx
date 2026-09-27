@@ -96,7 +96,7 @@ export default function LoginPage() {
         <div className="login-card__header">
           <Link to="/" className="login-card__logo">COEP मित्र</Link>
           <h1 className="login-card__title">Welcome back</h1>
-          <p className="login-card__subtitle">Your wellbeing matters. We're glad you're here.</p>
+          <p className="login-card__subtitle">Your Wellbeing matters. We're glad you're here.</p>
         </div>
 
         {/* Role tabs */}

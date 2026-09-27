@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { challengeAPI } from '../api';
 import './ChallengePage.css';
+import { Clock3, CalendarDays } from 'lucide-react';
 
 function formatDate(dateStr) {
   if (!dateStr) return '';
@@ -109,7 +110,7 @@ export default function ChallengePage() {
             <h1 className="section-title">Discover Challenges</h1>
             <div className="divider" />
             <p className="section-subtitle">
-              Commit to small, daily actions. Build habits that support your mental and emotional wellbeing.
+              Commit to small, daily actions. Build habits that support your mental and emotional Wellbeing.
             </p>
           </div>
         </div>
@@ -136,7 +137,7 @@ export default function ChallengePage() {
                         </div>
                         <div className="challenge-item-card__header-sub">
                           <span className="challenge-item-card__duration-pill">
-                            ⏱ <strong>{c.duration}</strong> {c.duration === 1 ? 'day' : 'days'} challenge
+                            <Clock3 size={16} strokeWidth={2} /> <strong>{c.duration}</strong> {c.duration === 1 ? 'day' : 'days'} challenge
                           </span>
                         </div>
                       </div>
@@ -147,9 +148,9 @@ export default function ChallengePage() {
                       <div className="challenge-item-card__footer">
                         <div className="challenge-item-card__date">
                           {c.startDate ? (
-                            <span>📅 {formatDate(c.startDate)} {c.endDate ? `– ${formatDate(c.endDate)}` : ''}</span>
+                            <span><CalendarDays size={16} strokeWidth={2} /> {formatDate(c.startDate)} {c.endDate ? `– ${formatDate(c.endDate)}` : ''}</span>
                           ) : (
-                            <span>📅 Flexible Schedule</span>
+                            <span><CalendarDays size={16} strokeWidth={2} /> Flexible Schedule</span>
                           )}
                         </div>
                         <button

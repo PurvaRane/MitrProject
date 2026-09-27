@@ -7,6 +7,7 @@ import OnboardingModal from '../components/OnboardingModal';
 import PlatformFeedbackSection from '../components/PlatformFeedbackSection';
 import './UserDashboard.css';
 import './FacultyDashboard.css';
+import { CalendarDays, MapPin, Building2, X, Sprout, Camera } from 'lucide-react';
 
 function formatDate(d) {
   if (!d) return '';
@@ -64,15 +65,15 @@ function PastEventModal({ event, onClose }) {
   return (
     <div className="past-event-modal-overlay" onClick={onClose}>
       <div className="past-event-modal" onClick={e => e.stopPropagation()}>
-        <button className="past-event-modal__close" onClick={onClose} aria-label="Close">✕</button>
+        <button className="past-event-modal__close" onClick={onClose} aria-label="Close"><X size={20} strokeWidth={2} /></button>
 
         <div className="past-event-modal__header">
           <span className="badge badge-lavender">{event.category}</span>
           <h2 className="past-event-modal__title">{event.title}</h2>
           <div className="past-event-modal__meta">
-            {event.eventDate && <span>📅 {formatDate(event.eventDate)}</span>}
-            {event.location && <span>📍 {event.location}</span>}
-            {event.organizer && <span>🏛️ {event.organizer}</span>}
+            {event.eventDate && <span><CalendarDays size={16} strokeWidth={2} /> {formatDate(event.eventDate)}</span>}
+            {event.location && <span><MapPin size={16} strokeWidth={2} /> {event.location}</span>}
+            {event.organizer && <span><Building2 size={16} strokeWidth={2} /> {event.organizer}</span>}
           </div>
         </div>
 
@@ -286,7 +287,7 @@ export default function FacultyDashboard() {
                   type="button"
                   className="past-event-modal__close"
                   onClick={() => setIsEditingDept(false)}
-                >✕</button>
+                ><X size={18} strokeWidth={2} /></button>
               </div>
               <form onSubmit={handleSaveDepartment}>
                 <div className="form-group" style={{ marginTop: '1rem' }}>
@@ -358,7 +359,7 @@ export default function FacultyDashboard() {
                   <div className="ud-challenge-card__footer">
                     {c.startDate && (
                       <span className="ud-challenge-card__date">
-                        📅 Starts: {formatDate(c.startDate)}
+                        <CalendarDays size={14} strokeWidth={2} /> Starts: {formatDate(c.startDate)}
                       </span>
                     )}
                     <Link to="/challenge" className="btn btn-mint btn-sm">
@@ -477,7 +478,7 @@ export default function FacultyDashboard() {
               <div>
                 <h3 className="user-dash__refl-title">Faculty Reflection &amp; Growth</h3>
                 <p className="user-dash__refl-sub">
-                  A private, confidential space for decompression, self-reflection, and tracking your personal wellbeing.
+                  A private, confidential space for decompression, self-reflection, and tracking your personal Wellbeing.
                 </p>
               </div>
             </div>
@@ -529,7 +530,7 @@ export default function FacultyDashboard() {
             <div className="ud-loading">Loading events gallery…</div>
           ) : pastEvents.length === 0 ? (
             <div className="user-dash__empty past-events-empty card">
-              <div className="past-events-empty-icon">🌱</div>
+              <div className="past-events-empty-icon"><Sprout size={28} strokeWidth={2} /></div>
               <p>Past activities and event moments will appear here.</p>
             </div>
           ) : (
@@ -548,7 +549,7 @@ export default function FacultyDashboard() {
                       <img src={ev.featuredImage} alt={ev.title} className="past-event-card__img" />
                     ) : (
                       <div className="past-event-card__placeholder">
-                        <span>📷</span>
+                        <Camera size={20} strokeWidth={2} />
                       </div>
                     )}
                     <div className="past-event-card__overlay">
@@ -556,7 +557,7 @@ export default function FacultyDashboard() {
                     </div>
                     <span className="past-event-card__category badge badge-lavender">{ev.category}</span>
                     {ev.images?.length > 0 && (
-                      <span className="past-event-card__count">📷 {ev.images.length}</span>
+                      <span className="past-event-card__count"><Camera size={14} strokeWidth={2} /> {ev.images.length}</span>
                     )}
                   </div>
                   <div className="past-event-card__body">
@@ -578,7 +579,7 @@ export default function FacultyDashboard() {
         {/* ── Faculty Feedback & Suggestions ── */}
         <PlatformFeedbackSection
           title="Faculty Feedback & Institutional Suggestions"
-          subtitle="Share your suggestions for academic wellbeing, institutional events, staff-student support initiatives, or platform enhancements."
+          subtitle="Share your suggestions for academic Wellbeing, institutional events, staff-student support initiatives, or platform enhancements."
         />
 
       </div>

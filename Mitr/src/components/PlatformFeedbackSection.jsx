@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { feedbackAPI } from '../api';
 import './PlatformFeedbackSection.css';
+import { AlertOctagon } from 'lucide-react';
 
 const FEEDBACK_TYPES = [
   'General Feedback',
@@ -82,7 +83,7 @@ export default function PlatformFeedbackSection({ title = 'Share Your Feedback',
           <span className="section-tag">Community & Continuous Improvement</span>
           <h2 className="feedback-section__title">{title}</h2>
           <p className="feedback-section__subtitle">
-            {subtitle || 'Your suggestions, event ideas, and experiences guide how we enhance mental health and wellbeing at COEP.'}
+            {subtitle || 'Your suggestions, event ideas, and experiences guide how we enhance mental health and Wellbeing at COEP.'}
           </p>
         </div>
         <button
@@ -102,7 +103,7 @@ export default function PlatformFeedbackSection({ title = 'Share Your Feedback',
 
       {errorMsg && (
         <div className="feedback-alert feedback-alert--error">
-          <span>⚠️</span> {errorMsg}
+          <span><AlertOctagon size={16} strokeWidth={2} /></span> {errorMsg}
         </div>
       )}
 

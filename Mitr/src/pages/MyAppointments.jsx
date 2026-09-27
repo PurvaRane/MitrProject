@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../App';
 import { appointmentAPI } from '../api';
 import './MyAppointments.css';
+import { CalendarDays, Eye, Trash2 } from 'lucide-react';
 
 export default function MyAppointments() {
   const navigate = useNavigate();
@@ -55,7 +56,7 @@ export default function MyAppointments() {
         <div className="my-appts-header">
           <button className="btn-back" onClick={() => navigate(-1)}>← Back</button>
           <h1 className="my-appts-title">My Appointments</h1>
-          <p className="my-appts-sub">Your wellbeing matters. Keep track of your sessions here.</p>
+          <p className="my-appts-sub">Your Wellbeing matters. Keep track of your sessions here.</p>
         </div>
 
         <button className="btn btn-mint btn-full-width" onClick={() => navigate('/book-appointment')}>
@@ -89,7 +90,7 @@ export default function MyAppointments() {
               appointments[tab].map(appt => (
                 <div key={appt._id} className="card appt-card animate-fade-in">
                   <div className="appt-card-top">
-                    <div className="appt-card-date-icon">📅</div>
+                    <div className="appt-card-date-icon"><CalendarDays size={20} strokeWidth={2} /></div>
                     <div className="appt-card-info">
                       <div className="appt-datetime">
                         {formatDateDisplay(appt.date)} at {appt.startTime}
@@ -104,15 +105,15 @@ export default function MyAppointments() {
 
                   <div className="appt-card-actions">
                     <button className="btn-action view-details" onClick={() => alert('Appointment ID: ' + appt.appointmentId + '\\nReason: ' + appt.reason)}>
-                      👁 View Details
+                      <Eye size={20} strokeWidth={2} /> View Details
                     </button>
                     {(appt.status === 'confirmed' || appt.status === 'rejected') && tab === 'upcoming' && (
                       <>
                         <button className="btn-action reschedule" onClick={() => handleReschedule(appt._id)}>
-                          📅 Reschedule
+                          <CalendarDays size={20} strokeWidth={2} /> Reschedule
                         </button>
                         <button className="btn-action cancel" onClick={() => handleCancel(appt._id)}>
-                          🗑 Cancel
+                          <Trash2 size={20} strokeWidth={2} /> Cancel
                         </button>
                       </>
                     )}

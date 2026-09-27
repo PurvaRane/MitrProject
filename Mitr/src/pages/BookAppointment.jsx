@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { AuthContext } from '../App';
 import { appointmentAPI } from '../api';
 import './BookAppointment.css';
+import { LockKeyhole } from 'lucide-react';
 
 export default function BookAppointment() {
   const { user } = useContext(AuthContext);
@@ -326,7 +327,7 @@ export default function BookAppointment() {
 
                 {/* Privacy Note */}
                 <div className="privacy-note-block">
-                  <div className="privacy-note-icon">🔒</div>
+                  <div className="privacy-note-icon"><LockKeyhole size={24} strokeWidth={2} /></div>
                   <div>
                     <strong>Your Privacy Matters</strong>
                     <p>

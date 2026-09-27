@@ -6,6 +6,7 @@ import { authAPI, appointmentAPI, pastEventsAPI } from '../api';
 import OnboardingModal from '../components/OnboardingModal';
 import PlatformFeedbackSection from '../components/PlatformFeedbackSection';
 import './UserDashboard.css';
+import { Target, CalendarDays, Sparkles, HeartHandshake, TrendingUp, NotebookPen, Sprout, Camera, MapPin, X, Clock } from 'lucide-react';
 
 function formatDate(d) {
   if (!d) return '';
@@ -47,14 +48,14 @@ function PastEventModal({ event, onClose }) {
   return (
     <div className="past-event-modal-overlay" onClick={onClose}>
       <div className="past-event-modal" onClick={e => e.stopPropagation()}>
-        <button className="past-event-modal__close" onClick={onClose} aria-label="Close">✕</button>
+        <button className="past-event-modal__close" onClick={onClose} aria-label="Close"><X size={20} strokeWidth={2} /></button>
 
         <div className="past-event-modal__header">
           <span className="badge badge-lavender">{event.category}</span>
           <h2 className="past-event-modal__title">{event.title}</h2>
           <div className="past-event-modal__meta">
             {event.eventDate && <span>{formatDate(event.eventDate)}</span>}
-            {event.location && <span>📍 {event.location}</span>}
+            {event.location && <span><MapPin size={16} strokeWidth={2} /> {event.location}</span>}
             {event.organizer && <span>{event.organizer}</span>}
           </div>
         </div>
@@ -192,11 +193,11 @@ export default function UserDashboard() {
         {/* ── Main CTA Cards ── */}
         <div className="ud-main-ctas">
           <Link to="/challenge" className="ud-cta-card ud-cta-challenge">
-            <div className="ud-cta-icon">🎯</div>
+            <div className="ud-cta-icon"><Target size={28} strokeWidth={2} /></div>
             <h3>Discover Challenges</h3>
           </Link>
           <Link to="/book-appointment" className="ud-cta-card ud-cta-session">
-            <div className="ud-cta-icon">📅</div>
+            <div className="ud-cta-icon"><CalendarDays size={28} strokeWidth={2} /></div>
             <h3>Book Session</h3>
           </Link>
         </div>
@@ -204,19 +205,19 @@ export default function UserDashboard() {
         {/* ── Quick Actions ── */}
         <div className="ud-quick-actions">
           <Link to="/events" className="ud-qa-item">
-            <div className="ud-qa-icon">🌟</div>
+            <div className="ud-qa-icon"><Sparkles size={22} strokeWidth={2} /></div>
             <span>Events</span>
           </Link>
           <Link to="/support" className="ud-qa-item">
-            <div className="ud-qa-icon">❤️</div>
+            <div className="ud-qa-icon"><HeartHandshake size={22} strokeWidth={2} /></div>
             <span>Support</span>
           </Link>
           <Link to="/personal-growth" className="ud-qa-item">
-            <div className="ud-qa-icon">📈</div>
+            <div className="ud-qa-icon"><TrendingUp size={22} strokeWidth={2} /></div>
             <span>Growth</span>
           </Link>
           <Link to="/reflect" className="ud-qa-item">
-            <div className="ud-qa-icon">📓</div>
+            <div className="ud-qa-icon"><NotebookPen size={22} strokeWidth={2} /></div>
             <span>Journal</span>
           </Link>
         </div>
@@ -366,7 +367,7 @@ export default function UserDashboard() {
             <div className="ud-loading">Loading events gallery…</div>
           ) : pastEvents.length === 0 ? (
             <div className="user-dash__empty past-events-empty">
-              <div className="past-events-empty-icon">🌱</div>
+              <div className="past-events-empty-icon"><Sprout size={28} strokeWidth={2} /></div>
               <p>Past activities and event moments will appear here.</p>
             </div>
           ) : (
@@ -385,7 +386,7 @@ export default function UserDashboard() {
                       <img src={ev.featuredImage} alt={ev.title} className="past-event-card__img" />
                     ) : (
                       <div className="past-event-card__placeholder">
-                        <span>📷</span>
+                        <Camera size={20} strokeWidth={2} />
                       </div>
                     )}
                     <div className="past-event-card__overlay">
@@ -393,7 +394,7 @@ export default function UserDashboard() {
                     </div>
                     <span className="past-event-card__category badge badge-lavender">{ev.category}</span>
                     {ev.images?.length > 0 && (
-                      <span className="past-event-card__count">📷 {ev.images.length}</span>
+                      <span className="past-event-card__count"><Camera size={14} strokeWidth={2} /> {ev.images.length}</span>
                     )}
                   </div>
                   <div className="past-event-card__body">
@@ -461,7 +462,7 @@ export default function UserDashboard() {
         {/* ── Platform Feedback ── */}
         <PlatformFeedbackSection
           title="Student Feedback & Suggestions"
-          subtitle="Have suggestions for workshops, peer activities, or wellbeing resources? Share your voice directly with the COEP मित्र team."
+          subtitle="Have suggestions for workshops, peer activities, or Wellbeing resources? Share your voice directly with the COEP मित्र team."
         />
 
       </div>

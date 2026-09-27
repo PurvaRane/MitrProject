@@ -120,7 +120,7 @@ export default function HomePage() {
                 <>
                   <h2 className="section-title">Your safe space within the campus community</h2>
                   <div className="divider" />
-                  <p className="section-subtitle">COEP मित्र is the official mental health and wellbeing initiative of COEP Technological University. Login or register to access all features.</p>
+                  <p className="section-subtitle">COEP मित्र is the official mental health and Wellbeing initiative of COEP Technological University. Login or register to access all features.</p>
                 </>
               )}
             </div>
@@ -167,7 +167,7 @@ export default function HomePage() {
                 <span className="badge badge-mint">Wellbeing Challenges</span>
                 <h2 className="challenge-banner__title">Join a Challenge</h2>
                 <p className="challenge-banner__sub">
-                  Participate in wellbeing challenges to build long-term healthy habits.
+                  Participate in Wellbeing challenges to build long-term healthy habits.
                   Login to track your personal progress.
                 </p>
                 <div className="challenge-banner__cta">

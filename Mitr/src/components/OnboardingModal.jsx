@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import './OnboardingModal.css';
+import { Sprout, CalendarDays, Sparkles } from 'lucide-react';
 
 export default function OnboardingModal({ onComplete }) {
   const [step, setStep] = useState(1);
@@ -8,18 +9,18 @@ export default function OnboardingModal({ onComplete }) {
   const steps = [
     {
       title: 'Welcome to COEP मित्र',
-      text: 'Your institutional companion for mental health and wellbeing. We\'re glad you\'re here.',
-      icon: '🌿',
+      text: 'Your institutional companion for mental health and Wellbeing. We\'re glad you\'re here.',
+      icon: <Sprout size={32} strokeWidth={2} />,
     },
     {
       title: 'Explore Wellness Events',
       text: 'Participate in workshops, seminars, and awareness sessions organized by the COEP Technological University Wellness Centre.',
-      icon: '📅',
+      icon: <CalendarDays size={32} strokeWidth={2} />,
     },
     {
       title: 'Join Wellbeing Challenges',
       text: 'Engage in small, meaningful daily acts of self-care. Write reflections and track your progress.',
-      icon: '✨',
+      icon: <Sparkles size={32} strokeWidth={2} />,
     },
   ];
 

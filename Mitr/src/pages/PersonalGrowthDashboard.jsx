@@ -21,6 +21,18 @@ import {
   Clock,
   ArrowRight,
   TrendingUp,
+  CloudSun,
+  Flame,
+  HeartHandshake,
+  AlertTriangle,
+  Annoyed,
+  Angry,
+  Users,
+  Moon,
+  Waves,
+  CalendarDays,
+  X,
+  AlertOctagon,
 } from 'lucide-react';
 import { AuthContext } from '../App';
 import { useApp } from '../context/AppContext';
@@ -50,17 +62,17 @@ const DEPARTMENTS = [
 ];
 
 const FEELING_OPTIONS = [
-  { id: 'calm', label: 'Calm', emoji: '😌' },
-  { id: 'happy', label: 'Happy', emoji: '😊' },
-  { id: 'motivated', label: 'Motivated', emoji: '🔥' },
-  { id: 'grateful', label: 'Grateful', emoji: '🙏' },
-  { id: 'anxious', label: 'Anxious', emoji: '😰' },
-  { id: 'stressed', label: 'Stressed', emoji: '😣' },
-  { id: 'overwhelmed', label: 'Overwhelmed', emoji: '🌊' },
-  { id: 'frustrated', label: 'Frustrated', emoji: '😤' },
-  { id: 'angry', label: 'Angry', emoji: '😠' },
-  { id: 'lonely', label: 'Lonely', emoji: '🫂' },
-  { id: 'tired', label: 'Tired', emoji: '😴' },
+  { id: 'calm', label: 'Calm', icon: CloudSun },
+  { id: 'happy', label: 'Happy', icon: Smile },
+  { id: 'motivated', label: 'Motivated', icon: Flame },
+  { id: 'grateful', label: 'Grateful', icon: HeartHandshake },
+  { id: 'anxious', label: 'Anxious', icon: AlertTriangle },
+  { id: 'stressed', label: 'Stressed', icon: Annoyed },
+  { id: 'overwhelmed', label: 'Overwhelmed', icon: Waves },
+  { id: 'frustrated', label: 'Frustrated', icon: Frown },
+  { id: 'angry', label: 'Angry', icon: Angry },
+  { id: 'lonely', label: 'Lonely', icon: Users },
+  { id: 'tired', label: 'Tired', icon: Moon },
 ];
 
 export default function PersonalGrowthDashboard() {
@@ -359,7 +371,7 @@ export default function PersonalGrowthDashboard() {
               </h1>
               <div className="divider" style={{ marginBottom: '0.75rem' }} />
               <p className="pg-header__subtitle">
-                Track your emotional wellbeing, reflect on your thoughts, and review your personal care journey at COEP.
+                Track your emotional Wellbeing, reflect on your thoughts, and review your personal care journey at COEP.
               </p>
             </div>
 
@@ -636,7 +648,7 @@ export default function PersonalGrowthDashboard() {
                           </span>
                         </div>
                         <div className="text-muted" style={{ fontSize: '0.8rem' }}>
-                          📅 {appt.date} • ⏰ {appt.startTime || 'Scheduled'}
+                          <CalendarDays size={14} strokeWidth={2} /> {appt.date} • <Clock size={14} strokeWidth={2} /> {appt.startTime || 'Scheduled'}
                         </div>
                       </div>
                     ))}
@@ -669,7 +681,7 @@ export default function PersonalGrowthDashboard() {
             )}
             {moodError && (
               <div className="feedback-alert feedback-alert--error">
-                <span>⚠️</span> {moodError}
+                <span><AlertOctagon size={16} strokeWidth={2} /></span> {moodError}
               </div>
             )}
 
@@ -754,6 +766,7 @@ export default function PersonalGrowthDashboard() {
                     <div className="pg-feeling-chips">
                       {FEELING_OPTIONS.map(opt => {
                         const isSelected = moodForm.feeling === opt.id;
+                        const FeelingIcon = opt.icon;
                         return (
                           <button
                             key={opt.id}
@@ -766,7 +779,7 @@ export default function PersonalGrowthDashboard() {
                               }))
                             }
                           >
-                            <span>{opt.emoji}</span>
+                            <FeelingIcon size={18} strokeWidth={2} />
                             <span>{opt.label}</span>
                           </button>
                         );
@@ -1023,7 +1036,7 @@ export default function PersonalGrowthDashboard() {
                       className="pg-modal__close"
                       onClick={() => setViewingEntry(null)}
                     >
-                      ✕
+                      <X size={20} strokeWidth={2} />
                     </button>
                   </div>
 
@@ -1072,7 +1085,7 @@ export default function PersonalGrowthDashboard() {
                       className="pg-modal__close"
                       onClick={() => setEditingEntry(null)}
                     >
-                      ✕
+                      <X size={20} strokeWidth={2} />
                     </button>
                   </div>
 
@@ -1148,7 +1161,7 @@ export default function PersonalGrowthDashboard() {
               <h2 className="section-title">Care &amp; Counseling History</h2>
               <div className="divider" />
               <p className="section-subtitle">
-                Your private record of consultations with university counselor Dr. Kshipra V. Moghe and assigned wellbeing exercises.
+                Your private record of consultations with university counselor Dr. Kshipra V. Moghe and assigned Wellbeing exercises.
               </p>
             </div>
 
@@ -1283,7 +1296,7 @@ export default function PersonalGrowthDashboard() {
               <h2 className="section-title">Activity Tracker</h2>
               <div className="divider" />
               <p className="section-subtitle">
-                A single hub consolidating your upcoming wellbeing events, active challenges, and personal streaks.
+                A single hub consolidating your upcoming Wellbeing events, active challenges, and personal streaks.
               </p>
             </div>
 
@@ -1313,7 +1326,7 @@ export default function PersonalGrowthDashboard() {
                             <span className="badge badge-mint">{reg.status || 'Registered'}</span>
                           </div>
                           <span className="text-muted" style={{ fontSize: '0.8rem' }}>
-                            📅 {event?.date ? new Date(event.date).toLocaleDateString('en-IN') : 'Upcoming'}
+                            <CalendarDays size={14} strokeWidth={2} /> {event?.date ? new Date(event.date).toLocaleDateString('en-IN') : 'Upcoming'}
                           </span>
                         </div>
                       );

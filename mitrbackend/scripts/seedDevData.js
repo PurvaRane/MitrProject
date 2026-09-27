@@ -73,11 +73,11 @@ async function seedDevData() {
   if (!existingWellness) {
     await WellnessInfo.create({
       title: 'COEP "मित्र" Mental Health & Wellbeing',
-      description: 'COEP "मित्र" is the official mental health and wellbeing initiative of COEP Technological University, Pune. We provide a structured, confidential, and supportive environment for students navigating academic pressure, personal challenges, and everyday stress.',
-      vision: 'To create a campus where every student has access to meaningful mental health support — and where wellbeing is treated as integral to academic excellence, not separate from it.',
+      description: 'COEP "मित्र" is the official mental health and Wellbeing initiative of COEP Technological University, Pune. We provide a structured, confidential, and supportive environment for students navigating academic pressure, personal challenges, and everyday stress.',
+      vision: 'To create a campus where every student has access to meaningful mental health support — and where Wellbeing is treated as integral to academic excellence, not separate from it.',
       services: [
         { title: 'Individual Counselling', description: 'Confidential one-on-one sessions with trained counsellors, available by appointment.' },
-        { title: 'Wellbeing Challenges', description: 'Participate in various wellbeing challenges to build long-term healthy habits.' },
+        { title: 'Wellbeing Challenges', description: 'Participate in various Wellbeing challenges to build long-term healthy habits.' },
         { title: 'Wellness Events', description: 'Workshops, awareness sessions, and peer-led activities organised throughout the academic year.' },
         { title: 'Reflection Journal', description: 'A private digital journaling space for students and faculty to document thoughts, emotions, and growth.' },
       ],

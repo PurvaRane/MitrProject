@@ -4,6 +4,7 @@ import { useApp } from '../context/AppContext';
 import { adminAPI, submissionsAPI, appointmentAPI, journalAPI, pastEventsAPI, teamAPI, platformContentAPI, challengeAPI } from '../api';
 import './AdminDashboard.css';
 import './BookAppointment.css';
+import { CalendarDays, Images, UsersRound, NotebookPen, CalendarClock, Sprout, LayoutDashboard, X, Smile, Frown, Annoyed, AlertTriangle, Flame, CloudSun, Camera } from 'lucide-react';
 const TABS = ['Overview', 'Events', 'Past Events', 'Team', 'Platform Content', 'Appointments', 'Reports', 'Challenges', 'Wellness Centre', 'Submissions', 'Analytics', 'Users'];
 const CATEGORIES = ['Workshop', 'Awareness', 'Challenge', 'Seminar', 'Other'];
 
@@ -54,14 +55,14 @@ function OverviewTab({ setTab }) {
       </div>
       <div className="admin-quick-actions grid-responsive">
         {[
-          { icon: '📅', title: 'Manage Events', desc: 'Add, edit or delete events', tab: 'Events', color: 'blue' },
-          { icon: '📸', title: 'Past Events', desc: 'Manage historical gallery', tab: 'Past Events', color: 'lavender' },
-          { icon: '👥', title: 'Manage Team', desc: 'I-Care We-Care members', tab: 'Team', color: 'mint' },
-          { icon: '📝', title: 'Platform Content', desc: 'Edit homepage text', tab: 'Platform Content', color: 'peach' },
-          { icon: '📆', title: 'Appointments', desc: 'Manage slots & bookings', tab: 'Appointments', color: 'peach' },
-          { icon: '📝', title: 'User Submissions', desc: 'View reflections & images', tab: 'Submissions', color: 'mint' },
-          { icon: '🌱', title: 'Wellbeing Challenges', desc: 'Manage challenges & tasks', tab: 'Challenges', color: 'lavender' },
-          { icon: '📊', title: 'View Analytics', desc: 'Monitor trends & engagement', tab: 'Analytics', color: 'peach' },
+          { icon: <CalendarDays size={24} strokeWidth={2} />, title: 'Manage Events', desc: 'Add, edit or delete events', tab: 'Events', color: 'blue' },
+          { icon: <Images size={24} strokeWidth={2} />, title: 'Past Events', desc: 'Manage historical gallery', tab: 'Past Events', color: 'lavender' },
+          { icon: <UsersRound size={24} strokeWidth={2} />, title: 'Manage Team', desc: 'I-Care We-Care members', tab: 'Team', color: 'mint' },
+          { icon: <NotebookPen size={24} strokeWidth={2} />, title: 'Platform Content', desc: 'Edit homepage text', tab: 'Platform Content', color: 'peach' },
+          { icon: <CalendarClock size={24} strokeWidth={2} />, title: 'Appointments', desc: 'Manage slots & bookings', tab: 'Appointments', color: 'peach' },
+          { icon: <NotebookPen size={24} strokeWidth={2} />, title: 'User Submissions', desc: 'View reflections & images', tab: 'Submissions', color: 'mint' },
+          { icon: <Sprout size={24} strokeWidth={2} />, title: 'Wellbeing Challenges', desc: 'Manage challenges & tasks', tab: 'Challenges', color: 'lavender' },
+          { icon: <LayoutDashboard size={24} strokeWidth={2} />, title: 'View Analytics', desc: 'Monitor trends & engagement', tab: 'Analytics', color: 'peach' },
         ].map(q => (
           <div key={q.title} className="card admin-quick-card" onClick={() => setTab(q.tab)}>
             <div className={`admin-quick-card__icon admin-icon--${q.color}`}>{q.icon}</div>
@@ -176,7 +177,7 @@ function EventsTab() {
                   )}
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  <button className="admin-delete-btn" onClick={() => handleDelete(ev._id || ev.id)} title="Delete">✕</button>
+                  <button className="admin-delete-btn" onClick={() => handleDelete(ev._id || ev.id)} title="Delete"><X size={16} strokeWidth={2} /></button>
                 </div>
               </div>
             ))}
@@ -249,7 +250,7 @@ function ReportsTab() {
                   <div className="admin-event-item__desc">{r.summary.slice(0, 100)}{r.summary.length > 100 ? '…' : ''}</div>
                   {r.fileUrl && <a href={r.fileUrl} target="_blank" rel="noreferrer" className="admin-report-link">View Report PDF</a>}
                 </div>
-                <button className="admin-delete-btn" onClick={async () => { if (window.confirm('Delete?')) { try { await removeEventReport(r._id); } catch (e) { alert(e.message); } } }}>✕</button>
+                <button className="admin-delete-btn" onClick={async () => { if (window.confirm('Delete?')) { try { await removeEventReport(r._id); } catch (e) { alert(e.message); } } }}><X size={16} strokeWidth={2} /></button>
               </div>
             ))}
           </div>
@@ -449,7 +450,7 @@ function ChallengeTab() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               <button className="btn btn-sm btn-primary" onClick={() => handleManageTasks(c)}>Tasks</button>
               <button className="btn btn-sm btn-secondary" onClick={() => { setSelectedChallenge(c); setChallengeForm(c); setView('edit-challenge'); }}>Edit</button>
-              <button className="admin-delete-btn" onClick={() => handleDeleteChallenge(c._id)}>✕</button>
+              <button className="admin-delete-btn" onClick={() => handleDeleteChallenge(c._id)}><X size={16} strokeWidth={2} /></button>
             </div>
           </div>
         ))}
@@ -512,14 +513,14 @@ function WellnessTab() {
           </div>
           <div className="form-group">
             <label className="form-label">Vision / Motto</label>
-            <textarea className="form-input" rows={3} value={form.vision} onChange={e => setForm(f => ({ ...f, vision: e.target.value }))} placeholder="Our vision for student wellbeing…" />
+            <textarea className="form-input" rows={3} value={form.vision} onChange={e => setForm(f => ({ ...f, vision: e.target.value }))} placeholder="Our vision for student Wellbeing…" />
           </div>
           <div className="form-group">
             <label className="form-label">Services Offered</label>
             {form.services.map((s, i) => (
               <div key={i} className="admin-service-row">
                 <div><strong>{s.title}</strong> - {s.description}</div>
-                <button type="button" className="admin-delete-btn" onClick={() => removeService(i)}>✕</button>
+                <button type="button" className="admin-delete-btn" onClick={() => removeService(i)}><X size={16} strokeWidth={2} /></button>
               </div>
             ))}
             <div className="admin-add-service">
@@ -758,12 +759,12 @@ function SubmissionsTab() {
                         <td>
                           {j.mood && j.mood !== 'none' ? (
                             <span className="admin-mood-badge">
-                              {j.mood === 'happy' && '😊'}
-                              {j.mood === 'sad' && '😔'}
-                              {j.mood === 'stressed' && '😫'}
-                              {j.mood === 'anxious' && '😰'}
-                              {j.mood === 'motivated' && '🔥'}
-                              {j.mood === 'calm' && '😌'}
+                              {j.mood === 'happy' && <Smile size={16} strokeWidth={2} />}
+                              {j.mood === 'sad' && <Frown size={16} strokeWidth={2} />}
+                              {j.mood === 'stressed' && <Annoyed size={16} strokeWidth={2} />}
+                              {j.mood === 'anxious' && <AlertTriangle size={16} strokeWidth={2} />}
+                              {j.mood === 'motivated' && <Flame size={16} strokeWidth={2} />}
+                              {j.mood === 'calm' && <CloudSun size={16} strokeWidth={2} />}
                             </span>
                           ) : '-'}
                         </td>
@@ -1004,7 +1005,7 @@ function AvailabilityManager() {
     setGenLoading(true);
     try {
       await appointmentAPI.adminSetAvailability({ date: selDate, slots: generated });
-      showToast(`✅ ${generated.length} slot(s) added for ${selDate}.`);
+      showToast(`Success: ${generated.length} slot(s) added for ${selDate}.`);
       loadSlots(selDate);
     } catch (err) {
       showToast(err.message, 'error');
@@ -1039,7 +1040,7 @@ function AvailabilityManager() {
 
   return (
     <div className="avail-manager">
-      <h3 className="admin-section-title" style={{ marginBottom: '1rem' }}>📅 Manage Availability Slots</h3>
+      <h3 className="admin-section-title" style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '8px' }}><CalendarDays size={20} strokeWidth={2} /> Manage Availability Slots</h3>
       <div className="admin-two-col">
         {/* Left: Date selector + Slot generator */}
         <div className="admin-form-side">
@@ -1126,7 +1127,7 @@ function AvailabilityManager() {
                         className="admin-delete-btn"
                         onClick={() => handleRemoveSlot(s.startTime)}
                         title="Remove slot"
-                      >✕</button>
+                      ><X size={16} strokeWidth={2} /></button>
                     )}
                   </div>
                 ))}
@@ -1224,7 +1225,8 @@ function AppointmentsTab() {
         <button
           className={`btn btn-sm ${subTab === 'availability' ? 'btn-primary' : 'btn-secondary'}`}
           onClick={() => setSubTab('availability')}
-        >📅 Set Availability</button>
+          style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+        ><CalendarDays size={16} strokeWidth={2} /> Set Availability</button>
       </div>
 
       {subTab === 'availability' && <AvailabilityManager />}
@@ -1381,7 +1383,7 @@ function PastEventsTab() {
             <div key={ev._id} className="admin-list-item card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div className="admin-list-item__main" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                 <div style={{ width: 60, height: 60, background: 'var(--off-white)', flexShrink: 0, borderRadius: 4, overflow: 'hidden' }}>
-                  {ev.featuredImage ? <img src={ev.featuredImage} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt=""/> : <div style={{width:'100%', height:'100%', display:'flex', alignItems:'center', justifyContent:'center'}}>📷</div>}
+                  {ev.featuredImage ? <img src={ev.featuredImage} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt=""/> : <div style={{width:'100%', height:'100%', display:'flex', alignItems:'center', justifyContent:'center'}}><Camera size={24} strokeWidth={2} color="#999" /></div>}
                 </div>
                 <div>
                   <strong style={{ display: 'block', marginBottom: '4px' }}>{ev.title}</strong>

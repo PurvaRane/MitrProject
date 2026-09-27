@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import './ReflectionPage.css';
+import { MessageSquare, X } from 'lucide-react';
+import { Smile, Meh, Zap, AlertOctagon, Waves, Frown, MessageSquare as MoodMessageSquare, Moon, Sparkles } from 'lucide-react';
 
 const PROMPTS = [
   'What made me smile today?',
@@ -75,17 +77,17 @@ export default function ReflectionPage() {
   );
 
   const MOODS = [
-    { v: 'happy',       e: '😊', label: 'Happy'       },
-    { v: 'calm',        e: '😌', label: 'Calm'        },
-    { v: 'excited',     e: '🤩', label: 'Excited'     },
-    { v: 'anxious',     e: '😰', label: 'Anxious'     },
-    { v: 'stressed',    e: '😣', label: 'Stressed'    },
-    { v: 'overwhelmed', e: '🌊', label: 'Overwhelmed' },
-    { v: 'frustrated',  e: '😤', label: 'Frustrated'  },
-    { v: 'angry',       e: '😠', label: 'Angry'       },
-    { v: 'sad',         e: '😔', label: 'Sad'         },
-    { v: 'lonely',      e: '🫂', label: 'Lonely'      },
-    { v: 'tired',       e: '😴', label: 'Tired'       },
+    { v: 'happy',       icon: <Smile size={20} strokeWidth={2} />, label: 'Happy'       },
+    { v: 'calm',        icon: <Meh size={20} strokeWidth={2} />, label: 'Calm'        },
+    { v: 'excited',     icon: <Zap size={20} strokeWidth={2} />, label: 'Excited'     },
+    { v: 'anxious',     icon: <AlertOctagon size={20} strokeWidth={2} />, label: 'Anxious'     },
+    { v: 'stressed',    icon: <AlertOctagon size={20} strokeWidth={2} />, label: 'Stressed'    },
+    { v: 'overwhelmed', icon: <Waves size={20} strokeWidth={2} />, label: 'Overwhelmed' },
+    { v: 'frustrated',  icon: <Zap size={20} strokeWidth={2} />, label: 'Frustrated'  },
+    { v: 'angry',       icon: <Zap size={20} strokeWidth={2} />, label: 'Angry'       },
+    { v: 'sad',         icon: <Frown size={20} strokeWidth={2} />, label: 'Sad'         },
+    { v: 'lonely',      icon: <MessageSquare size={20} strokeWidth={2} />, label: 'Lonely'      },
+    { v: 'tired',       icon: <Moon size={20} strokeWidth={2} />, label: 'Tired'       },
   ];
 
   return (
@@ -107,7 +109,7 @@ export default function ReflectionPage() {
         {/* Compose */}
         <div className="refl-compose card">
           <div className="refl-prompt glass-blue">
-            <span className="refl-prompt__icon">💭</span>
+            <span className="refl-prompt__icon"><MoodMessageSquare size={24} strokeWidth={2} /></span>
             <span key={promptIdx} className="refl-prompt__text affirmation-text">{PROMPTS[promptIdx]}</span>
           </div>
 
@@ -229,7 +231,7 @@ export default function ReflectionPage() {
                         onClick={() => handleDelete(entry._id)}
                         aria-label="Delete entry"
                         title="Delete"
-                      >✕</button>
+                      ><X size={16} strokeWidth={2} /></button>
                     </div>
                   </div>
 

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import './EventsPage.css';
+import { AlertOctagon, CalendarDays } from 'lucide-react';
 
 const FILTERS = ['All', 'Workshop', 'Awareness', 'Challenge', 'Seminar', 'Other'];
 
@@ -69,7 +70,7 @@ export default function EventsPage() {
           <h1 className="section-title">Calendar of Care</h1>
           <div className="divider" />
           <p className="section-subtitle">
-            Workshops, awareness sessions, and challenges - designed to nurture your wellbeing.
+            Workshops, awareness sessions, and challenges - designed to nurture your Wellbeing.
           </p>
 
           {/* Filters */}
@@ -98,7 +99,7 @@ export default function EventsPage() {
 
         {fetchError && (
           <div className="events-error" role="alert">
-            ⚠️ {fetchError}
+            <AlertOctagon size={20} strokeWidth={2} /> {fetchError}
           </div>
         )}
 
@@ -149,7 +150,7 @@ export default function EventsPage() {
 
                     <div className="event-card__footer">
                       <div className="event-card__meta">
-                        <span>📅 {formatDate(ev.date)}</span>
+                        <span><CalendarDays size={20} strokeWidth={2} /> {formatDate(ev.date)}</span>
                       </div>
 
                       {ev.registrationRequired ? (
