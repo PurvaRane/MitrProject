@@ -7,11 +7,11 @@ const challengeSchema = new mongoose.Schema(
     category: {
       type: String,
       enum: [
-        'Mental Wellbeing', 'Mental Well-being',
-        'Physical Wellbeing', 'Physical Well-being',
-        'Emotional Wellbeing', 'Emotional Well-being',
-        'Social Wellbeing', 'Social Well-being',
-        'Academic Wellbeing', 'Academic Well-being',
+        'Mental Wellbeing', 'Mental Wellbeing',
+        'Physical Wellbeing', 'Physical Wellbeing',
+        'Emotional Wellbeing', 'Emotional Wellbeing',
+        'Social Wellbeing', 'Social Wellbeing',
+        'Academic Wellbeing', 'Academic Wellbeing',
         'Mindfulness', 'Sleep', 'Digital Wellness', 'Self-care', 'Gratitude', 'Other'
       ],
       default: 'Mental Wellbeing',
