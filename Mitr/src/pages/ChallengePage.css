@@ -198,8 +198,8 @@
 
 .challenge-item-card__banner {
   height: 110px;
-  background: linear-gradient(135deg, #ECFDF5 0%, #A7F3D0 100%);
-  border-bottom: 1px solid rgba(226, 232, 240, 0.7);
+  background: linear-gradient(135deg, var(--mitr-cloud) 0%, var(--mitr-soft-lilac) 100%);
+  border-bottom: 1px solid var(--mitr-border);
   position: relative;
   overflow: hidden;
 }

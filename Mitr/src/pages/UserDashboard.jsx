@@ -53,9 +53,9 @@ function PastEventModal({ event, onClose }) {
           <span className="badge badge-lavender">{event.category}</span>
           <h2 className="past-event-modal__title">{event.title}</h2>
           <div className="past-event-modal__meta">
-            {event.eventDate && <span>📅 {formatDate(event.eventDate)}</span>}
+            {event.eventDate && <span>{formatDate(event.eventDate)}</span>}
             {event.location && <span>📍 {event.location}</span>}
-            {event.organizer && <span>🏛️ {event.organizer}</span>}
+            {event.organizer && <span>{event.organizer}</span>}
           </div>
         </div>
 
@@ -178,7 +178,7 @@ export default function UserDashboard() {
       <div className="user-dash__header">
         <div className="container user-dash__header-inner">
           <div className="ud-greeting">
-            <h1 className="ud-greeting__title">Hello {user?.name?.split(' ')[0] || 'Student'} 👋</h1>
+            <h1 className="ud-greeting__title">Hello {user?.name?.split(' ')[0] || 'Student'} !</h1>
             <p className="ud-greeting__sub">
               {user?.year && user?.branch ? `${user.year} · ${user.branch}` : 'Student Dashboard'}
             </p>
@@ -253,21 +253,7 @@ export default function UserDashboard() {
           </section>
         )}
 
-        {/* ── Wellbeing Challenges CTA ── */}
-        <section className="user-dash__section">
-          <div className="user-dash__refl-banner card glass" style={{ borderColor: 'var(--border)' }}>
-            <div className="user-dash__refl-banner-content">
-              <div className="user-dash__refl-icon" style={{ backgroundColor: 'rgba(56, 178, 172, 0.1)', color: 'var(--mint)' }}>
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-              </div>
-              <div>
-                <h3 className="user-dash__refl-title">Wellbeing Challenges</h3>
-                <p className="user-dash__refl-sub">Join guided challenges, complete tasks at your own pace, and build healthy habits.</p>
-              </div>
-            </div>
-            <Link to="/challenge" className="btn btn-primary btn-sm">Explore Challenges</Link>
-          </div>
-        </section>
+
 
         {/* ── My Appointments ── */}
         <section className="user-dash__section">

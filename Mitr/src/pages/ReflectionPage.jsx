@@ -245,7 +245,7 @@ export default function ReflectionPage() {
                   )}
 
                   {viewEntry?._id !== entry._id && (
-                    <p className="refl-entry-card__preview">{entry.body.slice(0, 100)}{entry.body.length > 100 ? '…' : ''}</p>
+                    <p className="refl-entry-card__preview">{entry.body}</p>
                   )}
                 </div>
               ))}

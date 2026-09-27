@@ -93,6 +93,7 @@ const seedAdmins = async () => {
       role: admin.role,
       password: admin.password,
       hasSeenOnboarding: true,
+      misId: `ADM-${Date.now()}-${Math.floor(Math.random() * 10000)}`, // Dummy MIS to bypass unique constraint
     };
 
     if (admin.email) userData.email = admin.email;

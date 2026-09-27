@@ -700,7 +700,7 @@ function SubmissionsTab() {
                       <td>
                         {s.reflectionText ? (
                           <div className="admin-sub-refl" title={s.reflectionText}>
-                            {s.reflectionText.slice(0, 50)}{s.reflectionText.length > 50 ? '…' : ''}
+                            {s.reflectionText}
                           </div>
                         ) : <span className="admin-none">No reflection</span>}
                       </td>
@@ -770,7 +770,7 @@ function SubmissionsTab() {
                         <td><strong>{j.title}</strong></td>
                         <td>
                           <div className="admin-sub-refl" title={j.body}>
-                            {j.body.slice(0, 80)}{j.body.length > 80 ? '…' : ''}
+                            {j.body}
                           </div>
                         </td>
                       </tr>
@@ -1291,12 +1291,12 @@ function AppointmentsTab() {
                         </span>
                       </td>
                       <td>
-                        <div title={a.reason} style={{ maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        <div style={{ maxWidth: 250, whiteSpace: 'pre-wrap', color: 'var(--text-secondary)', lineHeight: 1.4 }}>
                           {a.reason || '-'}
                         </div>
                       </td>
                       <td>
-                        <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+                        <div style={{ display: 'flex', gap: '4px', flexWrap: 'nowrap', whiteSpace: 'nowrap' }}>
                           {(a.status === 'confirmed' || a.status === 'pending' || a.status === 'rejected') && (
                             <>
                               {a.status !== 'rejected' && <button className="btn btn-mint btn-sm" onClick={() => handleStatusChange(a._id, 'completed')}>Done</button>}

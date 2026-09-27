@@ -102,9 +102,11 @@ function App() {
     });
   };
 
+  const ADMIN_ROLES = ['admin', 'master_admin', 'sub_admin'];
+
   const getDashboardPath = () => {
     if (!user) return '/login';
-    if (user.role === 'admin') return '/admin-dashboard';
+    if (ADMIN_ROLES.includes(user.role)) return '/admin-dashboard';
     if (user.role === 'faculty') return '/faculty-dashboard';
     return '/user-dashboard';
   };

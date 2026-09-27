@@ -85,6 +85,7 @@ export const registerFaculty = async (req, res) => {
     name: name.trim(),
     email: normalizedEmail,
     department: department ? department.trim() : '',
+    misId: `FAC-${Date.now()}-${Math.floor(Math.random() * 10000)}`, // Dummy MIS to bypass unique constraint
     password,
     role: 'faculty',
     hasSeenOnboarding: false,

@@ -9,7 +9,10 @@ export default function BottomNav() {
   const location = useLocation();
   const currentPath = location.pathname;
 
-  const homePath = user?.role === 'admin'
+  const ADMIN_ROLES = ['admin', 'master_admin', 'sub_admin'];
+  const isAdmin = ADMIN_ROLES.includes(user?.role);
+
+  const homePath = isAdmin
     ? '/admin-dashboard'
     : user?.role === 'faculty'
     ? '/faculty-dashboard'
@@ -26,6 +29,9 @@ export default function BottomNav() {
   const isEventsActive = currentPath === '/events';
   const isSupportActive = currentPath === '/support';
   const isProfileActive = currentPath === '/profile' || currentPath === '/personal-growth';
+
+  // Don't show bottom nav for admins (they use sidebar/desktop nav)
+  if (isAdmin) return null;
 
   const navItems = [
     {
@@ -53,8 +59,8 @@ export default function BottomNav() {
       isActive: isSupportActive,
     },
     {
-      to: user ? (user.role === 'admin' ? '/profile' : '/personal-growth') : '/login',
-      label: user ? (user.role === 'admin' ? 'Profile' : 'Profile') : 'Login',
+      to: user ? '/personal-growth' : '/login',
+      label: user ? 'Growth' : 'Login',
       icon: User,
       isActive: isProfileActive || (!user && currentPath === '/login'),
     },

@@ -5,9 +5,10 @@
 
 /* Header */
 .admin-dash__header {
-  background: linear-gradient(135deg, #D6EAF8 0%, #E8DAEF 100%);
+  background: linear-gradient(135deg, #18233F 0%, #304B8F 100%);
   padding: var(--space-2xl) 0;
-  border-bottom: 1px solid rgba(174, 214, 241, 0.4);
+  border-bottom: none;
+  box-shadow: 0 4px 16px rgba(24, 35, 63, 0.15);
 }
 
 .admin-dash__header-inner {
@@ -37,7 +38,7 @@
   margin-bottom: var(--space-xs);
 }
 
-.admin-dash__sub { color: var(--text-secondary); font-size: 0.9375rem; }
+.admin-dash__sub { color: rgba(255,255,255,0.7); font-size: 0.9375rem; }
 
 /* Tabs */
 .admin-dash__tabs-wrap {
@@ -414,6 +415,7 @@
   border-bottom: 1px solid var(--baby-blue);
   font-size: 0.875rem;
   vertical-align: middle;
+  white-space: nowrap;
 }
 
 .admin-sub-user {
@@ -425,11 +427,10 @@
 .admin-sub-user span { color: var(--text-muted); font-size: 0.75rem; }
 
 .admin-sub-refl {
-  max-width: 300px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  max-width: 450px;
+  white-space: pre-wrap;
   color: var(--text-secondary);
+  line-height: 1.5;
 }
 
 .admin-sub-img-link {
@@ -497,6 +498,27 @@
   .admin-event-item__meta { flex-wrap: wrap; }
   .admin-submission-switcher .btn { width: 100%; }
   .admin-submissions-filters .form-group > div { flex-direction: column; gap: var(--space-sm) !important; }
+
+  /* Admin table: allow horizontal scroll instead of breaking page */
+  .admin-subs-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .admin-subs-table td { white-space: normal; }
+
+  /* Ensure admin header text is visible on dark bg */
+  .admin-dash__title { color: #ffffff; }
+
+  /* Button groups: wrap and stack */
+  .admin-dash [style*="display: flex"] {
+    flex-wrap: wrap !important;
+  }
+  .admin-dash .btn {
+    flex-shrink: 1;
+    white-space: normal;
+    max-width: 100%;
+  }
+  .admin-dash .btn-sm {
+    padding: 0.4rem 0.9rem;
+    font-size: 0.8125rem;
+  }
 }
 
 /* ── Generic List Styles for Admin Tabs ──────────────────────────────────── */

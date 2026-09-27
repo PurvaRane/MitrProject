@@ -32,6 +32,8 @@
   color: var(--text-secondary);
   background: var(--white);
   transition: all var(--transition-mid);
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 .events-filter-btn:hover { background: var(--baby-blue); }
 .events-filter-btn.active {

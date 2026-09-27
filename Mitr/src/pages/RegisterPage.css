@@ -20,7 +20,7 @@
 }
 .register-blob--1 {
   width: 450px; height: 450px;
-  background: rgba(213, 245, 227, 0.4);
+  background: rgba(167, 155, 216, 0.25);
   top: -120px; right: -100px;
 }
 .register-blob--2 {
@@ -43,7 +43,7 @@
   position: absolute;
   top: 0; left: 0; right: 0;
   height: 4px;
-  background: linear-gradient(90deg, var(--mint-mid), var(--blue-deep), var(--lavender-mid));
+  background: linear-gradient(90deg, var(--mitr-soft-lilac), var(--mitr-deep-blue), var(--mitr-lavender));
 }
 
 .register-card__header {
@@ -126,9 +126,9 @@
   display: flex;
   align-items: center;
   gap: var(--space-sm);
-  background: rgba(213, 245, 227, 0.4);
-  border: 1px solid var(--mint-mid);
-  color: #1E8449;
+  background: rgba(167, 155, 216, 0.15);
+  border: 1px solid var(--mitr-soft-lilac);
+  color: var(--mitr-deep-blue);
   font-size: 0.875rem;
   padding: 0.75rem 1rem;
   border-radius: var(--radius-md);
@@ -203,7 +203,7 @@
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--mint-deep), var(--blue-deep));
+  background: linear-gradient(135deg, var(--mitr-lavender), var(--mitr-deep-blue));
   flex-shrink: 0;
   margin-top: 6px;
 }

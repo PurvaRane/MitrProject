@@ -45,7 +45,7 @@
   position: absolute;
   top: 0; left: 0; right: 0;
   height: 4px;
-  background: linear-gradient(90deg, var(--blue-deep), var(--lavender-mid), var(--mint-mid));
+  background: linear-gradient(90deg, var(--mitr-deep-blue), var(--mitr-lavender), var(--mitr-soft-lilac));
 }
 
 .login-card__header { margin-bottom: var(--space-xl); }

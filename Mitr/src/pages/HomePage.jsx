@@ -1,6 +1,7 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useContext } from 'react';
 import { Link } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
+import { AuthContext } from '../App';
 import './HomePage.css';
 import mentalHealthIllustration from '../assets/illustrations/mental-health.png';
 
@@ -24,6 +25,16 @@ function AnimatedSection({ children, className = '' }) {
 
 export default function HomePage() {
   const { wellnessInfo, wellnessLoading } = useApp();
+  const { user } = useContext(AuthContext);
+
+  const ADMIN_ROLES = ['admin', 'master_admin', 'sub_admin'];
+  const dashboardPath = user
+    ? ADMIN_ROLES.includes(user.role)
+      ? '/admin-dashboard'
+      : user.role === 'faculty'
+      ? '/faculty-dashboard'
+      : '/user-dashboard'
+    : '/login';
 
   return (
     <div className="home">
@@ -56,8 +67,14 @@ export default function HomePage() {
               A safe, confidential, and supportive space - exclusively for COEP Technological University students and faculty.
             </p>
             <div className="hero__cta animate-fade-in-up delay-300">
-              <Link to="/register" className="btn btn-primary">Join the Platform</Link>
-              <Link to="/login" className="btn btn-secondary">Login to Portal</Link>
+              {user ? (
+                <Link to={dashboardPath} className="btn btn-primary">Go to Dashboard</Link>
+              ) : (
+                <>
+                  <Link to="/register" className="btn btn-primary">Join the Platform</Link>
+                  <Link to="/login" className="btn btn-secondary">Login to Portal</Link>
+                </>
+              )}
             </div>
           </div>
 
@@ -154,8 +171,14 @@ export default function HomePage() {
                   Login to track your personal progress.
                 </p>
                 <div className="challenge-banner__cta">
-                  <Link to="/login" className="btn btn-primary">Access Challenges</Link>
-                  <Link to="/register" className="btn btn-secondary">Create Account</Link>
+                  {user ? (
+                    <Link to="/challenge" className="btn btn-primary">Explore Challenges</Link>
+                  ) : (
+                    <>
+                      <Link to="/login" className="btn btn-primary">Access Challenges</Link>
+                      <Link to="/register" className="btn btn-secondary">Create Account</Link>
+                    </>
+                  )}
                 </div>
               </div>
             </div>

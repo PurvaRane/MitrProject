@@ -58,7 +58,8 @@ export default function LoginPage() {
       }
       login(data.user, data.token);
 
-      if (data.user.role === 'admin') {
+      const ADMIN_ROLES = ['admin', 'master_admin', 'sub_admin'];
+      if (ADMIN_ROLES.includes(data.user.role)) {
         navigate('/admin-dashboard');
       } else if (data.user.role === 'faculty') {
         navigate('/faculty-dashboard');

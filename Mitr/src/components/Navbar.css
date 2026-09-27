@@ -207,7 +207,7 @@
   flex-direction: column;
   gap: var(--space-xs);
 
-  background: rgba(255, 255, 255, 0.97);
+  background: rgba(24, 35, 63, 0.98); /* #18233F with slight transparency */
   backdrop-filter: blur(18px);
 
   /* Completely collapsed by default */
@@ -240,7 +240,7 @@
 
   padding: var(--space-md) var(--space-lg);
 
-  border-top: 1px solid var(--baby-blue);
+  border-top: 1px solid rgba(48, 75, 143, 0.5); /* --mitr-deep-blue */
 
   overflow-y: auto;
 
@@ -258,9 +258,9 @@
 
   font-size: 1rem;
 
-  color: var(--text-secondary);
-
+  color: #D9E1F2;
   font-weight: 500;
+  border-left: 4px solid transparent;
 
   transition:
     background var(--transition-fast),
@@ -270,11 +270,10 @@
 
 .navbar__drawer-link:hover,
 .navbar__drawer-link--active {
-  background: var(--baby-blue);
-
-  color: var(--blue-text);
-
+  background: #304B8F;
+  color: #FFFFFF;
   font-weight: 600;
+  border-left-color: #8B78C8;
 }
 
 
@@ -283,7 +282,7 @@
 .navbar__drawer-actions {
   padding-top: var(--space-md);
 
-  border-top: 1px solid var(--baby-blue);
+  border-top: 1px solid rgba(48, 75, 143, 0.5);
 
   margin-top: var(--space-sm);
 
