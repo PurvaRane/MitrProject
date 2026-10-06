@@ -5,7 +5,7 @@ import { adminAPI, submissionsAPI, appointmentAPI, journalAPI, pastEventsAPI, te
 import './AdminDashboard.css';
 import './BookAppointment.css';
 import { CalendarDays, Images, UsersRound, NotebookPen, CalendarClock, Sprout, LayoutDashboard, X, Smile, Frown, Annoyed, AlertTriangle, Flame, CloudSun, Camera } from 'lucide-react';
-const TABS = ['Overview', 'Events', 'Past Events', 'Team', 'Platform Content', 'Appointments', 'Reports', 'Challenges', 'Wellness Centre', 'Submissions', 'Analytics', 'Users'];
+const TABS = ['Overview', 'Events', 'Team', 'Platform Content', 'Appointments', 'Reports', 'Challenges', 'Wellness Centre', 'Submissions', 'Analytics', 'Users'];
 const CATEGORIES = ['Workshop', 'Awareness', 'Challenge', 'Seminar', 'Other'];
 
 function formatDate(d) {
@@ -56,7 +56,6 @@ function OverviewTab({ setTab }) {
       <div className="admin-quick-actions grid-responsive">
         {[
           { icon: <CalendarDays size={24} strokeWidth={2} />, title: 'Manage Events', desc: 'Add, edit or delete events', tab: 'Events', color: 'blue' },
-          { icon: <Images size={24} strokeWidth={2} />, title: 'Past Events', desc: 'Manage historical gallery', tab: 'Past Events', color: 'lavender' },
           { icon: <UsersRound size={24} strokeWidth={2} />, title: 'Manage Team', desc: 'I-Care We-Care members', tab: 'Team', color: 'mint' },
           { icon: <NotebookPen size={24} strokeWidth={2} />, title: 'Platform Content', desc: 'Edit homepage text', tab: 'Platform Content', color: 'peach' },
           { icon: <CalendarClock size={24} strokeWidth={2} />, title: 'Appointments', desc: 'Manage slots & bookings', tab: 'Appointments', color: 'peach' },
@@ -81,7 +80,7 @@ function OverviewTab({ setTab }) {
 // ── Events Tab ────────────────────────────────────────────────────────────────
 function EventsTab() {
   const { events, eventsLoading, addEvent, updateEvent, removeEvent } = useApp();
-  const [form, setForm] = useState({ title: '', description: '', date: '', category: 'Workshop', imageUrl: '', capacity: '', registrationRequired: false, status: 'Upcoming' });
+  const [form, setForm] = useState({ title: '', description: '', date: '', category: 'Workshop', imageUrl: '', location: '', capacity: '', registrationRequired: false, status: 'Upcoming' });
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState({ msg: '', type: 'success' });
 
@@ -96,7 +95,7 @@ function EventsTab() {
     setLoading(true);
     try {
       await addEvent({ ...form, capacity: form.capacity ? parseInt(form.capacity) : null });
-      setForm({ title: '', description: '', date: '', category: 'Workshop', imageUrl: '', capacity: '', registrationRequired: false, status: 'Upcoming' });
+      setForm({ title: '', description: '', date: '', category: 'Workshop', imageUrl: '', location: '', capacity: '', registrationRequired: false, status: 'Upcoming' });
       showToast('Event added successfully.');
     } catch (err) { showToast(err.message, 'error'); }
     finally { setLoading(false); }
@@ -142,6 +141,10 @@ function EventsTab() {
               <select className="form-input" value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))}>
                 {CATEGORIES.map(c => <option key={c}>{c}</option>)}
               </select>
+            </div>
+            <div className="form-group">
+              <label className="form-label">Location (Optional)</label>
+              <input className="form-input" value={form.location} onChange={e => setForm(f => ({ ...f, location: e.target.value }))} placeholder="Event location..." />
             </div>
             <div className="form-group">
               <label className="form-label">Status</label>
@@ -1359,86 +1362,6 @@ function AppointmentsTab() {
   );
 }
 
-// ── Past Events Tab ───────────────────────────────────────────────────────────
-function PastEventsTab() {
-  const [events, setEvents] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [actionLoading, setActionLoading] = useState(false);
-  const [form, setForm] = useState({ title: '', eventDate: '', location: '', category: 'Workshop', shortDescription: '', description: '', organizer: '', featuredImage: '' });
-  const [toast, setToast] = useState({ msg: '', type: 'success' });
-
-  const fetchEvents = async () => {
-    setLoading(true);
-    try {
-      const res = await pastEventsAPI.adminGetAll();
-      if (res.success) setEvents(res.events || []);
-    } catch (err) {
-      setToast({ msg: err.message, type: 'error' });
-    } finally { setLoading(false); }
-  };
-
-  useEffect(() => { fetchEvents(); }, []);
-
-  const handleAdd = async (e) => {
-    e.preventDefault();
-    if (!form.title) { setToast({ msg: 'Title is required', type: 'error' }); return; }
-    setActionLoading(true);
-    try {
-      await pastEventsAPI.create(form);
-      setForm({ title: '', eventDate: '', location: '', category: 'Workshop', shortDescription: '', description: '', organizer: '', featuredImage: '' });
-      fetchEvents();
-      setToast({ msg: 'Past event added.', type: 'success' });
-    } catch (err) { setToast({ msg: err.message, type: 'error' }); }
-    finally { setActionLoading(false); }
-  };
-
-  const handleDelete = async (id) => {
-    if (!window.confirm('Delete this past event?')) return;
-    try {
-      await pastEventsAPI.delete(id);
-      fetchEvents();
-    } catch (err) { setToast({ msg: err.message, type: 'error' }); }
-  };
-
-  return (
-    <div>
-      <h2 className="admin-section-title">Past Events Gallery</h2>
-      <form className="admin-form card" onSubmit={handleAdd}>
-        <div className="form-group"><label className="form-label">Title *</label><input className="form-input" value={form.title} onChange={e => setForm({...form, title: e.target.value})} required /></div>
-        <div style={{ display: 'flex', gap: '1rem' }}>
-          <div className="form-group" style={{ flex: 1 }}><label className="form-label">Category</label><select className="form-input" value={form.category} onChange={e => setForm({...form, category: e.target.value})}><option value="Workshop">Workshop</option><option value="Awareness">Awareness</option><option value="Challenge">Challenge</option><option value="Other">Other</option></select></div>
-          <div className="form-group" style={{ flex: 1 }}><label className="form-label">Event Date</label><input type="date" className="form-input" value={form.eventDate} onChange={e => setForm({...form, eventDate: e.target.value})} /></div>
-        </div>
-        <div className="form-group"><label className="form-label">Location</label><input className="form-input" value={form.location} onChange={e => setForm({...form, location: e.target.value})} /></div>
-        <div className="form-group"><label className="form-label">Featured Image URL (Base64/URL)</label><input className="form-input" value={form.featuredImage} onChange={e => setForm({...form, featuredImage: e.target.value})} /></div>
-        <div className="form-group"><label className="form-label">Short Description</label><textarea className="form-input" rows="2" value={form.shortDescription} onChange={e => setForm({...form, shortDescription: e.target.value})} /></div>
-        <button type="submit" className="btn btn-primary" disabled={actionLoading}>{actionLoading ? 'Saving...' : 'Add Past Event'}</button>
-      </form>
-      {loading ? <div className="admin-loading">Loading past events…</div> : (
-        <div className="admin-list">
-          {events.map(ev => (
-            <div key={ev._id} className="admin-list-item card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div className="admin-list-item__main" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                <div style={{ width: 60, height: 60, background: 'var(--off-white)', flexShrink: 0, borderRadius: 4, overflow: 'hidden' }}>
-                  {ev.featuredImage ? <img src={ev.featuredImage} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt=""/> : <div style={{width:'100%', height:'100%', display:'flex', alignItems:'center', justifyContent:'center'}}><Camera size={24} strokeWidth={2} color="#999" /></div>}
-                </div>
-                <div>
-                  <strong style={{ display: 'block', marginBottom: '4px' }}>{ev.title}</strong>
-                  <div className="text-muted" style={{ fontSize: '0.85rem' }}>{ev.category} • {ev.eventDate ? formatDate(ev.eventDate) : 'No date'}</div>
-                </div>
-              </div>
-              <div className="admin-list-item__actions">
-                <button className="btn btn-peach btn-sm" onClick={() => handleDelete(ev._id)}>Delete</button>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-      <Toast {...toast} />
-    </div>
-  );
-}
-
 // ── Team Tab ──────────────────────────────────────────────────────────────────
 function TeamTab() {
   const [members, setMembers] = useState([]);
@@ -1711,7 +1634,6 @@ export default function AdminDashboard() {
       <div className="container admin-dash__content">
         {tab === 'Overview'         && <OverviewTab setTab={setTab} />}
         {tab === 'Events'           && <EventsTab />}
-        {tab === 'Past Events'      && <PastEventsTab />}
         {tab === 'Team'             && <TeamTab />}
         {tab === 'Platform Content' && <PlatformContentTab />}
         {tab === 'Appointments'     && <AppointmentsTab />}

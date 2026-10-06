@@ -214,18 +214,6 @@ export const teamAPI = {
   delete: (id) => request(`/team/${id}`, { method: 'DELETE' }),
 };
 
-export const pastEventsAPI = {
-  getAll: (params = {}) => {
-    const query = new URLSearchParams(params);
-    const qs = query.toString();
-    return request(`/past-events${qs ? `?${qs}` : ''}`);
-  },
-  getById: (id) => request(`/past-events/${id}`),
-  adminGetAll: () => request('/past-events/admin/all'),
-  create: (data) => request('/past-events', { method: 'POST', body: JSON.stringify(data) }),
-  update: (id, data) => request(`/past-events/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
-  delete: (id) => request(`/past-events/${id}`, { method: 'DELETE' }),
-};
 
 export const platformContentAPI = {
   getPublished: () => request('/platform-content'),

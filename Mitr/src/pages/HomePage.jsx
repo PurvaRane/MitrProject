@@ -55,8 +55,6 @@ export default function HomePage() {
     wellnessLoading,
     events,
     eventsLoading,
-    pastEvents,
-    pastEventsLoading,
     myRegistrations,
     registerForEvent,
     cancelEventRegistration,
@@ -92,45 +90,29 @@ export default function HomePage() {
     (e) => e.status === 'Ongoing' || (e.status !== 'Completed' && isEventToday(e.date))
   );
 
-  // Upcoming events: status is Upcoming (and not today) OR future date and not in ongoing/completed
+  // Upcoming events: strict future date, and not in ongoing.
+  // This automatically handles an event passing its date by excluding it here.
   const upcomingEvents = activeEvents.filter((e) => {
     if (e.status === 'Completed') return false;
     const isOngoing = ongoingEvents.some((o) => (o._id || o.id) === (e._id || e.id));
     if (isOngoing) return false;
-    if (e.status === 'Upcoming') return !isEventToday(e.date);
     return isEventFuture(e.date);
   });
 
-  // Past events: completed regular events + gallery past events
-  const completedRegularEvents = activeEvents.filter(
-    (e) => e.status === 'Completed' || (!isEventToday(e.date) && !isEventFuture(e.date) && e.status !== 'Ongoing')
-  );
-
-  const galleryPastEvents = (pastEvents || []).map((pe) => ({
-    _id: pe._id || pe.id,
-    title: pe.title,
-    description: pe.shortDescription || pe.description,
-    date: pe.eventDate || pe.date,
-    category: pe.category || 'Workshop',
-    imageUrl: pe.featuredImage || pe.imageUrl || (pe.images && pe.images[0]) || null,
-    status: 'Completed',
-    location: pe.location,
-  }));
-
-  const pastEventsList = [...completedRegularEvents];
-  galleryPastEvents.forEach((g) => {
-    const isAlreadyPresent = pastEventsList.some(
-      (c) => (c._id && c._id === g._id) || (c.title && g.title && c.title.toLowerCase().trim() === g.title.toLowerCase().trim())
-    );
-    if (!isAlreadyPresent) {
-      pastEventsList.push(g);
+  // Past events: status is Completed OR date has passed (neither today nor future) and not ongoing.
+  // This ensures events automatically become "past events" once their date passes.
+  const pastEventsList = activeEvents.filter(
+    (e) => {
+      const isOngoing = ongoingEvents.some((o) => (o._id || o.id) === (e._id || e.id));
+      if (isOngoing) return false;
+      return e.status === 'Completed' || (!isEventToday(e.date) && !isEventFuture(e.date));
     }
-  });
+  );
 
   // Gracefully switch to upcoming tab on initial load if ongoing has 0 events
   const hasInitializedTab = useRef(false);
   useEffect(() => {
-    if (!hasInitializedTab.current && !eventsLoading && (events?.length > 0 || pastEvents?.length > 0)) {
+    if (!hasInitializedTab.current && !eventsLoading && (events?.length > 0)) {
       if (ongoingEvents.length === 0 && upcomingEvents.length > 0) {
         setActiveTab('upcoming');
       } else if (ongoingEvents.length === 0 && upcomingEvents.length === 0 && pastEventsList.length > 0) {
@@ -138,7 +120,7 @@ export default function HomePage() {
       }
       hasInitializedTab.current = true;
     }
-  }, [eventsLoading, events?.length, pastEvents?.length, ongoingEvents.length, upcomingEvents.length, pastEventsList.length]);
+  }, [eventsLoading, events?.length, ongoingEvents.length, upcomingEvents.length, pastEventsList.length]);
 
   const ADMIN_ROLES = ['admin', 'master_admin', 'sub_admin'];
   const dashboardPath = user

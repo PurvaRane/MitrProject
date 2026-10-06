@@ -43,6 +43,24 @@ const eventSchema = new mongoose.Schema(
       enum: ['Upcoming', 'Ongoing', 'Completed', 'Cancelled'],
       default: 'Upcoming',
     },
+    location: {
+      type: String,
+      trim: true,
+      maxlength: [200, 'Location too long'],
+      default: '',
+    },
+    organizer: {
+      type: String,
+      trim: true,
+      maxlength: [200, 'Organizer too long'],
+      default: 'COEP "मित्र"',
+    },
+    images: [
+      {
+        url: { type: String, required: true },
+        caption: { type: String, trim: true, maxlength: [200], default: '' },
+      },
+    ],
   },
   { timestamps: true }
 );

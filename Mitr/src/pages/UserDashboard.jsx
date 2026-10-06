@@ -126,8 +126,6 @@ export default function UserDashboard() {
     events, eventsLoading,
     wellnessInfo, wellnessLoading,
     eventReports, reportsLoading,
-    pastEvents, pastEventsLoading,
-    fetchPastEvents,
   } = useApp();
 
   const [expandReport, setExpandReport] = useState(null);
@@ -363,16 +361,25 @@ export default function UserDashboard() {
             A look back at the activities, workshops and initiatives conducted by COEP "मित्र".
           </p>
 
-          {pastEventsLoading ? (
+          {eventsLoading ? (
             <div className="ud-loading">Loading events gallery…</div>
-          ) : pastEvents.length === 0 ? (
-            <div className="user-dash__empty past-events-empty">
-              <div className="past-events-empty-icon"><Sprout size={28} strokeWidth={2} /></div>
-              <p>Past activities and event moments will appear here.</p>
-            </div>
-          ) : (
-            <div className="past-events-grid">
-              {pastEvents.slice(0, 6).map(ev => (
+          ) : (() => {
+            const pastEventsList = (events || []).filter(e => {
+              const isOngoing = e.status === 'Ongoing' || (e.status !== 'Completed' && e.status !== 'Cancelled' && isEventToday(e.date));
+              if (isOngoing) return false;
+              return e.status === 'Completed' || (!isEventToday(e.date) && !isEventFuture(e.date) && e.status !== 'Cancelled');
+            });
+            if (pastEventsList.length === 0) {
+              return (
+                <div className="user-dash__empty past-events-empty">
+                  <div className="past-events-empty-icon"><Sprout size={28} strokeWidth={2} /></div>
+                  <p>Past activities and event moments will appear here.</p>
+                </div>
+              );
+            }
+            return (
+              <div className="past-events-grid">
+                {pastEventsList.slice(0, 6).map(ev => (
                 <div
                   key={ev._id}
                   className="past-event-card card animate-fade-in"
@@ -400,17 +407,18 @@ export default function UserDashboard() {
                   <div className="past-event-card__body">
                     <h3 className="past-event-card__title">{ev.title}</h3>
                     <div className="past-event-card__meta">
-                      {ev.eventDate && <span>{formatEventYear(ev.eventDate)}</span>}
+                      {ev.date && <span>{formatEventYear(ev.date)}</span>}
                       {ev.location && <span>· {ev.location}</span>}
                     </div>
-                    {ev.shortDescription && (
-                      <p className="past-event-card__desc">{ev.shortDescription.slice(0, 80)}{ev.shortDescription.length > 80 ? '…' : ''}</p>
+                    {ev.description && (
+                      <p className="past-event-card__desc">{ev.description.slice(0, 80)}{ev.description.length > 80 ? '…' : ''}</p>
                     )}
                   </div>
                 </div>
               ))}
             </div>
-          )}
+            );
+          })()}
         </section>
 
         {/* ── Event Reports ── */}

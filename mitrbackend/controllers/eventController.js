@@ -16,9 +16,9 @@ export const getEvents = async (req, res) => {
 
 // ── POST /api/events ─────────────────────────────────────────────────────────
 export const createEvent = async (req, res) => {
-  const { title, description, date, category, imageUrl: rawImage } = req.body;
+  const { title, description, date, category, imageUrl: rawImage, location, organizer, images } = req.body;
 
-  console.log('[POST /api/events] Incoming body:', { title, description, date, category });
+  console.log('[POST /api/events] Incoming body:', { title, description, date, category, location });
 
   if (!title || !date) {
     return res.status(400).json({
@@ -48,6 +48,9 @@ export const createEvent = async (req, res) => {
     date: new Date(date),
     category: category || 'Workshop',
     imageUrl,
+    location: location?.trim() || '',
+    organizer: organizer?.trim() || 'COEP "मित्र"',
+    images: images || [],
     status: req.body.status || 'Upcoming',
     capacity: req.body.capacity !== undefined && req.body.capacity !== '' ? Number(req.body.capacity) : null,
     registrationRequired: Boolean(req.body.registrationRequired),
@@ -60,7 +63,7 @@ export const createEvent = async (req, res) => {
 
 // ── PUT /api/events/:id ───────────────────────────────────────────────────────
 export const updateEvent = async (req, res) => {
-  const { title, description, date, category, imageUrl: rawImage, status, capacity, registrationRequired } = req.body;
+  const { title, description, date, category, imageUrl: rawImage, status, capacity, registrationRequired, location, organizer, images } = req.body;
   const event = await Event.findById(req.params.id);
   if (!event) {
     return res.status(404).json({ success: false, message: 'Event not found.' });
@@ -73,6 +76,9 @@ export const updateEvent = async (req, res) => {
   if (status !== undefined) event.status = status;
   if (capacity !== undefined) event.capacity = capacity !== '' && capacity !== null ? Number(capacity) : null;
   if (registrationRequired !== undefined) event.registrationRequired = Boolean(registrationRequired);
+  if (location !== undefined) event.location = location.trim();
+  if (organizer !== undefined) event.organizer = organizer.trim();
+  if (images !== undefined) event.images = images;
 
   if (rawImage !== undefined) {
     if (!rawImage) {
