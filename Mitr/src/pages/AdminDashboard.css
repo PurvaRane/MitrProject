@@ -28,14 +28,19 @@
 
 .admin-dash__welcome {
   font-size: 0.875rem;
-  color: var(--text-secondary);
+  color: rgba(255,255,255,0.85);
 }
 
 .admin-dash__title {
   font-family: var(--font-heading);
   font-size: clamp(1.4rem, 3vw, 2rem);
-  color: var(--text-primary);
+  color: #ffffff;
   margin-bottom: var(--space-xs);
+}
+
+.admin-dash__header .section-tag {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.2);
 }
 
 .admin-dash__sub { color: rgba(255,255,255,0.7); font-size: 0.9375rem; }
