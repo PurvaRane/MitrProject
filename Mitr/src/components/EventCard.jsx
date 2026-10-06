@@ -23,6 +23,28 @@ function getDaysUntil(dateStr) {
   return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
 }
 
+function isEventToday(dateStr) {
+  if (!dateStr) return false;
+  const normalized = typeof dateStr === 'string' && dateStr.length === 10 ? `${dateStr}T12:00:00` : dateStr;
+  const target = new Date(normalized);
+  const now = new Date();
+  return (
+    target.getFullYear() === now.getFullYear() &&
+    target.getMonth() === now.getMonth() &&
+    target.getDate() === now.getDate()
+  );
+}
+
+function isEventFuture(dateStr) {
+  if (!dateStr) return false;
+  const normalized = typeof dateStr === 'string' && dateStr.length === 10 ? `${dateStr}T12:00:00` : dateStr;
+  const target = new Date(normalized);
+  const now = new Date();
+  const dTarget = new Date(target.getFullYear(), target.getMonth(), target.getDate());
+  const dNow = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  return dTarget > dNow;
+}
+
 const CATEGORY_BADGE = {
   Workshop:  'badge-blue',
   Awareness: 'badge-lavender',
@@ -37,7 +59,8 @@ export default function EventCard({ event: ev, isRegistered = false, onRegister,
 
   const days = getDaysUntil(ev.date);
   const badge = CATEGORY_BADGE[ev.category] || 'badge-blue';
-  const isOngoing = ev.status === 'Ongoing' || days === 0;
+  const isPast = ev.status === 'Completed' || (!isEventToday(ev.date) && !isEventFuture(ev.date) && ev.status !== 'Ongoing');
+  const isOngoing = !isPast && (ev.status === 'Ongoing' || days === 0);
   const eventId = ev._id || ev.id;
   const isPending = registeringId === eventId;
 
@@ -85,7 +108,9 @@ export default function EventCard({ event: ev, isRegistered = false, onRegister,
       <div className="event-card__body">
         <div className="event-card__top">
           <span className={`badge ${badge}`}>{ev.category}</span>
-          {isOngoing ? (
+          {isPast ? (
+            <span className="badge badge-peach">Concluded</span>
+          ) : isOngoing ? (
             <span className="countdown-today" style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
               <span
                 style={{
@@ -115,7 +140,11 @@ export default function EventCard({ event: ev, isRegistered = false, onRegister,
             <span><CalendarDays size={18} strokeWidth={2} /> {formatDate(ev.date)}</span>
           </div>
 
-          {ev.registrationRequired ? (
+          {isPast ? (
+            <span className="badge badge-lavender" style={{ alignSelf: 'flex-start', padding: '0.35rem 0.85rem' }}>
+              Event Concluded
+            </span>
+          ) : ev.registrationRequired ? (
             <button
               type="button"
               className={`btn btn-sm ${isRegistered ? 'btn-peach' : 'btn-primary'} event-card__btn`}

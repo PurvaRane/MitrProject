@@ -55,6 +55,8 @@ export default function HomePage() {
     wellnessLoading,
     events,
     eventsLoading,
+    pastEvents,
+    pastEventsLoading,
     myRegistrations,
     registerForEvent,
     cancelEventRegistration,
@@ -64,6 +66,7 @@ export default function HomePage() {
 
   const [activeModalImage, setActiveModalImage] = useState(null);
   const [registeringId, setRegisteringId] = useState(null);
+  const [activeTab, setActiveTab] = useState('ongoing');
 
   const handleRegister = async (eventId, isReg) => {
     if (!user) {
@@ -81,23 +84,61 @@ export default function HomePage() {
     }
   };
 
-  // Filter out completed and cancelled events
-  const activeEvents = (events || []).filter(
-    (e) => e.status !== 'Completed' && e.status !== 'Cancelled'
-  );
+  // Filter out cancelled events
+  const activeEvents = (events || []).filter((e) => e.status !== 'Cancelled');
 
-  // Ongoing events: status is explicitly Ongoing OR date is today
+  // Ongoing events: status is explicitly Ongoing OR date is today (and not completed)
   const ongoingEvents = activeEvents.filter(
-    (e) => e.status === 'Ongoing' || (e.status !== 'Upcoming' ? isEventToday(e.date) : isEventToday(e.date))
+    (e) => e.status === 'Ongoing' || (e.status !== 'Completed' && isEventToday(e.date))
   );
 
-  // Upcoming events: status is Upcoming (and not today) OR future date and not in ongoing
+  // Upcoming events: status is Upcoming (and not today) OR future date and not in ongoing/completed
   const upcomingEvents = activeEvents.filter((e) => {
+    if (e.status === 'Completed') return false;
     const isOngoing = ongoingEvents.some((o) => (o._id || o.id) === (e._id || e.id));
     if (isOngoing) return false;
     if (e.status === 'Upcoming') return !isEventToday(e.date);
     return isEventFuture(e.date);
   });
+
+  // Past events: completed regular events + gallery past events
+  const completedRegularEvents = activeEvents.filter(
+    (e) => e.status === 'Completed' || (!isEventToday(e.date) && !isEventFuture(e.date) && e.status !== 'Ongoing')
+  );
+
+  const galleryPastEvents = (pastEvents || []).map((pe) => ({
+    _id: pe._id || pe.id,
+    title: pe.title,
+    description: pe.shortDescription || pe.description,
+    date: pe.eventDate || pe.date,
+    category: pe.category || 'Workshop',
+    imageUrl: pe.featuredImage || pe.imageUrl || (pe.images && pe.images[0]) || null,
+    status: 'Completed',
+    location: pe.location,
+  }));
+
+  const pastEventsList = [...completedRegularEvents];
+  galleryPastEvents.forEach((g) => {
+    const isAlreadyPresent = pastEventsList.some(
+      (c) => (c._id && c._id === g._id) || (c.title && g.title && c.title.toLowerCase().trim() === g.title.toLowerCase().trim())
+    );
+    if (!isAlreadyPresent) {
+      pastEventsList.push(g);
+    }
+  });
+
+  // Gracefully switch to upcoming tab on initial load if ongoing has 0 events
+  const hasInitializedTab = useRef(false);
+  useEffect(() => {
+    if (!hasInitializedTab.current && !eventsLoading && (events?.length > 0 || pastEvents?.length > 0)) {
+      if (ongoingEvents.length === 0 && upcomingEvents.length > 0) {
+        setActiveTab('upcoming');
+      } else if (ongoingEvents.length === 0 && upcomingEvents.length === 0 && pastEventsList.length > 0) {
+        setActiveTab('past');
+      }
+      hasInitializedTab.current = true;
+    }
+  }, [eventsLoading, events?.length, pastEvents?.length, ongoingEvents.length, upcomingEvents.length, pastEventsList.length]);
 
   const ADMIN_ROLES = ['admin', 'master_admin', 'sub_admin'];
   const dashboardPath = user
@@ -343,73 +384,121 @@ export default function HomePage() {
                 <p>Loading events…</p>
               </div>
             ) : (
-              <div className="public-events__subsections">
-                {/* 1. Ongoing Events */}
-                <div className="public-events__group">
-                  <div className="public-events__group-header">
-                    <div className="public-events__group-title-row">
-                      <span className="public-events__pulse-dot" />
-                      <h3 className="public-events__group-title">Ongoing Events</h3>
-                    </div>
-                    <span className="badge badge-mint">
-                      {ongoingEvents.length} {ongoingEvents.length === 1 ? 'event' : 'events'}
-                    </span>
+              <div className="public-events__content">
+                {/* Status Tabs */}
+                <div className="public-events__tabs-container">
+                  <div className="public-events__tabs" role="tablist" aria-label="Event Status Tabs">
+                    <button
+                      type="button"
+                      role="tab"
+                      aria-selected={activeTab === 'ongoing'}
+                      className={`public-events__tab-btn ${activeTab === 'ongoing' ? 'active' : ''}`}
+                      onClick={() => setActiveTab('ongoing')}
+                    >
+                      {ongoingEvents.length > 0 && <span className="public-events__pulse-dot" style={{ margin: 0 }} />}
+                      <span>Ongoing</span>
+                      <span className="public-events__tab-count">{ongoingEvents.length}</span>
+                    </button>
+                    <button
+                      type="button"
+                      role="tab"
+                      aria-selected={activeTab === 'upcoming'}
+                      className={`public-events__tab-btn ${activeTab === 'upcoming' ? 'active' : ''}`}
+                      onClick={() => setActiveTab('upcoming')}
+                    >
+                      <span>Upcoming</span>
+                      <span className="public-events__tab-count">{upcomingEvents.length}</span>
+                    </button>
+                    <button
+                      type="button"
+                      role="tab"
+                      aria-selected={activeTab === 'past'}
+                      className={`public-events__tab-btn ${activeTab === 'past' ? 'active' : ''}`}
+                      onClick={() => setActiveTab('past')}
+                    >
+                      <span>Past Events</span>
+                      <span className="public-events__tab-count">{pastEventsList.length}</span>
+                    </button>
                   </div>
-
-                  {ongoingEvents.length === 0 ? (
-                    <div className="public-events__empty">
-                      <p>No ongoing events right now.</p>
-                      <span style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>
-                        Check our upcoming events below for scheduled sessions.
-                      </span>
-                    </div>
-                  ) : (
-                    <div className="events-grid grid-responsive">
-                      {ongoingEvents.map((ev) => (
-                        <EventCard
-                          key={ev._id || ev.id}
-                          event={ev}
-                          isRegistered={myRegistrations.some((r) => r.eventId === (ev._id || ev.id))}
-                          onRegister={handleRegister}
-                          registeringId={registeringId}
-                        />
-                      ))}
-                    </div>
-                  )}
                 </div>
 
-                {/* 2. Upcoming Events */}
-                <div className="public-events__group" style={{ marginTop: 'var(--space-xl)' }}>
-                  <div className="public-events__group-header">
-                    <div className="public-events__group-title-row">
-                      <h3 className="public-events__group-title">Upcoming Events</h3>
-                    </div>
-                    <span className="badge badge-blue">
-                      {upcomingEvents.length} {upcomingEvents.length === 1 ? 'event' : 'events'}
-                    </span>
+                {/* Tab Panel: Ongoing */}
+                {activeTab === 'ongoing' && (
+                  <div className="public-events__tab-pane" role="tabpanel">
+                    {ongoingEvents.length === 0 ? (
+                      <div className="public-events__empty">
+                        <p>No ongoing events right now.</p>
+                        <span style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>
+                          Check our upcoming events tab for scheduled sessions.
+                        </span>
+                      </div>
+                    ) : (
+                      <div className="events-grid grid-responsive">
+                        {ongoingEvents.map((ev) => (
+                          <EventCard
+                            key={ev._id || ev.id}
+                            event={ev}
+                            isRegistered={myRegistrations.some((r) => r.eventId === (ev._id || ev.id))}
+                            onRegister={handleRegister}
+                            registeringId={registeringId}
+                          />
+                        ))}
+                      </div>
+                    )}
                   </div>
+                )}
 
-                  {upcomingEvents.length === 0 ? (
-                    <div className="public-events__empty">
-                      <p>No upcoming events posted right now.</p>
-                      <span style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>
-                        The team will announce new sessions here soon - check back regularly.
-                      </span>
-                    </div>
-                  ) : (
-                    <div className="events-grid grid-responsive">
-                      {upcomingEvents.map((ev) => (
-                        <EventCard
-                          key={ev._id || ev.id}
-                          event={ev}
-                          isRegistered={myRegistrations.some((r) => r.eventId === (ev._id || ev.id))}
-                          onRegister={handleRegister}
-                          registeringId={registeringId}
-                        />
-                      ))}
-                    </div>
-                  )}
-                </div>
+                {/* Tab Panel: Upcoming */}
+                {activeTab === 'upcoming' && (
+                  <div className="public-events__tab-pane" role="tabpanel">
+                    {upcomingEvents.length === 0 ? (
+                      <div className="public-events__empty">
+                        <p>No upcoming events posted right now.</p>
+                        <span style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>
+                          The team will announce new sessions here soon - check back regularly.
+                        </span>
+                      </div>
+                    ) : (
+                      <div className="events-grid grid-responsive">
+                        {upcomingEvents.map((ev) => (
+                          <EventCard
+                            key={ev._id || ev.id}
+                            event={ev}
+                            isRegistered={myRegistrations.some((r) => r.eventId === (ev._id || ev.id))}
+                            onRegister={handleRegister}
+                            registeringId={registeringId}
+                          />
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Tab Panel: Past Events */}
+                {activeTab === 'past' && (
+                  <div className="public-events__tab-pane" role="tabpanel">
+                    {pastEventsList.length === 0 ? (
+                      <div className="public-events__empty">
+                        <p>No past events recorded yet.</p>
+                        <span style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>
+                          Completed campus sessions and workshop moments will appear here.
+                        </span>
+                      </div>
+                    ) : (
+                      <div className="events-grid grid-responsive">
+                        {pastEventsList.map((ev) => (
+                          <EventCard
+                            key={ev._id || ev.id}
+                            event={ev}
+                            isRegistered={myRegistrations.some((r) => r.eventId === (ev._id || ev.id))}
+                            onRegister={handleRegister}
+                            registeringId={registeringId}
+                          />
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             )}
           </div>
