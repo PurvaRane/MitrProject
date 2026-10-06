@@ -27,7 +27,7 @@ const DEPARTMENTS = [
   'Instrumentation and Control Engineering',
   'Metallurgy and Materials Technology',
   'Manufacturing Science and Engineering',
-  'AI / Data Science',
+  'Robotics and AI',
   'Applied Sciences & Humanities',
   'Department of Management',
   'Planning Department',
