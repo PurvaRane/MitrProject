@@ -2,7 +2,7 @@ import React, { useContext, useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { AuthContext } from '../App';
 import { useApp } from '../context/AppContext';
-import { authAPI, appointmentAPI, pastEventsAPI } from '../api';
+import { authAPI, appointmentAPI } from '../api';
 import OnboardingModal from '../components/OnboardingModal';
 import PlatformFeedbackSection from '../components/PlatformFeedbackSection';
 import './UserDashboard.css';

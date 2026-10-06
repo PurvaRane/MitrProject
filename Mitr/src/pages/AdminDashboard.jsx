@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../App';
 import { useApp } from '../context/AppContext';
-import { adminAPI, submissionsAPI, appointmentAPI, journalAPI, pastEventsAPI, teamAPI, platformContentAPI, challengeAPI } from '../api';
+import { adminAPI, submissionsAPI, appointmentAPI, journalAPI, teamAPI, platformContentAPI, challengeAPI } from '../api';
 import './AdminDashboard.css';
 import './BookAppointment.css';
 import { CalendarDays, Images, UsersRound, NotebookPen, CalendarClock, Sprout, LayoutDashboard, X, Smile, Frown, Annoyed, AlertTriangle, Flame, CloudSun, Camera } from 'lucide-react';
