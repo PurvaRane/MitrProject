@@ -59,6 +59,7 @@ const DEPARTMENTS = [
   'AI / Data Science',
   'Applied Sciences & Humanities',
   'Department of Management',
+  'Planning Department',
 ];
 
 const FEELING_OPTIONS = [

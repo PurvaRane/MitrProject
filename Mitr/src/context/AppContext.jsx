@@ -32,6 +32,11 @@ export function AppProvider({ children }) {
   }, []);
 
   const fetchMyRegistrations = useCallback(async () => {
+    const token = localStorage.getItem('mitr_token');
+    if (!token) {
+      setMyRegistrations([]);
+      return;
+    }
     try {
       const data = await eventsAPI.getMyRegistrations();
       setMyRegistrations(data.registrations || []);
@@ -48,6 +53,12 @@ export function AppProvider({ children }) {
   const addEvent = useCallback(async (eventData) => {
     const data = await eventsAPI.create(eventData);
     setEvents(prev => [data.event, ...prev]);
+    return data.event;
+  }, []);
+
+  const updateEvent = useCallback(async (id, eventData) => {
+    const data = await eventsAPI.update(id, eventData);
+    setEvents(prev => prev.map(e => ((e._id || e.id) === id ? data.event : e)));
     return data.event;
   }, []);
 
@@ -219,7 +230,7 @@ export function AppProvider({ children }) {
   return (
     <AppContext.Provider value={{
       // Events
-      events, eventsLoading, fetchEvents, addEvent, removeEvent,
+      events, eventsLoading, fetchEvents, addEvent, updateEvent, removeEvent,
       myRegistrations, fetchMyRegistrations, registerForEvent, cancelEventRegistration,
       // Wellness Info
       wellnessInfo, wellnessLoading, fetchWellnessInfo, saveWellnessInfo,

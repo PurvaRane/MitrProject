@@ -78,6 +78,8 @@ export const eventsAPI = {
     request(`/events${category && category !== 'All' ? `?category=${category}` : ''}`),
   create: (data) =>
     request('/events', { method: 'POST', body: JSON.stringify(data) }),
+  update: (id, data) =>
+    request(`/events/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   delete: (id) =>
     request(`/events/${id}`, { method: 'DELETE' }),
   register: (id) => request(`/events/${id}/register`, { method: 'POST' }),

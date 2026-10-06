@@ -48,11 +48,49 @@ export const createEvent = async (req, res) => {
     date: new Date(date),
     category: category || 'Workshop',
     imageUrl,
+    status: req.body.status || 'Upcoming',
+    capacity: req.body.capacity !== undefined && req.body.capacity !== '' ? Number(req.body.capacity) : null,
+    registrationRequired: Boolean(req.body.registrationRequired),
     createdBy: req.user?._id?.toString() || req.user?.id || 'admin',
   });
 
   console.log('[POST /api/events] ✅ Event saved:', event._id, event.title);
   res.status(201).json({ success: true, event });
+};
+
+// ── PUT /api/events/:id ───────────────────────────────────────────────────────
+export const updateEvent = async (req, res) => {
+  const { title, description, date, category, imageUrl: rawImage, status, capacity, registrationRequired } = req.body;
+  const event = await Event.findById(req.params.id);
+  if (!event) {
+    return res.status(404).json({ success: false, message: 'Event not found.' });
+  }
+
+  if (title !== undefined) event.title = title.trim();
+  if (description !== undefined) event.description = description?.trim() || '';
+  if (date !== undefined) event.date = new Date(date);
+  if (category !== undefined) event.category = category;
+  if (status !== undefined) event.status = status;
+  if (capacity !== undefined) event.capacity = capacity !== '' && capacity !== null ? Number(capacity) : null;
+  if (registrationRequired !== undefined) event.registrationRequired = Boolean(registrationRequired);
+
+  if (rawImage !== undefined) {
+    if (!rawImage) {
+      event.imageUrl = null;
+    } else if (rawImage.startsWith('http')) {
+      event.imageUrl = rawImage;
+    } else {
+      try {
+        event.imageUrl = await uploadImage(rawImage, 'mitr/events');
+      } catch (imgErr) {
+        console.warn('[PUT /api/events] Image upload failed:', imgErr.message);
+      }
+    }
+  }
+
+  await event.save();
+  console.log('[PUT /api/events] ✅ Updated:', event._id, event.title);
+  res.status(200).json({ success: true, event });
 };
 
 // ── DELETE /api/events/:id ────────────────────────────────────────────────────

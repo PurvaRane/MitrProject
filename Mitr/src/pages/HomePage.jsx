@@ -1,9 +1,35 @@
-import React, { useEffect, useRef, useContext } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useEffect, useRef, useContext, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { AuthContext } from '../App';
+import EventCard from '../components/EventCard';
+import { X } from 'lucide-react';
 import './HomePage.css';
 import mentalHealthIllustration from '../assets/illustrations/mental-health.png';
+import icareTeamImg from '../assets/icare-wecare-team.jpg';
+import helplinesImg from '../assets/national-helplines-guide.jpg';
+
+function isEventToday(dateStr) {
+  if (!dateStr) return false;
+  const normalized = typeof dateStr === 'string' && dateStr.length === 10 ? `${dateStr}T12:00:00` : dateStr;
+  const target = new Date(normalized);
+  const now = new Date();
+  return (
+    target.getFullYear() === now.getFullYear() &&
+    target.getMonth() === now.getMonth() &&
+    target.getDate() === now.getDate()
+  );
+}
+
+function isEventFuture(dateStr) {
+  if (!dateStr) return false;
+  const normalized = typeof dateStr === 'string' && dateStr.length === 10 ? `${dateStr}T12:00:00` : dateStr;
+  const target = new Date(normalized);
+  const now = new Date();
+  const dTarget = new Date(target.getFullYear(), target.getMonth(), target.getDate());
+  const dNow = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  return dTarget > dNow;
+}
 
 function useIntersect(ref) {
   useEffect(() => {
@@ -24,8 +50,54 @@ function AnimatedSection({ children, className = '' }) {
 }
 
 export default function HomePage() {
-  const { wellnessInfo, wellnessLoading } = useApp();
+  const {
+    wellnessInfo,
+    wellnessLoading,
+    events,
+    eventsLoading,
+    myRegistrations,
+    registerForEvent,
+    cancelEventRegistration,
+  } = useApp();
   const { user } = useContext(AuthContext);
+  const navigate = useNavigate();
+
+  const [activeModalImage, setActiveModalImage] = useState(null);
+  const [registeringId, setRegisteringId] = useState(null);
+
+  const handleRegister = async (eventId, isReg) => {
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+    setRegisteringId(eventId);
+    try {
+      if (isReg) await cancelEventRegistration(eventId);
+      else await registerForEvent(eventId);
+    } catch (err) {
+      alert(err.message || 'Action failed');
+    } finally {
+      setRegisteringId(null);
+    }
+  };
+
+  // Filter out completed and cancelled events
+  const activeEvents = (events || []).filter(
+    (e) => e.status !== 'Completed' && e.status !== 'Cancelled'
+  );
+
+  // Ongoing events: status is explicitly Ongoing OR date is today
+  const ongoingEvents = activeEvents.filter(
+    (e) => e.status === 'Ongoing' || (e.status !== 'Upcoming' ? isEventToday(e.date) : isEventToday(e.date))
+  );
+
+  // Upcoming events: status is Upcoming (and not today) OR future date and not in ongoing
+  const upcomingEvents = activeEvents.filter((e) => {
+    const isOngoing = ongoingEvents.some((o) => (o._id || o.id) === (e._id || e.id));
+    if (isOngoing) return false;
+    if (e.status === 'Upcoming') return !isEventToday(e.date);
+    return isEventFuture(e.date);
+  });
 
   const ADMIN_ROLES = ['admin', 'master_admin', 'sub_admin'];
   const dashboardPath = user
@@ -158,6 +230,192 @@ export default function HomePage() {
         </AnimatedSection>
       )}
 
+      {/* ── Section 1: Mental Health Support & Resources ── */}
+      <AnimatedSection>
+        <section className="section support-resources-section" id="support-resources">
+          <div className="container">
+            <div className="section-header" style={{ textAlign: 'center' }}>
+              <span className="section-tag">Support & Resources</span>
+              <h2 className="section-title">Mental Health Support & Resources</h2>
+              <div className="divider" style={{ margin: '0.75rem auto 1.25rem' }} />
+              <p className="section-subtitle" style={{ margin: '0 auto', maxWidth: '720px' }}>
+                Reaching out is a courageous step towards healing. Connect directly with our student peer support team or access verified 24x7 national emergency helplines.
+              </p>
+            </div>
+
+            <div className="support-resources__grid">
+              {/* Subsection A: I-Care We-Care Team */}
+              <div className="support-resource-card">
+                <div className="support-resource-card__header">
+                  <div className="support-resource-card__header-top">
+                    <span className="badge badge-lavender">COEP मित्र Peer Network</span>
+                    <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>I-Care We-Care</span>
+                  </div>
+                  <h3 className="support-resource-card__title">I-Care We-Care Team</h3>
+                  <p className="support-resource-card__desc">
+                    Our dedicated student peer coordinators and volunteers are here to listen with empathy, maintain confidentiality, and support you every step of the way.
+                  </p>
+                </div>
+                <div
+                  className="support-resource-card__img-container"
+                  onClick={() => setActiveModalImage({ src: icareTeamImg, alt: 'COEP मित्र I-Care We-Care Team' })}
+                  role="button"
+                  tabIndex={0}
+                  aria-label="View I-Care We-Care Team poster in full size"
+                  onKeyDown={(e) => { if (e.key === 'Enter') setActiveModalImage({ src: icareTeamImg, alt: 'COEP मित्र I-Care We-Care Team' }); }}
+                >
+                  <img
+                    src={icareTeamImg}
+                    alt="COEP मित्र I-Care We-Care Team poster with members and contact details"
+                    className="support-resource-card__img"
+                    loading="lazy"
+                  />
+                  <div className="support-resource-card__img-hint">
+                    <span>🔍 Click to view full team poster</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Subsection B: National Helplines & Mental Health Support Information */}
+              <div className="support-resource-card">
+                <div className="support-resource-card__header">
+                  <div className="support-resource-card__header-top">
+                    <span className="badge badge-blue">Emergency Resources</span>
+                    <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>24x7 Helplines</span>
+                  </div>
+                  <h3 className="support-resource-card__title">National Helplines & Mental Health Support</h3>
+                  <p className="support-resource-card__desc">
+                    Verified national helplines offering free, confidential, round-the-clock professional psychological and crisis intervention support across India.
+                  </p>
+                </div>
+                <div
+                  className="support-resource-card__img-container"
+                  onClick={() => setActiveModalImage({ src: helplinesImg, alt: 'COEP Mental Health Helpline Guide' })}
+                  role="button"
+                  tabIndex={0}
+                  aria-label="View National Helplines Guide in full size"
+                  onKeyDown={(e) => { if (e.key === 'Enter') setActiveModalImage({ src: helplinesImg, alt: 'COEP Mental Health Helpline Guide' }); }}
+                >
+                  <img
+                    src={helplinesImg}
+                    alt="COEP Mental Health Helpline Guide showing Tele-MANAS, iCALL, Vandrevala Foundation, Connecting Trust, and MIMH"
+                    className="support-resource-card__img"
+                    loading="lazy"
+                  />
+                  <div className="support-resource-card__img-hint">
+                    <span>🔍 Click to view full helpline guide</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </AnimatedSection>
+
+      {/* ── Section 2: Events & Activities ── */}
+      <AnimatedSection>
+        <section className="section public-events-section" id="events-activities">
+          <div className="container">
+            <div className="section-header">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: 'var(--space-md)' }}>
+                <div>
+                  <span className="section-tag">Campus Wellbeing</span>
+                  <h2 className="section-title">Events & Activities</h2>
+                  <div className="divider" />
+                  <p className="section-subtitle">
+                    Workshops, awareness sessions, and peer-led Wellbeing gatherings organised for the COEP campus community.
+                  </p>
+                </div>
+                {user ? (
+                  <Link to="/events" className="btn btn-secondary btn-sm">
+                    View All in Calendar →
+                  </Link>
+                ) : (
+                  <Link to="/login" className="btn btn-secondary btn-sm">
+                    Sign in to Participate →
+                  </Link>
+                )}
+              </div>
+            </div>
+
+            {eventsLoading ? (
+              <div className="public-events__empty">
+                <p>Loading events…</p>
+              </div>
+            ) : (
+              <div className="public-events__subsections">
+                {/* 1. Ongoing Events */}
+                <div className="public-events__group">
+                  <div className="public-events__group-header">
+                    <div className="public-events__group-title-row">
+                      <span className="public-events__pulse-dot" />
+                      <h3 className="public-events__group-title">Ongoing Events</h3>
+                    </div>
+                    <span className="badge badge-mint">
+                      {ongoingEvents.length} {ongoingEvents.length === 1 ? 'event' : 'events'}
+                    </span>
+                  </div>
+
+                  {ongoingEvents.length === 0 ? (
+                    <div className="public-events__empty">
+                      <p>No ongoing events right now.</p>
+                      <span style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>
+                        Check our upcoming events below for scheduled sessions.
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="events-grid grid-responsive">
+                      {ongoingEvents.map((ev) => (
+                        <EventCard
+                          key={ev._id || ev.id}
+                          event={ev}
+                          isRegistered={myRegistrations.some((r) => r.eventId === (ev._id || ev.id))}
+                          onRegister={handleRegister}
+                          registeringId={registeringId}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* 2. Upcoming Events */}
+                <div className="public-events__group" style={{ marginTop: 'var(--space-xl)' }}>
+                  <div className="public-events__group-header">
+                    <div className="public-events__group-title-row">
+                      <h3 className="public-events__group-title">Upcoming Events</h3>
+                    </div>
+                    <span className="badge badge-blue">
+                      {upcomingEvents.length} {upcomingEvents.length === 1 ? 'event' : 'events'}
+                    </span>
+                  </div>
+
+                  {upcomingEvents.length === 0 ? (
+                    <div className="public-events__empty">
+                      <p>No upcoming events posted right now.</p>
+                      <span style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>
+                        The team will announce new sessions here soon - check back regularly.
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="events-grid grid-responsive">
+                      {upcomingEvents.map((ev) => (
+                        <EventCard
+                          key={ev._id || ev.id}
+                          event={ev}
+                          isRegistered={myRegistrations.some((r) => r.eventId === (ev._id || ev.id))}
+                          onRegister={handleRegister}
+                          registeringId={registeringId}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        </section>
+      </AnimatedSection>
+
       {/* ── Challenge Banner ── */}
       <AnimatedSection>
         <section className="section challenge-banner">
@@ -201,6 +459,23 @@ export default function HomePage() {
           </div>
         </section>
       </AnimatedSection>
+
+      {/* ── Lightbox Image Modal ── */}
+      {activeModalImage && (
+        <div className="support-lightbox-overlay" onClick={() => setActiveModalImage(null)}>
+          <div className="support-lightbox-content" onClick={(e) => e.stopPropagation()}>
+            <button
+              type="button"
+              className="support-lightbox-close"
+              onClick={() => setActiveModalImage(null)}
+              aria-label="Close image viewer"
+            >
+              <X size={20} strokeWidth={2.5} />
+            </button>
+            <img src={activeModalImage.src} alt={activeModalImage.alt} className="support-lightbox-img" />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

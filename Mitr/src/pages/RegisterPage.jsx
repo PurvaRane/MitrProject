@@ -14,8 +14,8 @@ const BRANCHES = [
   'Instrumentation and Control Engineering',
   'Metallurgy and Materials Technology',
   'Manufacturing Science and Engineering',
-  'AI/ML',
-  'AI/DS'
+  'Robotics and AI',
+  'Planning'
 ];
 
 const DEPARTMENTS = [
@@ -30,6 +30,7 @@ const DEPARTMENTS = [
   'AI / Data Science',
   'Applied Sciences & Humanities',
   'Department of Management',
+  'Planning Department',
 ];
 
 export default function RegisterPage() {

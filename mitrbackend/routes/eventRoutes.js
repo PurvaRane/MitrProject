@@ -2,6 +2,7 @@ import express from 'express';
 import {
   getEvents,
   createEvent,
+  updateEvent,
   deleteEvent,
   registerForEvent,
   cancelRegistration,
@@ -12,8 +13,9 @@ import { protect, adminOnly } from '../middleware/auth.js';
 
 const router = express.Router();
 
-// GET  /api/events       — any authenticated user (students see events)
+// GET  /api/events       — public (students and visitors see events)
 // POST /api/events       — admin only
+// PUT  /api/events/:id   — admin only
 // DELETE /api/events/:id — admin only
 
 // GET  /api/events/my-registrations
@@ -21,9 +23,10 @@ const router = express.Router();
 // POST /api/events/:id/register      — student
 // DELETE /api/events/:id/register    — student
 
-router.get('/', protect, getEvents);
+router.get('/', getEvents);
 router.get('/my-registrations', protect, getMyRegistrations);
 router.post('/', protect, adminOnly, createEvent);
+router.put('/:id', protect, adminOnly, updateEvent);
 router.delete('/:id', protect, adminOnly, deleteEvent);
 
 router.post('/:id/register', protect, registerForEvent);

@@ -1,36 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
+import EventCard from '../components/EventCard';
 import './EventsPage.css';
-import { AlertOctagon, CalendarDays } from 'lucide-react';
+import { AlertOctagon } from 'lucide-react';
 
 const FILTERS = ['All', 'Workshop', 'Awareness', 'Challenge', 'Seminar', 'Other'];
-
-function formatDate(dateStr) {
-  if (!dateStr) return '';
-  const normalized = typeof dateStr === 'string' && dateStr.length === 10 ? `${dateStr}T12:00:00` : dateStr;
-  return new Date(normalized).toLocaleDateString('en-GB', {
-    day: 'numeric', month: 'short', year: 'numeric',
-  });
-}
-
-function getDaysUntil(dateStr) {
-  if (!dateStr) return 0;
-  const normalized = typeof dateStr === 'string' && dateStr.length === 10 ? `${dateStr}T12:00:00` : dateStr;
-  const target = new Date(normalized);
-  const now = new Date();
-  const dTarget = new Date(target.getFullYear(), target.getMonth(), target.getDate());
-  const dNow = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const diff = dTarget - dNow;
-  return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
-}
-
-const CATEGORY_BADGE = {
-  Workshop:  'badge-blue',
-  Awareness: 'badge-lavender',
-  Challenge: 'badge-mint',
-  Seminar:   'badge-peach',
-  Other:     'badge-mint',
-};
 
 export default function EventsPage() {
   const { events, eventsLoading, fetchEvents, myRegistrations, registerForEvent, cancelEventRegistration } = useApp();
@@ -119,58 +93,15 @@ export default function EventsPage() {
           </div>
         ) : (
           <div className="events-grid grid-responsive">
-            {filtered.map((ev) => {
-              const days  = getDaysUntil(ev.date);
-              const badge = CATEGORY_BADGE[ev.category] || 'badge-blue';
-              const isReg = myRegistrations.some(r => r.eventId === (ev._id || ev.id));
-
-              return (
-                <div key={ev._id || ev.id} className="event-card card">
-                  {(ev.imageUrl || ev.image) ? (
-                    <div className="event-card__img-wrap">
-                      <img src={ev.imageUrl || ev.image} alt={ev.title} className="event-card__img" />
-                    </div>
-                  ) : (
-                    <div className={`event-card__placeholder event-card__placeholder--${ev.category?.toLowerCase()}`} />
-                  )}
-
-                  <div className="event-card__body">
-                    <div className="event-card__top">
-                      <span className={`badge ${badge}`}>{ev.category}</span>
-                      {days === 0
-                        ? <span className="countdown-today">Today</span>
-                        : <span className="countdown-days"><strong>{days}</strong> {days === 1 ? 'day' : 'days'} away</span>
-                      }
-                    </div>
-
-                    <h3 className="event-card__title">{ev.title}</h3>
-                    {ev.description && (
-                      <p className="event-card__desc">{ev.description}</p>
-                    )}
-
-                    <div className="event-card__footer">
-                      <div className="event-card__meta">
-                        <span><CalendarDays size={20} strokeWidth={2} /> {formatDate(ev.date)}</span>
-                      </div>
-
-                      {ev.registrationRequired ? (
-                        <button
-                          className={`btn btn-sm ${isReg ? 'btn-peach' : 'btn-primary'} event-card__btn`}
-                          onClick={() => handleRegister(ev._id || ev.id, isReg)}
-                          disabled={registeringId === (ev._id || ev.id)}
-                        >
-                          {registeringId === (ev._id || ev.id) ? '...' : isReg ? 'Cancel Registration' : 'Register Interest'}
-                        </button>
-                      ) : (
-                        <span className="badge badge-lavender" style={{ alignSelf: 'flex-start', padding: '0.35rem 0.85rem' }}>
-                          No Registration Required
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
+            {filtered.map((ev) => (
+              <EventCard
+                key={ev._id || ev.id}
+                event={ev}
+                isRegistered={myRegistrations.some(r => r.eventId === (ev._id || ev.id))}
+                onRegister={handleRegister}
+                registeringId={registeringId}
+              />
+            ))}
           </div>
         )}
       </section>

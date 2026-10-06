@@ -40,6 +40,7 @@ const DEPARTMENTS = [
   'AI / Data Science',
   'Applied Sciences & Humanities',
   'Department of Management',
+  'Planning Department',
 ];
 
 // ── Past Event Modal (reused) ───────────────────────────────────────────────

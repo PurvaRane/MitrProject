@@ -17,6 +17,7 @@ const DEPARTMENTS = [
   'AI / Data Science',
   'Applied Sciences & Humanities',
   'Department of Management',
+  'Planning Department',
 ];
 
 export default function ProfilePage() {

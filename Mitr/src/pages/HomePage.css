@@ -644,3 +644,266 @@
     padding: 0.6rem;
   }
 }
+
+/* ═══════════════════════════════════════
+   MENTAL HEALTH SUPPORT & RESOURCES SECTION
+═══════════════════════════════════════ */
+.support-resources-section {
+  background: linear-gradient(180deg, #F8FAFC 0%, #F1F5F9 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.support-resources__grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-2xl);
+  align-items: stretch;
+}
+
+.support-resource-card {
+  display: flex;
+  flex-direction: column;
+  background: var(--white);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--mitr-border);
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.05);
+  padding: var(--space-xl);
+  transition: transform var(--transition-mid), box-shadow var(--transition-mid);
+  height: 100%;
+}
+
+.support-resource-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 36px rgba(15, 23, 42, 0.09);
+}
+
+.support-resource-card__header {
+  margin-bottom: var(--space-lg);
+}
+
+.support-resource-card__header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-xs);
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+}
+
+.support-resource-card__title {
+  font-family: var(--font-heading);
+  font-size: 1.35rem;
+  color: var(--text-primary);
+  margin-top: var(--space-xs);
+  margin-bottom: var(--space-xs);
+}
+
+.support-resource-card__desc {
+  font-size: 0.925rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.support-resource-card__img-container {
+  position: relative;
+  background: linear-gradient(135deg, rgba(241, 245, 249, 0.7) 0%, rgba(237, 233, 254, 0.4) 100%);
+  border-radius: var(--radius-lg);
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  padding: var(--space-md);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: zoom-in;
+  overflow: hidden;
+  margin-top: auto;
+  transition: border-color var(--transition-mid);
+}
+
+.support-resource-card__img-container:hover {
+  border-color: var(--blue-mid);
+}
+
+.support-resource-card__img {
+  width: 100%;
+  height: auto;
+  max-height: 540px;
+  object-fit: contain;
+  border-radius: var(--radius-md);
+  display: block;
+  transition: transform var(--transition-mid);
+}
+
+.support-resource-card__img-container:hover .support-resource-card__img {
+  transform: scale(1.015);
+}
+
+.support-resource-card__img-hint {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: var(--space-sm);
+  font-size: 0.8125rem;
+  color: var(--blue-deep);
+  font-weight: 500;
+  background: rgba(255, 255, 255, 0.85);
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+}
+
+/* Lightbox Modal */
+.support-lightbox-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.8);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-md);
+  animation: fadeIn 0.2s ease-out;
+}
+
+.support-lightbox-content {
+  position: relative;
+  max-width: 90vw;
+  max-height: 90vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+}
+
+.support-lightbox-img {
+  max-width: 100%;
+  max-height: 88vh;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  border-radius: var(--radius-lg);
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.4);
+}
+
+.support-lightbox-close {
+  position: absolute;
+  top: -16px;
+  right: -16px;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--white);
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-primary);
+  cursor: pointer;
+  z-index: 10;
+  transition: transform var(--transition-fast), background var(--transition-fast);
+}
+
+.support-lightbox-close:hover {
+  transform: scale(1.1);
+  background: #f1f5f9;
+}
+
+/* ═══════════════════════════════════════
+   PUBLIC EVENTS & ACTIVITIES SECTION
+═══════════════════════════════════════ */
+.public-events-section {
+  background: var(--off-white);
+  position: relative;
+}
+
+.public-events__subsections {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2xl);
+}
+
+.public-events__group-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-lg);
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  padding-bottom: var(--space-sm);
+  border-bottom: 2px solid rgba(226, 232, 240, 0.8);
+}
+
+.public-events__group-title-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.public-events__group-title {
+  font-family: var(--font-heading);
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.public-events__pulse-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--mint-deep, #10b981);
+  box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.6);
+  animation: pulseDot 2s infinite;
+  display: inline-block;
+}
+
+@keyframes pulseDot {
+  0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+  70% { box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+
+.public-events__empty {
+  text-align: center;
+  padding: var(--space-xl) var(--space-lg);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+  border: 1px dashed rgba(203, 213, 225, 0.9);
+  color: var(--text-secondary);
+}
+
+.public-events__empty p {
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 900px) {
+  .support-resources__grid {
+    grid-template-columns: 1fr;
+    gap: var(--space-xl);
+  }
+}
+
+@media (max-width: 600px) {
+  .support-resource-card {
+    padding: var(--space-lg);
+  }
+
+  .support-resource-card__title {
+    font-size: 1.2rem;
+  }
+
+  .support-lightbox-close {
+    top: -12px;
+    right: -12px;
+    width: 32px;
+    height: 32px;
+  }
+}

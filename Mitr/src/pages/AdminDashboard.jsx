@@ -80,8 +80,8 @@ function OverviewTab({ setTab }) {
 
 // ── Events Tab ────────────────────────────────────────────────────────────────
 function EventsTab() {
-  const { events, eventsLoading, addEvent, removeEvent } = useApp();
-  const [form, setForm] = useState({ title: '', description: '', date: '', category: 'Workshop', imageUrl: '', capacity: '', registrationRequired: false });
+  const { events, eventsLoading, addEvent, updateEvent, removeEvent } = useApp();
+  const [form, setForm] = useState({ title: '', description: '', date: '', category: 'Workshop', imageUrl: '', capacity: '', registrationRequired: false, status: 'Upcoming' });
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState({ msg: '', type: 'success' });
 
@@ -96,7 +96,7 @@ function EventsTab() {
     setLoading(true);
     try {
       await addEvent({ ...form, capacity: form.capacity ? parseInt(form.capacity) : null });
-      setForm({ title: '', description: '', date: '', category: 'Workshop', imageUrl: '', capacity: '', registrationRequired: false });
+      setForm({ title: '', description: '', date: '', category: 'Workshop', imageUrl: '', capacity: '', registrationRequired: false, status: 'Upcoming' });
       showToast('Event added successfully.');
     } catch (err) { showToast(err.message, 'error'); }
     finally { setLoading(false); }
@@ -106,6 +106,17 @@ function EventsTab() {
     if (!window.confirm('Delete this event?')) return;
     try { await removeEvent(id); showToast('Event deleted.'); }
     catch (err) { showToast(err.message, 'error'); }
+  };
+
+  const handleStatusChange = async (id, newStatus) => {
+    try {
+      if (updateEvent) {
+        await updateEvent(id, { status: newStatus });
+        showToast(`Event status updated to ${newStatus}.`);
+      }
+    } catch (err) {
+      showToast(err.message || 'Failed to update status', 'error');
+    }
   };
 
   return (
@@ -130,6 +141,15 @@ function EventsTab() {
               <label className="form-label">Category</label>
               <select className="form-input" value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))}>
                 {CATEGORIES.map(c => <option key={c}>{c}</option>)}
+              </select>
+            </div>
+            <div className="form-group">
+              <label className="form-label">Status</label>
+              <select className="form-input" value={form.status} onChange={e => setForm(f => ({ ...f, status: e.target.value }))}>
+                <option value="Upcoming">Upcoming</option>
+                <option value="Ongoing">Ongoing</option>
+                <option value="Completed">Completed</option>
+                <option value="Cancelled">Cancelled</option>
               </select>
             </div>
             <div className="form-group">
@@ -166,15 +186,32 @@ function EventsTab() {
                   <div className="admin-event-item__title">{ev.title}</div>
                   <div className="admin-event-item__meta">
                     <span className="badge badge-blue">{ev.category}</span>
+                    <span className={`badge badge-${ev.status === 'Ongoing' ? 'mint' : ev.status === 'Completed' ? 'peach' : 'lavender'}`}>
+                      {ev.status || 'Upcoming'}
+                    </span>
                     <span>{formatDate(ev.date)}</span>
                   </div>
                   {ev.description && <div className="admin-event-item__desc">{ev.description.slice(0, 80)}{ev.description.length > 80 ? '…' : ''}</div>}
-                  {ev.registrationRequired && (
-                    <div className="admin-event-item__meta" style={{ marginTop: '8px' }}>
+                  <div className="admin-event-item__meta" style={{ marginTop: '8px', alignItems: 'center' }}>
+                    {ev.registrationRequired && (
                       <span className="badge badge-lavender">Reg: Required</span>
-                      {ev.capacity && <span className="badge badge-peach">Cap: {ev.capacity}</span>}
+                    )}
+                    {ev.capacity && <span className="badge badge-peach">Cap: {ev.capacity}</span>}
+                    <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Status:</span>
+                      <select
+                        className="form-input"
+                        style={{ fontSize: '0.75rem', padding: '2px 8px', height: 'auto', width: 'auto' }}
+                        value={ev.status || 'Upcoming'}
+                        onChange={(e) => handleStatusChange(ev._id || ev.id, e.target.value)}
+                      >
+                        <option value="Upcoming">Upcoming</option>
+                        <option value="Ongoing">Ongoing</option>
+                        <option value="Completed">Completed</option>
+                        <option value="Cancelled">Cancelled</option>
+                      </select>
                     </div>
-                  )}
+                  </div>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   <button className="admin-delete-btn" onClick={() => handleDelete(ev._id || ev.id)} title="Delete"><X size={16} strokeWidth={2} /></button>
